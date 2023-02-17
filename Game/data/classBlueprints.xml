@@ -1,0 +1,34 @@
+<!-- Template player class, containing default values -->
+<classBlueprint name="EMPTY">
+	<maxHealth>100</maxHealth>
+	<maxMana>0</maxMana>
+	<turnManaRegen>0</turnManaRegen>
+	<battleManaRegen>0</battleManaRegen>
+	<poisonResist>0.1</poisonResist>
+	<bleedResist>0.1</bleedResist>
+	<constRegen>0</constRegen>
+	<battleRegen>0</battleRegen>
+	<weapons count="0" projectiles="0"> <!-- Count is number of slots, projectiles is starting projectiles -->
+		<weapon>EMPTY</weapon> <!-- Starting weapons, if fewer are given than there are slots, remaining slots will be empty -->
+	</weapons>
+	<spells count="0">
+		<spell>EMPTY</spell>
+	</spells>
+	<flatArmour>0</flatArmour>
+	<propArmour>0.0</propArmour>
+	<flatMagicArmour>0</flatMagicArmour>
+	<propMagicArmour>0.0</propMagicArmour>
+	<helmet>EMPTY</helmet>
+	<chestplate>EMPTY</chestplate>
+	<greaves>EMPTY</greaves>
+	<boots>EMPTY</boots>
+	<flatDamageModifier>0</flatDamageModifier>
+	<propDamageModifier>0.0</propDamageModifier>
+	<flatMagicDamageModifier>0</flatMagicDamageModifier>
+	<propMagicDamageModifier>0.0</propMagicDamageModifier>
+	<flatArmourPiercingDamageModifier>0</flatArmourPiercingDamageModifier>
+	<propArmourPiercingDamageModifier>0.0</propArmourPiercingDamageModifier>
+	<evadeChance>0.1</evadeChance>
+	<counterAttackChance>0.1</counterAttackChance>
+	<bonusActions>1</bonusActions>
+</classBlueprint>

@@ -1485,7 +1485,7 @@ bool enemy::chooseSpell(unsigned char type, unsigned char* selection, unsigned c
 	if (possibleSpells.empty()) { //No possible spells
 		return false;
 	}
-	int possibleNumber = possibleSpells.size() - 1;
+	unsigned char possibleNumber = static_cast<unsigned char>(possibleSpells.size() - 1);
 	*selection = possibleSpells[rng(0, possibleNumber)]; //Pick a random possible spell
 	return true;
 }
@@ -1507,7 +1507,7 @@ unsigned char enemy::chooseWeapon(unsigned char* selection1, unsigned char* sele
 	if (possibleWeapons.empty()) {
 		return 0;
 	}
-	short possibleNumber = possibleWeapons.size() - 1;
+	short possibleNumber = static_cast<short>(possibleWeapons.size() - 1);
 	*selection1 = possibleWeapons[rng(0, possibleNumber)];
 	if (weapons[*selection1].getDualWield()) { //If the weapon allows dual wielding, look for a second weapon to use with it
 		possibleWeapons.resize(0);
@@ -1519,7 +1519,7 @@ unsigned char enemy::chooseWeapon(unsigned char* selection1, unsigned char* sele
 		if (possibleWeapons.empty()) { //Nothing to dual wield with it
 			return 1;
 		}
-		possibleNumber = possibleWeapons.size() - 1;
+		possibleNumber = static_cast<short>(possibleWeapons.size() - 1);
 		*selection2 = possibleWeapons[rng(0, possibleNumber)];
 		return 3;
 	}
@@ -1540,7 +1540,7 @@ bool enemy::chooseWeaponCounterSpell(unsigned char* selection, bool firstTurn) {
 	if (possibleSpells.empty()) {
 		return false;
 	}
-	short possibleNumber = possibleSpells.size() - 1;
+	short possibleNumber = static_cast<short>(possibleSpells.size() - 1);
 	*selection = possibleSpells[rng(0, possibleNumber)];
 	return true;
 }
@@ -1559,7 +1559,7 @@ bool enemy::chooseSpellCounterSpell(unsigned char* selection, bool firstTurn) {
 	if (possibleSpells.empty()) {
 		return false;
 	}
-	short possibleNumber = possibleSpells.size() - 1;
+	short possibleNumber = static_cast<short>(possibleSpells.size() - 1);
 	*selection = possibleSpells[rng(0, possibleNumber)];
 	return true;
 }
@@ -1585,7 +1585,7 @@ unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* sele
 	if (possibleAttacks.empty()) {
 		return 0;
 	}
-	short possibleNumber = possibleAttacks.size() - 1;
+	short possibleNumber = static_cast<short>(possibleAttacks.size() - 1);
 	slot = possibleAttacks[rng(0, possibleNumber)];
 	if (slot > 0) { //Weapon
 		*selection1 = static_cast<unsigned char>(slot - 1);
@@ -1599,8 +1599,8 @@ unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* sele
 			if (possibleAttacks.empty()) { //Nothing to dual wield with it
 				return 1;
 			}
-			possibleNumber = possibleAttacks.size() - 1;
-			*selection2 = possibleAttacks[rng(0, possibleNumber)];
+			possibleNumber = static_cast<short>(possibleAttacks.size() - 1);
+			*selection2 = static_cast<unsigned char>(possibleAttacks[rng(0, possibleNumber)]);
 			return 3;
 		}
 		return 1;

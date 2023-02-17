@@ -605,13 +605,14 @@ void player::equip(weapon* w) {
 			if (slot == 0) {
 				return;
 			}
+			slot--;
 			cout << "Currently equipped:\n";
-			getWeapon(slot - 1)->displayStats();
+			getWeapon(slot)->displayStats();
 			cout << "New weapon:\n";
 			w->displayStats();
 			cout << "To equip the weapon in this slot, enter 1.\nTo choose a different slot, enter 2.\n";
 			if (userChoice(1, 2) == 1) {
-				weapons[slot - 1] = *w;
+				weapons[slot] = *w;
 				return;
 			}
 		}
@@ -651,13 +652,14 @@ void player::equip(spell* s) {
 			if (slot == 0) {
 				return;
 			}
+			slot--;
 			cout << "Currently equipped:\n";
-			getSpell(slot - 1)->displayStats();
+			getSpell(slot)->displayStats();
 			cout << "New spell:\n";
 			s->displayStats();
 			cout << "To equip the spell in this slot, enter 1.\nTo choose a different slot, enter 2.\n";
 			if (userChoice(1, 2) == 1) {
-				spells[slot - 1] = *s;
+				spells[slot] = *s;
 				return;
 			}
 		}

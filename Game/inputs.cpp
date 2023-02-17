@@ -22,8 +22,8 @@ void clearSpace(std::string* in) {
 	}
 }
 
-void ignoreLine(std::istream* stream) {
-	stream->ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //Clear input buffer
+void ignoreLine(std::istream* stream, char end) {
+	stream->ignore(std::numeric_limits<std::streamsize>::max(), end); //Clear input buffer
 }
 
 std::string getTag(std::istream* stream) {
@@ -33,6 +33,39 @@ std::string getTag(std::istream* stream) {
 		throw 1;
 	}
 	stream->ignore(1);
+	//Check if it's a comment and if so, ignore it
+	if (stream->peek() == '!') {
+		out += stream->get();
+		if (stream->peek() == '-') {
+			out += stream->get();
+			if (stream->peek() == '-') {
+				out += stream->get();
+				//We are now in a comment
+				if (stream->peek() == '-') { //Check for first character being a -
+					stream->ignore(1);
+					if (stream->peek() == '-') { //Check for empty comment
+						stream->ignore(1);
+						if (stream->peek() != '>') {
+							throw 1;
+						}
+						stream->ignore(1);
+						return getTag(stream); //Reached end of comment, so now get the next
+					}
+				}
+				while (stream->peek() != '-') { //Ignore until it finds --, the end of the comment
+					ignoreLine(stream, '-');
+					if (stream->eof()) {
+						throw 1;
+					}
+				}
+				if (stream->peek() != '>') {
+					throw 1;
+				}
+				stream->ignore(1); //Now at end of comment
+				return getTag(stream);
+			}
+		}
+	}
 	getline(*stream, out, '>');
 	if (stream->eof()) {
 		throw 1;

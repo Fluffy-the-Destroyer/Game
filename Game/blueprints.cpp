@@ -15,6 +15,9 @@ using namespace std;
 unsigned char blueprintListSelector(string* blueprint, bool custom) {
 	ifstream blueprintLists;
 	try {
+		if (blueprint->empty()) {
+			throw 1;
+		}
 		if (*blueprint == "EMPTY") {
 			throw 3;
 		}

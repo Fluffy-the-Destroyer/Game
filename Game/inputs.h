@@ -5,7 +5,7 @@
 void clearSpace(std::istream* stream);
 void clearSpace(std::string* in);
 
-void ignoreLine(std::istream* stream);
+void ignoreLine(std::istream* stream, char end = '\n');
 
 std::string getTag(std::istream* stream);
 

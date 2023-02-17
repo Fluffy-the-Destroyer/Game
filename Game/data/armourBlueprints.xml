@@ -1,12 +1,26 @@
-<armourHeadBlueprint name="TEST">
-	<maxHealthModifier>1</maxHealthModifier>
-	<maxManaModifier>2</maxManaModifier>
-	<turnManaRegenModifier>3</turnManaRegenModifier>
-	<battleManaRegenModifier>4</battleManaRegenModifier>
-	<constRegenModifier>5</constRegenModifier>
-	<battleRegenModifier>6</battleRegenModifier>
-	<flatArmourModifier>7</flatArmourModifier>
-	<propArmourModifier>3.5</propArmourModifier>
-	<flatDamageModifier>8</flatDamageModifier>
-	<propDamageModifier>-9.6</propDamageModifier>
+<armourHeadBlueprint name="EMPTY"> <!--Template blueprint, any tag which is not present in a blueprint will default to the value in this one. The blueprint name is used by the game to identify it-->
+	<name></name> <!--The name as it appears in game-->
+	<description></description> <!--The description in game-->
+	<!-- Modifiers -->
+	<maxHealthModifier>0</maxHealthModifier> <!--Max health-->
+	<maxManaModifier>0</maxManaModifier> <!--Max mana-->
+	<turnManaRegenModifier>0</turnManaRegenModifier> <!--Mana regenerated per turn-->
+	<battleManaRegenModifier>0</battleManaRegenModifier> <!--Mana regenerated at end of battle -->
+	<constRegenModifier>0</constRegenModifier> <!--Health regenerated per turn-->
+	<battleRegenModifier>0</battleRegenModifier> <!--Health regen after battle-->
+	<flatArmourModifier>0</flatArmourModifier> <!--Physical armour-->
+	<propArmourModifier>0</propArmourModifier> <!--Proportional physical damage reduction, this is the increase-->
+	<flatMagicArmourModifier>0</flatMagicArmourModifier> <!--Magic armour-->
+	<propMagicArmourModifier>0</propMagicArmourModifier> <!--Proportional magic armour-->
+	<flatDamageModifier>0</flatDamageModifier> <!--Modifier for outgoing physical damage-->
+	<propDamageModifier>0</propDamageModifier> <!--Proportional physical damage modifier-->
+	<flatMagicDamageModifier>0</flatMagicDamageModifier> <!--Outgoing magic damage-->
+	<propMagicDamageModifier>0</propMagicDamageModifier> <!--proportional magic damage-->
+	<flatArmourPiercingDamageModifier>0</flatArmourPiercingDamageModifier> <!--AP damage-->
+	<propArmourPiercingDamageModifier>0</propArmourPiercingDamageModifier> <!--Proportional AP damage-->
+	<evadeChanceModifier>0</evadeChanceModifier> <!--Evade chance, this is proportional-->
+	<poisonResistModifier>0</poisonResistModifier> <!--Poison resist-->
+	<bleedResistModifier>0</bleedResistModifier> <!--Bleed resist-->
+	<counterAttackChanceModifier>0</counterAttackChanceModifier> <!--Counter attack chance-->
+	<bonusActionsModifier>0</bonusActionsModifier><!--Number of bonus actions each turn-->
 </armourHeadBlueprint>

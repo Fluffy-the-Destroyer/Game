@@ -155,6 +155,16 @@
     <ClInclude Include="spells.h" />
     <ClInclude Include="weapons.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Xml Include="data\armourBlueprints.xml" />
+    <Xml Include="data\blueprintLists.xml" />
+    <Xml Include="data\classBlueprints.xml" />
+    <Xml Include="data\enemyBlueprints.xml" />
+    <Xml Include="data\events.xml" />
+    <Xml Include="data\misc.xml" />
+    <Xml Include="data\spellBlueprints.xml" />
+    <Xml Include="data\weaponBlueprints.xml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
