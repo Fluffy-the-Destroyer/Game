@@ -1,0 +1,15 @@
+<var name="varName">= 7</var>
+<text>Hello</text>
+<event load="TEST"/>
+<if cond="v_varName == 7">
+	<text>Hello again</text>
+<else/>
+	<if cond="true">
+		<defeat/>
+	</if>
+</if>
+<save/>
+<while cond="v_varName_2 &lt 10">
+	<var name="varName_2">++</var>
+</while>
+<victory/>

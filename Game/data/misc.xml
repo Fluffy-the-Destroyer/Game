@@ -1,0 +1,9 @@
+<resourceBlueprint name="PROJECTILE">
+	<singular>arrow</singular>
+	<plural>arrows</plural>
+</resourceBlueprint>
+
+<resourceBlueprint name="MANA">
+	<singular>mana</singular>
+	<plural>mana</plural>
+</resourceBlueprint>

@@ -1,0 +1,30 @@
+<event name="TEST">
+	<preBattleText>This will display before the battle</preBattleText>
+	<preBattleSpell>EMPTY</preBattleSpell>
+	<enemyBlueprint>EMPTY</enemyBlueprint>
+	<postBattleText>This will display after the battle</postBattleText>
+	<postBattleSpell>EMPTY</postBattleSpell>
+	<reward>EMPTY</reward>
+	<varChanges>
+		<var name="varName">8</var>
+		<var name="varName_2">8</var>
+		<var name="varName">-7</var>
+	</varChanges>
+	<choice>
+		<text>This will be what the choice says</text>
+		<damage>0</damage>
+		<manaChange>0</manaChange>
+		<projectileChange>0</projectileChange>
+		<req>v_varName &gt 5</req>
+		<hidden/>
+		<eventName>EMPTY</eventName>
+	</choice>
+	<choice>
+		<text>This will be what the choice says</text>
+		<damage>0</damage>
+		<manaChange>0</manaChange>
+		<projectileChange>0</projectileChange>
+		<hidden/>
+		<eventName>EMPTY</eventName>
+	</choice>
+</event>

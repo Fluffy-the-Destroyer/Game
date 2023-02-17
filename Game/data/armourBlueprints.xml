@@ -1,0 +1,12 @@
+<armourHeadBlueprint name="TEST">
+	<maxHealthModifier>1</maxHealthModifier>
+	<maxManaModifier>2</maxManaModifier>
+	<turnManaRegenModifier>3</turnManaRegenModifier>
+	<battleManaRegenModifier>4</battleManaRegenModifier>
+	<constRegenModifier>5</constRegenModifier>
+	<battleRegenModifier>6</battleRegenModifier>
+	<flatArmourModifier>7</flatArmourModifier>
+	<propArmourModifier>3.5</propArmourModifier>
+	<flatDamageModifier>8</flatDamageModifier>
+	<propDamageModifier>-9.6</propDamageModifier>
+</armourHeadBlueprint>

@@ -1,0 +1,12 @@
+<blueprintList name="TEST">
+	<weapon>EMPTY</weapon>
+	<armourHead>TEST</armourHead>
+</blueprintList>
+
+<blueprintList name="TEST2">
+	<spell>EMPTY</spell>
+</blueprintList>
+
+<blueprintList name="TEST3">
+	<weapon>THIS_IS_JUST_A_REALLY_LONG_NAME_TO_SEE_IF_HAVING_ONE_CAUSES_PROBLEMS_DUE_TO_STALE_REFERENCES</weapon>
+</blueprintList>
