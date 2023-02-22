@@ -101,7 +101,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				if (playerCharacter->getHealth() <= 0) { //Check if player is dead
 					return 2;
 				}
-				if (opponent->chooseAction(&e_selection1, &e_selection2, 1, firstTurn) == 2) { //Ask enemy what it is doing, 2 means casting a spell
+				if (true) { //Ask enemy what it is doing, 2 means casting a spell
 					spellDeclare(opponent->getSpell(e_selection1), opponent); //Enemy casts spell
 					switch (spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter)) {
 					case 1:
@@ -121,7 +121,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					return 2;
 				}
 				if (!playerCharacter->getWeapon(p_selection1)->getNoCounterAttack()) {
-					switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, firstTurn)) {
+					switch (4) {
 					case 1:
 						weaponDeclare(opponent->getWeapon(e_selection1), opponent);
 						switch (weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true)) {

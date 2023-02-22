@@ -1,30 +1,21 @@
-<event name="TEST">
-	<preBattleText>This will display before the battle</preBattleText>
-	<preBattleSpell>EMPTY</preBattleSpell>
-	<enemyBlueprint>EMPTY</enemyBlueprint>
-	<postBattleText>This will display after the battle</postBattleText>
-	<postBattleSpell>EMPTY</postBattleSpell>
-	<reward>EMPTY</reward>
-	<varChanges>
-		<var name="varName">8</var>
-		<var name="varName_2">8</var>
-		<var name="varName">-7</var>
+<event name="EMPTY">
+	<preBattleText></preBattleText> <!--This is the text displayed before the battle-->
+	<preBattleSpell>EMPTY</preBattleSpell><!--This spell will be cast on the player before the battle, its effects will not wear off until after the battle (or the end of the event if there is no battle)-->
+	<enemyBlueprint>EMPTY</enemyBlueprint><!--The enemy to be fought. If EMPTY, there will be no fight-->
+	<postBattleText></postBattleText><!--Displayed after battle-->
+	<postBattleSpell>EMPTY</postBattleSpell><!--Cast on player after battle, only immediate effects will matter-->
+	<reward>EMPTY</reward><!--Item reward. Should have a prefix indicating type, see blueprintLists.xml-->
+	<varChanges><!--Changes to variables-->
+		<var name="varName"></var><!--Name is the variable to be modified, the value of the tag will be added to the specified variable. It will accept rng calls and existing variables (prefixed with v_)-->
 	</varChanges>
+	<!--Choices for the player to make, if there are no possible choices when the event is called, a choice with text 'Continue' will be added which terminates the event chain-->
 	<choice>
-		<text>This will be what the choice says</text>
-		<damage>0</damage>
-		<manaChange>0</manaChange>
-		<projectileChange>0</projectileChange>
-		<req>v_varName &gt 5</req>
-		<hidden/>
-		<eventName>EMPTY</eventName>
-	</choice>
-	<choice>
-		<text>This will be what the choice says</text>
-		<damage>0</damage>
-		<manaChange>0</manaChange>
-		<projectileChange>0</projectileChange>
-		<hidden/>
-		<eventName>EMPTY</eventName>
+		<text>Continue</text><!--Text displayed during choice selection-->
+		<healthChange>0</healthChange><!--Change to player's health on selecting the choice, choice will not appear if the player does not have enough health-->
+		<manaChange>0</manaChange><!--Change to player's mana, choice will not appear if player does not have enough mana-->
+		<projectileChange>0</projectileChange><!--Change to player's projectiles, choice will not appear if the player does not have enough-->
+		<req>true</req><!--condition which must be met for the choice to appear, will be evaluated as a boolean condition, as in scripting-->
+		<hidden/><!--If this tag is present, health/mana/projectile changes will not be visible. Further, the choice will appear even if the player cannot afford it, selecting it will simply take all of the appropriate resource-->
+		<eventName>EMPTY</eventName><!--The event which should be loaded upon picking this choice-->
 	</choice>
 </event>

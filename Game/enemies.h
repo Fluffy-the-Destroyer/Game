@@ -59,6 +59,8 @@ private:
 	signed char bonusActions = 1;
 	signed char currentBonusActions = 0;
 	unsigned char AIType = 2; //What sort of AI it has. See top of file
+	std::vector<std::string> noCounterWeapons; //Weapons the enemy knows cannot be countered
+	std::vector<std::string> noCounterSpells; //Spells the enemy knows cannot be countered
 public:
 	void removeAllHealth() { health = 0; }
 	short flatDamage(short d, char t = 1);
@@ -128,8 +130,8 @@ public:
 	std::string getIntroduction() { return introduction; }
 	//Load from file
 	void loadFromFile(std::string blueprint, bool custom = g_useCustomData);
-	//Decides what action the enemy should take. Returns 0 for no action, 1 for a weapon, 2 for a spell. Returns 3 for dual weapon attack. Sets the value of 'slot' to the slot it has chosen. Timing 0 is normal, 1 is in response to weapon attack, 2 is in response to spell cast, 3 is counter attack
-	unsigned char chooseAction(unsigned char* slot1, unsigned char*slot2, unsigned char timing = 0, bool firstTurn = false);
+	//Decides what action the enemy should take. Returns 0 for no action, 1 for a weapon, 2 for a spell. Returns 3 for dual weapon attack. Sets the value of 'slot' to the slot it has chosen. Timing 0 is normal, 1 is in response to weapon attack, 2 is in response to spell cast, 3 is counter attack, 4 is in response to dual weapon attack. itemName is the name of the weapon/spell being responded to
+	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "", bool firstTurn = false);
 	//Checks if enemy can afford to use weapon or spell, then if kamikaze is false, checks it would not lead to suicide. Type true indicates spell, false indicates weapon. If specified weapon or spell is out of range or not real, returns false. Timing specifies the spell cast timing
 	bool check(bool type, unsigned char slot, unsigned char timing = 0, bool kamikaze = false, bool firstTurn = false);
 	//Simulates a turn of poison/bleed/regeneration
@@ -152,4 +154,8 @@ public:
 	bool attackCheck();
 	//Checks if two weapons can be dual wielded
 	bool check(unsigned char weapon1, unsigned char weapon2, unsigned char timing = 0, bool kamikaze = false, bool firstTurn = false);
+	//Adds weapon/spell name to the list of weapons/spells which cannot be countered. Type 1 is a weapon, 2 a spell
+	void addNoCounter(unsigned char type, std::string itemName);
+	//Checks if the weapon/spell can be countered (by the enemy's knowledge)
+	bool checkCounter(unsigned char type, std::string itemName);
 };

@@ -18,16 +18,8 @@ bool g_useCustomData = false; //Are we using custom stuff
 
 int main() {
 	
-	ifstream code("data\\language stuff.xml");
-	player playerCharacter;
-	unsigned char i = 0;
-	while (i == 0) {
-		i = doLine(&code, &playerCharacter);
-		if (i == 5) {
-			save(&code, &playerCharacter, "filePath", '1');
-			i = 0;
-		}
-	}
+	vector<short> choices(1, 0);
+	choices.resize(1);
 
 	return 0;
 }

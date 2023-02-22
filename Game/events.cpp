@@ -30,7 +30,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 	choices.resize(0);
 	varChanges.reset();
 	ifstream events;
-	string buffer = "";
+	string buffer = "", buffer2="";
 	try {
 		if (blueprint == "EMPTY") {
 			throw 3;
@@ -142,7 +142,10 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						if (buffer.empty()) {
 							throw 1;
 						}
-						events >> varBuffer;
+						clearSpace(&events);
+						getline(events, buffer2, '<');
+						events.seekg(-1, ios_base::cur);
+						varBuffer = numFromString(&buffer2);
 						*varChanges.value(buffer) += varBuffer;
 						if (getTag(&events) != "/var") {
 							throw 1;

@@ -1,0 +1,46 @@
+<!--//Enemy AI types:
+// All weapons are considered attacking, also enemies will always use specified initial spell (as long as they can afford it, and even if it kills them)
+// 0: Does nothing, should not happen
+// Types which use weapons and spells
+// 1: Aggressive, rarely heals, attacks 75% of the time
+// 2: Balanced, sometimes heals, attacks half the time
+// 3: Defensive, heals more often, attacks 25% of the time
+// Mage classes, will only use weapons if they have no available spells, or if all available spells would kill them, if all available actions would kill them, prefers spells
+// 4: Aggressive
+// 5: Balanced
+// 6: Defensive
+//
+// 7: Beserker, never casts spells-->
+
+<enemyBlueprint name="EMPTY">
+	<name></name> <!--In game name of the enemy-->
+	<introduction></introduction> <!--Introduction of the enemy, displayed in an event before the battle-->
+	<maxHealth>0</maxHealth>
+	<maxMana>0</maxMana>
+	<turnManaRegen>0</turnManaRegen>
+	<poisonResist>0.1</poisonResist>
+	<bleedResist>0.1</bleedResist>
+	<constRegen>0</constRegen>
+	<weapons projectiles="0"> <!--projectiles is starting number of projectiles. Enemy can have up to 256 weapons, any beyond this number will be ignored-->
+		<weapon>EMPTY</weapon>
+	</weapons>
+	<spells><!--Also limited to 256 spells-->
+		<spell>EMPTY</spell>
+		<spell initial="true">TURN_1_SPELL</spell><!--initial="true" indicates the enemy should use this spell on turn 1. If multiple spells have this, only the last one will count-->
+	</spells>
+	<deathSpell>EMPTY</deathSpell><!--Enemy will cast this spell on the player when killed, ignoring costs and timing restrictions. Will never be cast otherwise. EMPTY indicates no death spell-->
+	<flatArmour>0</flatArmour>
+	<propArmour>0.0</propArmour>
+	<flatMagicArmour>0</flatMagicArmour>
+	<propMagicArmour>0.0</propMagicArmour>
+	<flatDamageModifier>0</flatDamageModifier>
+	<propDamageModifier>0.0</propDamageModifier>
+	<flatMagicDamageModifier>0</flatMagicDamageModifier>
+	<propMagicDamageModifier>0.0</propMagicDamageModifier>
+	<flatArmourPiercingDamageModifier>0</flatArmourPiercingDamageModifier>
+	<propArmourPiercingDamageModifier>0.0</propArmourPiercingDamageModifier>
+	<evadeChance>0.1</evadeChance>
+	<counterAttackChance>0.1</counterAttackChance>
+	<bonusActions>1</bonusActions>
+	<AIType>2</AIType> <!--See reference at top of file-->
+</enemyBlueprint>

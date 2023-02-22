@@ -1,0 +1,40 @@
+<!--For more information on weapon tags, see spellBlueprints.xml, (almost) all weapon tags can also be applied to spells and they are explained there-->
+
+<weaponBlueprint name="EMPTY">
+	<name></name>
+	<description></description>
+	<flatDamageMin>0</flatDamageMin>
+	<flatDamageMax>0</flatDamageMax>
+	<flatDamage></flatDamage>
+	<flatMagicDamageMin>0</flatMagicDamageMin>
+	<flatMagicDamageMax>0</flatMagicDamageMax>
+	<flatMagicDamage></flatMagicDamage>
+	<flatArmourPiercingDamageMin>0</flatArmourPiercingDamageMin>
+	<flatArmourPiercingDamageMax>0</flatArmourPiercingDamageMax>
+	<flatArmourPiercingDamage></flatArmourPiercingDamage>
+	<propDamage>0.0</propDamage>
+	<flatSelfDamageMin>0</flatSelfDamageMin>
+	<flatSelfDamageMax>0</flatSelfDamageMax>
+	<flatSelfDamage></flatSelfDamage>
+	<flatSelfMagicDamageMin>0</flatSelfMagicDamageMin>
+	<flatSelfMagicDamageMax>0</flatSelfMagicDamageMax>
+	<flatSelfMagicDamage></flatSelfMagicDamage>
+	<flatSelfArmourPiercingDamageMin>0</flatSelfArmourPiercingDamageMin>
+	<flatSelfArmourPiercingDamageMax>0</flatSelfArmourPiercingDamageMax>
+	<flatSelfArmourPiercingDamage></flatSelfArmourPiercingDamage>
+	<propSelfDamage>0.0</propSelfDamage>
+	<healthChange>0</healthChange>
+	<manaChange>0</manaChange>
+	<projectileChange>0</projectileChange>
+	<hitCount>1</hitCount>
+	<counterHits>0</counterHits>
+	<noEvade/><!--Defaults to false-->
+	<noCounter/><!--If present, attack cannot be countered by spells, defaults to false-->
+	<noCounterAttack/><!--If present, does not trigger counter attacks, defaults to false-->
+	<poison>0</poison><!--Unlike spells, cannot remove poison, only apply it. Same applies to bleed. Max value 255-->
+	<selfPoison>0</selfPoison>
+	<bleed>0</bleed>
+	<selfBleed>0</selfBleed>
+	<lifelink/>
+	<dualWield/><!--Two weapons with this tag can be dual wielded, they may both be used as a single action, as long as either could be used on its own. Dual wielding costs an additional bonus action-->
+</weaponBlueprint>

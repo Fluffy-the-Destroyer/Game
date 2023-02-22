@@ -272,7 +272,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					}
 					counterHits = static_cast<unsigned char>(charBuf);
 				}
-				else if (stringbuffer == "canCounter/") {
+				else if (stringbuffer == "noCounter/") {
 					noCounter = true;
 					ignoreLine(&weaponBlueprints);
 					if (!weaponBlueprints) {
@@ -548,6 +548,10 @@ void weapon::displayStats() {
 	}
 	else if (counterHits > 0) {
 		cout << "Usable for counter attacks, hits " << +counterHits << " times\n";
+	}
+	//Dual wielding
+	if (dualWield) {
+		cout << "Can be dual wielded\n";
 	}
 	//Evasion
 	if (noEvade) {

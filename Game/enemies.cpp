@@ -780,12 +780,17 @@ void enemy::turnStart() {
 	for (unsigned char i = 0; i < enemySpellSlots; i++) {
 		spells[i].decCooldown();
 	}
-	currentBonusActions = bonusActions;
+	if (bonusActions < 0) {
+		currentBonusActions = 0;
+	}
+	else {
+		currentBonusActions = bonusActions;
+	}
 }
 
 //Enemy AI
 
-unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing, bool firstTurn) {
+unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing, string itemName1, string itemName2, bool firstTurn) {
 	unsigned char selection = 0; //For holding slot selection
 	if (firstTurn && timing == 0) {
 		if (initialSpell >= 0) { //If an initial spell is set, cast if possible
@@ -902,13 +907,16 @@ unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, un
 			}
 			//Suicide
 			return chooseSuicide(slot1, slot2);
+		case 4:
 		case 1: //Responding to weapon attack
 			if (currentBonusActions <= 0) {
 				return 0;
 			}
-			if (chooseWeaponCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
-				currentBonusActions--;
-				return 2;
+			if (checkCounter(1, itemName1) || (timing == 4 && checkCounter(1, itemName2))) { //Check if can be countered
+				if (chooseWeaponCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
+					currentBonusActions--;
+					return 2;
+				}
 			}
 			//Healing check
 			if (healingCheck()) {
@@ -951,9 +959,11 @@ unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, un
 			if (currentBonusActions <= 0) {
 				return 0;
 			}
-			if (chooseSpellCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
-				currentBonusActions--;
-				return 2;
+			if (checkCounter(2, itemName1)) {
+				if (chooseSpellCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
+					currentBonusActions--;
+					return 2;
+				}
 			}
 			//Healing check
 			if (healingCheck()) {
@@ -1110,13 +1120,16 @@ unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, un
 				return 3;
 			}
 			return chooseSuicide(slot1, slot2);
+		case 4:
 		case 1: //Responding to weapon attack
 			if (currentBonusActions <= 0) {
 				return 0;
 			}
-			if (chooseWeaponCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
-				currentBonusActions--;
-				return 2;
+			if (checkCounter(1, itemName1) || (timing == 4 && checkCounter(1, itemName2))) {
+				if (chooseWeaponCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
+					currentBonusActions--;
+					return 2;
+				}
 			}
 			//Healing check
 			if (healingCheck()) {
@@ -1791,5 +1804,46 @@ bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char ti
 	projectiles = currentProjectiles;
 	poison = currentPoison;
 	bleed = currentBleed;
+	return true;
+}
+
+void enemy::addNoCounter(unsigned char type, string itemName) {
+	switch (type) {
+	case 1:
+		for (short i = 0; i < noCounterWeapons.size(); i++) {
+			if (itemName == noCounterWeapons[i]) {
+				return;
+			}
+		}
+		noCounterWeapons.push_back(itemName);
+		return;
+	case 2:
+		for (short i = 0; i < noCounterSpells.size(); i++) {
+			if (itemName == noCounterSpells[i]) {
+				return;
+			}
+		}
+		noCounterSpells.push_back(itemName);
+		return;
+	}
+}
+
+bool enemy::checkCounter(unsigned char type, string itemName) {
+	switch (type) {
+	case 1:
+		for (short i = 0; i < noCounterWeapons.size(); i++) {
+			if (itemName == noCounterWeapons[i]) {
+				return false;
+			}
+		}
+		break;
+	case 2:
+		for (short i = 0; i < noCounterSpells.size(); i++) {
+			if (itemName == noCounterSpells[i]) {
+				return false;
+			}
+		}
+		break;
+	}
 	return true;
 }

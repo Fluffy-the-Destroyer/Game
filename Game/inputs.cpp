@@ -22,8 +22,32 @@ void clearSpace(std::string* in) {
 	}
 }
 
+void ignoreLine() {
+	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
 void ignoreLine(std::istream* stream, char end) {
-	stream->ignore(std::numeric_limits<std::streamsize>::max(), end); //Clear input buffer
+	while (!stream->eof()) {
+		switch (stream->peek()) {
+		case '\n': //Reached end of line, not in a comment
+			stream->ignore(1);
+			return;
+		case '<': //Might be in a comment, check and if so, skip to end
+			stream->ignore(1);
+			if (stream->peek() == '!') {
+				stream->ignore(1);
+				if (stream->peek() == '-') {
+					stream->ignore(1);
+					if (stream->peek() == '-') {
+						stream->ignore(1);
+						endComment(stream);
+					}
+				}
+			}
+			break;
+		default:
+			stream->ignore(1);
+		}
+	}
 }
 
 std::string getTag(std::istream* stream) {
@@ -41,27 +65,7 @@ std::string getTag(std::istream* stream) {
 			if (stream->peek() == '-') {
 				out += stream->get();
 				//We are now in a comment
-				if (stream->peek() == '-') { //Check for first character being a -
-					stream->ignore(1);
-					if (stream->peek() == '-') { //Check for empty comment
-						stream->ignore(1);
-						if (stream->peek() != '>') {
-							throw 1;
-						}
-						stream->ignore(1);
-						return getTag(stream); //Reached end of comment, so now get the next
-					}
-				}
-				while (stream->peek() != '-') { //Ignore until it finds --, the end of the comment
-					ignoreLine(stream, '-');
-					if (stream->eof()) {
-						throw 1;
-					}
-				}
-				if (stream->peek() != '>') {
-					throw 1;
-				}
-				stream->ignore(1); //Now at end of comment
+				endComment(stream); //Move to end of comment
 				return getTag(stream);
 			}
 		}
@@ -71,6 +75,33 @@ std::string getTag(std::istream* stream) {
 		throw 1;
 	}
 	return out;
+}
+
+void endComment(std::istream* stream) {
+	if (stream->peek() == '-') { //Check for first character being a -
+		stream->ignore(1);
+		if (stream->peek() == '-') { //Check for empty comment
+			stream->ignore(1);
+			if (stream->peek() != '>') {
+				throw 1;
+			}
+			stream->ignore(1);
+			return;
+		}
+	}
+	while (stream->peek() != '-') { //Ignore until it finds --, the end of the comment
+		stream->ignore(std::numeric_limits<std::streamsize>::max(), '-');
+		if (stream->eof()) {
+			throw 1;
+		}
+	}
+	if (stream->peek() == '-') {
+		stream->ignore(1);
+	}
+	if (stream->peek() != '>') {
+		throw 1;
+	}
+	stream->ignore(1); //Now at end of comment
 }
 
 int numFromString(std::string* in) {
@@ -139,11 +170,34 @@ int userChoice(int lb, int ub) {
 		std::cin >> value;
 		if (value < lb || value > ub || !std::cin) {
 			std::cin.clear();
-			ignoreLine(&std::cin);
+			ignoreLine();
 			std::cout << "Value must be between " << lb << " and " << ub << ". Please re-enter:\n";
 			continue;
 		}
-		ignoreLine(&std::cin);
+		ignoreLine();
 		return value;
+	}
+}
+
+short userChoice(std::vector<short> choices) {
+	if (choices.empty()) {
+		throw 7;
+	}
+	short value = 0;
+	while (true) {
+		std::cin >> value;
+		if (!std::cin) {
+			std::cin.clear();
+			ignoreLine();
+			std::cout << "Please enter one of the specified values:\n";
+			continue;
+		}
+		for (int i = 0; i < choices.size(); i++) {
+			if (value == choices[i]) {
+				return value;
+			}
+		}
+		ignoreLine();
+		std::cout << "Please enter one of the specified values:\n";
 	}
 }

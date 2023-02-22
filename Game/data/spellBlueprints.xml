@@ -1,0 +1,104 @@
+<!-- Spell types
+	0: No type set
+	1: Attack spell
+	2: Healing spell
+	3: Support spell (not attack or healing)
+	4: Attack and healing
+	
+	Spell timing
+	0: Can only be cast during own turn
+	1: Can also be cast in response to enemy action
+	2: Can only be cast in response to enemy action
+	
+	Counterspells
+	0: Cannot counter
+	1: Can counter spells
+	2: Can counter weapons
+	3: Can counter spells and weapons
+-->
+
+<spellBlueprint name="EMPTY">
+	<name></name>
+	<description></description>
+	<flatDamageMin></flatDamageMin><!--Minimum physical damage, negatives heal-->
+	<flatDamageMax>0</flatDamageMax><!--Max physical damage-->
+	<flatDamage></flatDamage><!--Sets min and max physical damage at the same time, is overridden by specified min or max-->
+	<flatMagicDamageMin>0</flatMagicDamageMin>
+	<flatMagicDamageMax>0</flatMagicDamageMax>
+	<flatMagicDamage></flatMagicDamage>
+	<flatArmourPiercingDamageMin>0</flatArmourPiercingDamageMin>
+	<flatArmourPiercingDamageMax>0</flatArmourPiercingDamageMax>
+	<flatArmourPiercingDamage>0</flatArmourPiercingDamage>
+	<propDamage>0.0</propDamage><!--Proportional damage, damage is proportion of current health, healing is proportion of max health-->
+	<flatSelfDamageMin>0</flatSelfDamageMin>
+	<flatSelfDamageMax>0</flatSelfDamageMax>
+	<flatSelfDamage></flatSelfDamage>
+	<flatSelfMagicDamageMin>0</flatSelfMagicDamageMin>
+	<flatSelfMagicDamageMax>0</flatSelfMagicDamageMax>
+	<flatSelfMagicDamage></flatSelfMagicDamage>
+	<flatSelfArmourPiercingDamageMin>0</flatSelfArmourPiercingDamageMin>
+	<flatSelfArmourPiercingDamageMax>0</flatSelfArmourPiercingDamageMax>
+	<flatSelfArmourPiercingDamage></flatSelfArmourPiercingDamage>
+	<propSelfDamage>0.0</propSelfDamage>
+	<hitCount>1</hitCount><!--Number of hits in a normal attack, 0 means it cannot attack. Max value of 255-->
+	<counterHits>0</counterHits><!--Number of hits when counter attacking, 0 means it cannot counter attack. Max value of 255-->
+	<noEvade/><!--Cannot be evaded if this tag is present-->
+	<canCounterAttack/><!--If present, the spell triggers counter attacks, false by default-->
+	<noCounter/><!--If present, the spell cannot be countered (have its effects prevented), false by default-->
+	<manaChangeEnemy>0</manaChangeEnemy><!--Modifies target's mana-->
+	<manaChange>0</manaChange><!--Mana change on caster, applied as a cost-->
+	<projectileChange>0</projectileChange><!--Applied as a cost-->
+	<healthChange>0</healthChange><!--Applied as a cost-->
+	<poison>0</poison><!--Modifies target's poison level, negative values will remove poison-->
+	<selfPoison>0</selfPoison>
+	<bleed>0</bleed>
+	<selfBleed>0</selfBleed>
+	<tempRegen>0</tempRegen>
+	<tempRegenSelf>0</tempRegenSelf>
+	<!--Stat modifiers, each has one for the target and one for the caster. Effects on target are applied per hit, effects wear off at end of battle-->
+	<maxHealthModifierEnemy>0</maxHealthModifierEnemy>
+	<maxHealthModifier>0</maxHealthModifier>
+	<maxManaModifierEnemy>0</maxManaModifierEnemy>
+	<maxManaModifier>0</maxManaModifier>
+	<turnManaRegenModifierEnemy>0</turnManaRegenModifierEnemy>
+	<turnManaRegenModifier>0</turnManaRegenModifier>
+	<battleManaRegenModifierEnemy>0</battleManaRegenModifierEnemy>
+	<battleManaRegenModifier>0</battleManaRegenModifier>
+	<poisonResistModifierEnemy>0.0</poisonResistModifierEnemy>
+	<poisonResistModifier>0.0</poisonResistModifier>
+	<bleedResistModifierEnemy>0.0</bleedResistModifierEnemy>
+	<bleedResistModifier>0.0</bleedResistModifier>
+	<constRegenModifierEnemy>0</constRegenModifierEnemy>
+	<constRegenModifier>0</constRegenModifier>
+	<battleRegenModifierEnemy>0</battleRegenModifierEnemy>
+	<battleRegenModifier>0</battleRegenModifier>
+	<flatArmourModifierEnemy>0</flatArmourModifierEnemy>
+	<flatARmourModifier>0</flatARmourModifier>
+	<propArmourModifierEnemy>0.0</propArmourModifierEnemy>
+	<propArmourModifier>0.0</propArmourModifier>
+	<flatMagicArmourModifierEnemy>0</flatMagicArmourModifierEnemy>
+	<flatMagicArmourModifier>0</flatMagicArmourModifier>
+	<propMagicArmourModifierEnemy>0.0</propMagicArmourModifierEnemy>
+	<propMagicArmourModifier>0.0</propMagicArmourModifier>
+	<flatDamageModifierEnemy>0</flatDamageModifierEnemy>
+	<flatDamageModifier>0</flatDamageModifier>
+	<propDamageModifierEnemy>0.0</propDamageModifierEnemy>
+	<propDamageModifier>0.0</propDamageModifier>
+	<flatMagicDamageModifierEnemy>0</flatMagicDamageModifierEnemy>
+	<flatMagicDamageModifier>0</flatMagicDamageModifier>
+	<propMagicDamageModifierEnemy>0.0</propMagicDamageModifierEnemy>
+	<propMagicDamageModifier>0.0</propMagicDamageModifier>
+	<flatArmourPiercingDamageModifierEnemy>0</flatArmourPiercingDamageModifierEnemy>
+	<flatArmourPiercingDamageModifier>0</flatArmourPiercingDamageModifier>
+	<propArmourPiercingDamageModifierEnemy>0.0</propArmourPiercingDamageModifierEnemy>
+	<propArmourPiercingDamageModifier>0.0</propArmourPiercingDamageModifier>
+	<evadeChanceModifierEnemy>0.0</evadeChanceModifierEnemy>
+	<evadeChanceModifier>0</evadeChanceModifier>
+	<bonusActionModifierEnemy>0</bonusActionModifierEnemy>
+	<bonusActionModifier>0</bonusActionModifier>
+	<cooldown>1</cooldown><!--Cooldown between uses, 1 allows use once each turn, 0 allows unlimited use, max value of 255-->
+	<spellType>0</spellType><!--Used for enemy AI, see top of file. If set to 0, will be determined automatically, but the logic for doing so is basic and not intended to be relied upon-->
+	<timing>0</timing><!--When the spell can be cast, see top of file-->
+	<counterSpell>0</counterSpell><!--Can the spell counter enemy attacks (prevent their effects), see top of file-->
+	<lifelink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
+</spellBlueprint>

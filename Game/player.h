@@ -247,4 +247,6 @@ public: //Not providing set functions, as these values should not usually be set
 	//For end of battle, applies battle regens, removes status effects and recalculates modifiers
 	void reset();
 	friend void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
+	//Gets the player to choose an action. Returns 0 for no action, 1 for a weapon, 2 for a spell, 3 for dual wield. Timing 0 is normal, 1 is responding to weapon, 2 responding to spell, 3 is counter attacking. Timing 4 is responding to dual attack. itemName holds the name(s) of weapon/spell being responded to. Stores slots of selected weapon/spell in slot1 and slot2
+	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "");
 };

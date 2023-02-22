@@ -1367,7 +1367,12 @@ void player::turnStart() {
 	for (unsigned char i = 0; i < spellSlots; i++) {
 		spells[i].decCooldown();
 	}
-	currentBonusActions = bonusActions;
+	if (bonusActions < 0) {
+		currentBonusActions = 0;
+	}
+	else {
+		currentBonusActions = bonusActions;
+	}
 }
 
 void player::decBonusActions() {
@@ -1386,4 +1391,177 @@ void player::reset() {
 	cureBleed();
 	curePoison();
 	removeRegen();
+}
+
+unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing, string itemName1, string itemName2) {
+	vector<short> choices(1, 0); //For holding a list of possible choices
+	short currentHealth = health, currentMana = mana, currentProjectiles = projectiles;
+	while (true) {
+		cout << "Health: " << health << '/' << maxHealth << ' ' << g_manaName.Plural() << ": " << mana << '/' << maxMana << ' ' << g_projName.Plural() << ": " << projectiles << ' ' << "Bonus Actions: " << +currentBonusActions << ' ';
+		if (poison > 0) {
+			cout << "Poison: " << +poison << ' ';
+		}
+		if (bleed > 0) {
+			cout << "Bleed: " << +bleed << ' ';
+		}
+		if (tempRegen > 0) {
+			cout << "Regeneration: " << +tempRegen;
+		}
+		cout << '\n';
+		switch (timing) {
+		case 0:
+			cout << "To view your inventory, enter 0.\nTo attack with a weapon, enter 1.\nTo cast a spell, enter 2.\nTo do nothing, enter -1.\n";
+			switch (userChoice(-1, 2)) {
+			case -1:
+				return 0;
+			case 0:
+				showInventory();
+				break;
+			case 1:
+				if (weaponSlots == 0) {
+					cout << "No weapon slots!\n";
+					break;
+				}
+				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < weaponSlots; i++) {
+					cout << i + 1 << ": ";
+					weapons[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, weaponSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!weapons[*slot1].getReal()) {
+					cout << "Cannot attack with empty slot!\n";
+					break;
+				}
+				if (weapons[*slot1].getHealthChange() < -health) { //Check can afford
+					if (weapons[*slot1].getManaChange() < -mana) {
+						if (weapons[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (weapons[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (weapons[*slot1].getManaChange() < -mana) {
+					if (weapons[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (weapons[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				if (!weapons[*slot1].getDualWield() || currentBonusActions == 0) { //If cannot dual wield, done with selection
+					return 1;
+				}
+				//Can dual wield, choose another weapon
+				//Find possible weapons
+				choices.resize(1);
+				for (unsigned char i = 0; i < weaponSlots; i++) {
+					if (i == *slot1) { //Can't dual wield the same weapon twice
+						continue;
+					}
+					if (weapons[i].getDualWield()) { //If the weapon can dual wield, add it to list
+						choices.push_back(i + 1);
+					}
+				}
+				if (choices.size() == 1) { //Found nothing
+					return 1;
+				}
+				modifyHealth(weapons[*slot1].getHealthChange());
+				modifyMana(weapons[*slot1].getManaChange());
+				modifyProjectiles(weapons[*slot1].getProjectileChange());
+				while (true) {
+					cout << "The selected weapon can be dual wielded\n";
+					cout << "(After applying costs for selected weapon)\n";
+					cout << "Health: " << health << '/' << maxHealth << ' ' << g_manaName.Plural() << ": " << mana << '/' << maxMana << ' ' << g_projName.Plural() << ": " << projectiles << ' ' << "Bonus Actions: " << +currentBonusActions << ' ';
+					if (poison > 0) {
+						cout << "Poison: " << +poison << ' ';
+					}
+					if (bleed > 0) {
+						cout << "Bleed: " << +bleed << ' ';
+					}
+					if (tempRegen > 0) {
+						cout << "Regeneration: " << +tempRegen;
+					}
+					cout << '\n';
+					cout << "To view your inventory, enter 0.\nTo select a second weapon, enter 1.\nTo proceed without dual wielding, enter -1.\n";
+					switch (userChoice(-1, 1)) {
+					case -1:
+						health = currentHealth;
+						mana = currentMana;
+						projectiles = currentProjectiles;
+						return 1;
+					case 0:
+						showInventory();
+						break;
+					case 1:
+						cout << "Enter the number of the additional weapon you wish to attack with.\nTo go back, enter 0.\n";
+						for (short i = 1; i < choices.size(); i++) {
+							cout << choices[i] << ": ";
+							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+						}
+						*slot2 = static_cast<unsigned char>(userChoice(choices));
+						if (*slot2 == 0) {
+							break;
+						}
+						(*slot2)--;
+						if (!weapons[*slot2].getReal()) {
+							cout << "Cannot attack with empty slot!\n";
+							break;
+						}
+						if (weapons[*slot2].getHealthChange() < -health) { //Check can afford
+							if (weapons[*slot2].getManaChange() < -mana) {
+								if (weapons[*slot2].getProjectileChange() < -projectiles) {
+									cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+									break;
+								}
+								cout << "Not enough health or " << g_manaName.plural() << "!\n";
+								break;
+							}
+							if (weapons[*slot2].getProjectileChange() < -projectiles) {
+								cout << "Not enough health or " << g_projName.plural() << "!\n";
+								break;
+							}
+							cout << "Not enough health!\n";
+							break;
+						}
+						if (weapons[*slot2].getManaChange() < -mana) {
+							if (weapons[*slot2].getProjectileChange() < -projectiles) {
+								cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+								break;
+							}
+							cout << "Not enough " << g_manaName.plural() << "!\n";
+							break;
+						}
+						if (weapons[*slot2].getProjectileChange() < -projectiles) {
+							cout << "Not enough " << g_projName.plural() << "!\n";
+							break;
+						}
+						//Can afford, so done selecting
+						health = currentHealth;
+						mana = currentMana;
+						projectiles = currentProjectiles;
+						currentBonusActions--;
+						return 3;
+					}
+				}
+				break;
+			}
+		}
+	}
 }
