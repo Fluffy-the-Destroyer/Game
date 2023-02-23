@@ -12,145 +12,59 @@ extern resource g_manaName, g_projName;
 
 unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 	//Check if enemy dies immediately
-	if (opponent->getHealth() <= 0) {
-		cout << opponent->getName() << " immediately dies.\n";
-		if (opponent->getDeathSpell()->getReal()) { //Check if enemy has a death spell and if so cast it
-			cout << "On death, it casts " << opponent->getDeathSpell()->getName() << '\n';
-			if (spellCast(opponent->getDeathSpell(), playerCharacter) == 1) {
-				return 2;
-			}
-		}
+	switch (deathCheck(playerCharacter, opponent)) {
+	case 1:
 		return 1;
+	case 2:
+		return 2;
 	}
-	bool done; //Is the current turn done
-	unsigned char p_selection1 = 0, p_selection2 = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection
+	unsigned char p_action = 0, p_selection1 = 0, p_selection2 = 0, e_action = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
+	short health; //For holding combatants' health
 	bool firstTurn = true; //Is it the first turn
 	while (true) { //Turn cycle loop
-		done = false;
+		//Player turn
 		playerCharacter->turnStart();
 		if (playerCharacter->getHealth() <= 0) {
 			return 2;
 		}
-		while (!done) { //Player turn
-			cout << "Health: " << playerCharacter->getHealth() << '/' << playerCharacter->getMaxHealth() << ' ' << g_manaName.Plural() << ": " << playerCharacter->getMana() << '/' << playerCharacter->getMaxMana() << ' ' << g_projName.Plural() << ": " << playerCharacter->getProjectiles() << ' ';
-			if (playerCharacter->getPoison() > 0) {
-				cout << "Poison: " << +playerCharacter->getPoison() << ' ';
-			}
-			if (playerCharacter->getBleed() > 0) {
-				cout << "Bleed: " << +playerCharacter->getBleed() << ' ';
-			}
-			if (playerCharacter->getRegen() > 0) {
-				cout << "Regeneration: " << +playerCharacter->getRegen();
-			}
-			cout << "\nTo view your inventory, enter 1.\nTo attack with a weapon, enter 2.\nTo cast a spell, enter 3.\n";
-			switch (userChoice(1, 3)) {
-			case 1:
-				playerCharacter->showInventory();
-				break;
-			case 2:
-				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
-				try {
-					p_selection1 = 0;
-					for (unsigned char i = 0; i < playerCharacter->getWeaponSlots(); i++) {
-						cout << i + 1 << ' ';
-						playerCharacter->getWeapon(i)->displayName();
-						cout << '\n';
-						p_selection1 = i + 1;
-					}
-				}
-				catch (int) {
-					cout << "\nAn internal error occured, stored number of weapon slots does not match size of weapons vector\n";
-				}
-				p_selection1 = userChoice(0, p_selection1);
-				if (p_selection1 == 0) {
-					break;
-				}
-				if (!playerCharacter->getWeapon(p_selection1)->getReal()) {
-					cout << "Cannot attack with empty slot!\n";
-					break;
-				}
-				if (playerCharacter->getWeapon(p_selection1)->getHealthChange() > playerCharacter->getHealth()) {
-					if (playerCharacter->getWeapon(p_selection1)->getManaChange() < -playerCharacter->getMana()) {
-						if (playerCharacter->getWeapon(p_selection1)->getProjectileChange() < -playerCharacter->getProjectiles()) {
-							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
-							break;
-						}
-						cout << "Not enough health or " << g_manaName.plural() << "!\n";
-						break;
-					}
-					if (playerCharacter->getWeapon(p_selection1)->getProjectileChange() < -playerCharacter->getProjectiles()) {
-						cout << "Not enough health or " << g_projName.plural() << "!\n";
-						break;
-					}
-					cout << "Not enough health!\n";
-					break;
-				}
-				if (playerCharacter->getWeapon(p_selection1)->getManaChange() < -playerCharacter->getMana()) {
-					if (playerCharacter->getWeapon(p_selection1)->getProjectileChange() < -playerCharacter->getProjectiles()) {
-						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
-						break;
-					}
-					cout << "Not enough " << g_manaName.plural() << "!\n";
-					break;
-				}
-				if (playerCharacter->getWeapon(p_selection1)->getProjectileChange() < -playerCharacter->getProjectiles()) {
-					cout << "Not enough " << g_projName.plural() << "!\n";
-					break;
-				}
-				weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter); //Apply attack costs
-				if (playerCharacter->getHealth() <= 0) { //Check if player is dead
-					return 2;
-				}
-				if (true) { //Ask enemy what it is doing, 2 means casting a spell
-					spellDeclare(opponent->getSpell(e_selection1), opponent); //Enemy casts spell
-					switch (spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter)) {
+		switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName())) { //Get player choice
+		case 0: //Did nothing
+			break;
+		case 1: //Attacking with weapon
+			cout << "You attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+			weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+			health = playerCharacter->getHealth();
+			if (opponent->chooseAction(&e_selection1, &e_selection2, 1, playerCharacter->getWeapon(p_selection1)->getName(), "", firstTurn) == 2) { //Get enemy action choice
+				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
+				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
+				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) { //Only run death check if enemiy's spell was damaging
+					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
-						return 2; //It killed the player
-					case 2:
 						return 1;
-					}
-					if ((opponent->getSpell(e_selection1)->getCounterSpell() == 2 || opponent->getSpell(e_selection1)->getCounterSpell() == 3) && !playerCharacter->getWeapon(p_selection1)->getNoCounter()) { //Check if the cast spell counters the attack, if it does, player's turn is done
-						done = true;
-						break;
-					}
-				}
-				switch (weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent)) {
-				case 1:
-					return 1;
-				case 2:
-					return 2;
-				}
-				if (!playerCharacter->getWeapon(p_selection1)->getNoCounterAttack()) {
-					switch (4) {
-					case 1:
-						weaponDeclare(opponent->getWeapon(e_selection1), opponent);
-						switch (weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true)) {
-						case 1:
-							return 2;
-						case 2:
-							return 1;
-						}
-						break;
 					case 2:
-						spellDeclare(opponent->getSpell(e_selection1), opponent);
-						switch (spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true)) {
-						case 1:
-							return 2;
-						case 2:
-							return 1;
-						}
+						return 2;
+					}
+				}
+				if (opponent->getSpell(e_selection1)->getCounterSpell() >= 2) { //Check counterspell
+					if (playerCharacter->getWeapon(p_selection1)->getNoCounter()) {
+						cout << playerCharacter->getWeapon(p_selection1)->getName() << " cannot be countered!\n";
+						opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName()); //Tell enemy it cannot be countered
+					}
+					else {
+						cout << "The effects of " << playerCharacter->getWeapon(p_selection1) << " are countered\n";
 						break;
 					}
 				}
-				done = true;
-				break;
 			}
+			weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent);
+			deathCheck(playerCharacter, opponent);
 		}
 	}
 	return 1;
 }
 
-unsigned char spellCast(spell* magic, player* caster, enemy* target, bool counter) {
+void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 	//Self damage
 	caster->propDamage(magic->getPropSelfDamage());
 	caster->flatDamage(magic->getFlatSelfDamage(), 1);
@@ -198,24 +112,9 @@ unsigned char spellCast(spell* magic, player* caster, enemy* target, bool counte
 	caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
 	caster->modifyEvadeChance(magic->getEvadeChanceModifier());
 	caster->modifyBonusActions(magic->getBonusActionsModifier());
-	if (target->getHealth() <= 0 && target->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << target->getName() << " is dead. On death, it casts " << target->getDeathSpell()->getName() << '\n';
-		if (spellCast(target->getDeathSpell(), caster) == 1) {
-			return 2;
-		}
-		return 1;
-	}
-	if (caster->getHealth() <= 0) { //Player is dead
-		return 2;
-	}
-	if (target->getHealth() <= 0) { //Enemy is dead
-		cout << target->getName() << " is dead.\n";
-		return 1;
-	}
-	return 0;
 }
 
-unsigned char spellCast(spell* magic, enemy* caster, player* target, bool counter) {
+void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 	//Self damage
 	caster->propDamage(magic->getPropSelfDamage());
 	caster->flatDamage(magic->getFlatSelfDamage(), 1);
@@ -259,21 +158,6 @@ unsigned char spellCast(spell* magic, enemy* caster, player* target, bool counte
 	caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
 	caster->modifyEvadeChance(magic->getEvadeChanceModifier());
 	caster->modifyBonusActions(magic->getBonusActionsModifier());
-	if (caster->getHealth() <= 0 && caster->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << caster->getName() << " is dead. On death, it casts " << caster->getDeathSpell()->getName() << '\n';
-		if (spellCast(caster->getDeathSpell(), target) == 1) {
-			return 1;
-		}
-		return 2;
-	}
-	if (target->getHealth() <= 0) {
-		return 1;
-	}
-	if (caster->getHealth() <= 0) {
-		cout << caster->getName() << " is dead.\n";
-		return 2;
-	}
-	return 0;
 }
 
 unsigned char spellCast(spell* magic, player* target) {
@@ -533,7 +417,7 @@ void spellDeclare(spell* magic, enemy* caster) {
 	caster->modifyHealth(magic->getHealthChange());
 }
 
-unsigned char weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counter) {
+void weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counter) {
 	//Self damage
 	attacker->propDamage(weaponry->getPropSelfDamage());
 	attacker->flatDamage(weaponry->getFlatSelfDamage(), 1);
@@ -551,24 +435,9 @@ unsigned char weaponAttack(weapon* weaponry, player* attacker, enemy* target, bo
 	for (unsigned char i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
-	if (target->getHealth() <= 0 && target->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << target->getName() << " is dead. On death, it casts " << target->getDeathSpell()->getName() << '\n';
-		if (spellCast(target->getDeathSpell(), attacker) == 1) {
-			return 2;
-		}
-		return 1;
-	}
-	if (attacker->getHealth() <= 0) {
-		return 2;
-	}
-	if (target->getHealth() <= 0) {
-		cout << target->getName() << " is dead.\n";
-		return 1;
-	}
-	return 0;
 }
 
-unsigned char weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counter) {
+void weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counter) {
 	//Self damage
 	attacker->propDamage(weaponry->getPropSelfDamage());
 	attacker->flatDamage(weaponry->getFlatSelfDamage(), 1);
@@ -586,21 +455,6 @@ unsigned char weaponAttack(weapon* weaponry, enemy* attacker, player* target, bo
 	for (unsigned char i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
-	if (attacker->getHealth() <= 0 && attacker->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << attacker->getName() << " is dead. On death, it casts " << attacker->getDeathSpell()->getName() << '\n';
-		if (spellCast(attacker->getDeathSpell(), target) == 1) {
-			return 1;
-		}
-		return 2;
-	}
-	if (target->getHealth() <= 0) {
-		return 1;
-	}
-	if (attacker->getHealth() <= 0) {
-		cout << attacker->getName() << " is dead.\n";
-		return 2;
-	}
-	return 0;
 }
 
 void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
@@ -725,15 +579,17 @@ void resetPlayer(player* playerCharacter) {
 	catch (int) {}
 }
 
-unsigned char weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* target, bool counter) {
+void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* target, bool counter) {
 	if (counter) { //If weapon2 hits more times, run the function with them swapped
 		if (weapon2->getCounterHits() > weapon1->getCounterHits()) {
-			return weaponAttack(weapon2, weapon1, attacker, target, counter);
+			weaponAttack(weapon2, weapon1, attacker, target, counter);
+			return;
 		}
 	}
 	else {
 		if (weapon2->getHitCount() > weapon1->getHitCount()) {
-			return weaponAttack(weapon2, weapon1, attacker, target, counter);
+			weaponAttack(weapon2, weapon1, attacker, target, counter);
+			return;
 		}
 	}
 	//Now may assume that weapon1 hits at least as many times as weapon2
@@ -774,24 +630,9 @@ unsigned char weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, e
 			weaponHit(weapon2, attacker, target);
 		}
 	}
-	if (target->getHealth() <= 0 && target->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << target->getName() << " is dead. On death, it casts " << target->getDeathSpell()->getName() << '\n';
-		if (spellCast(target->getDeathSpell(), attacker) == 1) {
-			return 2;
-		}
-		return 1;
-	}
-	if (attacker->getHealth() <= 0) {
-		return 2;
-	}
-	if (target->getHealth() <= 0) {
-		cout << target->getName() << " is dead.\n";
-		return 1;
-	}
-	return 0;
 }
 
-unsigned char weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* target, bool counter) {
+void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* target, bool counter) {
 	if (counter) { //If weapon2 hits more times, run the function with them swapped
 		if (weapon2->getCounterHits() > weapon1->getCounterHits()) {
 			return weaponAttack(weapon2, weapon1, attacker, target, counter);
@@ -840,21 +681,6 @@ unsigned char weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, pl
 			weaponHit(weapon2, attacker, target);
 		}
 	}
-	if (attacker->getHealth() <= 0 && attacker->getDeathSpell()->getReal()) { //Enemy is dead and has death spell
-		cout << attacker->getName() << " is dead. On death, it casts " << attacker->getDeathSpell()->getName() << '\n';
-		if (spellCast(attacker->getDeathSpell(), target) == 1) {
-			return 1;
-		}
-		return 2;
-	}
-	if (target->getHealth() <= 0) {
-		return 1;
-	}
-	if (attacker->getHealth() <= 0) {
-		cout << attacker->getName() << " is dead.\n";
-		return 2;
-	}
-	return 0;
 }
 
 void weaponDeclare(weapon* weapon1, weapon* weapon2, player* attacker) {
@@ -873,4 +699,25 @@ void weaponDeclare(weapon* weapon1, weapon* weapon2, enemy* attacker) {
 	attacker->modifyMana(weapon2->getManaChange());
 	attacker->modifyProjectiles(weapon1->getProjectileChange());
 	attacker->modifyProjectiles(weapon2->getProjectileChange());
+}
+
+unsigned char deathCheck(player* playerCharacter, enemy* opponent) {
+	if (opponent->getHealth() <= 0 && opponent->getDeathSpell()->getReal()) {
+		cout << opponent->getName() << " is dead. On death, it casts " << opponent->getDeathSpell()->getName() << '\n';
+		spellCast(opponent->getDeathSpell(), playerCharacter);
+		if (playerCharacter->getHealth() <= 0) {
+			cout << "You are dead\n";
+			return 2;
+		}
+		return 1;
+	}
+	if (playerCharacter->getHealth() <= 0) {
+		cout << "You are dead\n";
+		return 2;
+	}
+	if (opponent->getHealth() <= 0) {
+		cout << opponent->getName() << " is dead\n";
+		return 1;
+	}
+	return 0;
 }

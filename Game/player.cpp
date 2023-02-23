@@ -1393,9 +1393,47 @@ void player::reset() {
 	removeRegen();
 }
 
-unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing, string itemName1, string itemName2) {
+unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, string enemyName, const unsigned char timing, string itemName1, string itemName2) {
 	vector<short> choices(1, 0); //For holding a list of possible choices
-	short currentHealth = health, currentMana = mana, currentProjectiles = projectiles;
+	const short currentHealth = health, currentMana = mana, currentProjectiles = projectiles;
+	short choiceCounter = 0;
+	switch (timing) { //Check if there are no possible actions and return 0 if so
+	case 0:
+		break;
+	case 1:
+	case 2:
+	case 4:
+		if (currentBonusActions <= 0) {
+			return 0;
+		}
+		for (unsigned char i = 0; i < spellSlots; i++) {
+			if (spells[i].getReal() && spells[i].getHitCount() > 0 && spells[i].getTiming() != 0) {
+				choiceCounter++;
+			}
+		}
+		if (choiceCounter == 0) {
+			return 0;
+		}
+		break;
+	case 3:
+		if (currentBonusActions <= 0) {
+			return 0;
+		}
+		for (unsigned char i = 0; i < weaponSlots; i++) {
+			if (weapons[i].getReal() && weapons[i].getCounterHits() > 0) {
+				choiceCounter++;
+			}
+		}
+		for (unsigned char i = 0; i < spellSlots; i++) {
+			if (spells[i].getReal() && spells[i].getCounterHits() > 0) {
+				choiceCounter++;
+			}
+		}
+		if (choiceCounter == 0) {
+			return 0;
+		}
+		break;
+	}
 	while (true) {
 		cout << "Health: " << health << '/' << maxHealth << ' ' << g_manaName.Plural() << ": " << mana << '/' << maxMana << ' ' << g_projName.Plural() << ": " << projectiles << ' ' << "Bonus Actions: " << +currentBonusActions << ' ';
 		if (poison > 0) {
@@ -1437,6 +1475,10 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, u
 					cout << "Cannot attack with empty slot!\n";
 					break;
 				}
+				if (weapons[*slot1].getHitCount() == 0) {
+					cout << "Selected weapon cannot be used at this time!\n";
+					break;
+				}
 				if (weapons[*slot1].getHealthChange() < -health) { //Check can afford
 					if (weapons[*slot1].getManaChange() < -mana) {
 						if (weapons[*slot1].getProjectileChange() < -projectiles) {
@@ -1465,7 +1507,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, u
 					cout << "Not enough " << g_projName.plural() << "!\n";
 					break;
 				}
-				if (!weapons[*slot1].getDualWield() || currentBonusActions == 0) { //If cannot dual wield, done with selection
+				if (!weapons[*slot1].getDualWield() || currentBonusActions <= 0) { //If cannot dual wield, done with selection
 					return 1;
 				}
 				//Can dual wield, choose another weapon
@@ -1475,7 +1517,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, u
 					if (i == *slot1) { //Can't dual wield the same weapon twice
 						continue;
 					}
-					if (weapons[i].getDualWield()) { //If the weapon can dual wield, add it to list
+					if (weapons[i].getDualWield() && weapons[i].getReal() && weapons[i].getHitCount() != 0) { //If the weapon can dual wield, add it to list
 						choices.push_back(i + 1);
 					}
 				}
@@ -1524,6 +1566,10 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, u
 							cout << "Cannot attack with empty slot!\n";
 							break;
 						}
+						if (weapons[*slot2].getHitCount() == 0) {
+							cout << "Selected weapon cnnot be used at this time!\n";
+							break;
+						}
 						if (weapons[*slot2].getHealthChange() < -health) { //Check can afford
 							if (weapons[*slot2].getManaChange() < -mana) {
 								if (weapons[*slot2].getProjectileChange() < -projectiles) {
@@ -1561,7 +1607,490 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, u
 					}
 				}
 				break;
+			case 2: //Casting a spell
+				if (spellSlots == 0) {
+					cout << "No spell slots!\n";
+					break;
+				}
+				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < spellSlots; i++) {
+					cout << i + 1 << ": ";
+					spells[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!spells[*slot1].getReal()) {
+					cout << "Selected spell slot is empty!\n";
+					break;
+				}
+				if (spells[*slot1].getHitCount() == 0 || spells[*slot1].getTiming() == 2) {
+					cout << "Selected spell cannot be cast at this time!\n";
+					break;
+				}
+				if (spells[*slot1].getCurrentCooldown() > 0) {
+					cout << "Selected spell is on cooldown!\n";
+					break;
+				}
+				if (spells[*slot1].getHealthChange() < -health) { //Check can afford
+					if (spells[*slot1].getManaChange() < -mana) {
+						if (spells[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (spells[*slot1].getManaChange() < -mana) {
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (spells[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				return 2;
 			}
+			break;
+		case 1: //Responding to weapon attack (no dual wield)
+			cout << enemyName << " is attacking with a weapon: " << itemName1 << '\n';
+			cout << "To view your inventory, enter 0.\nTo cast a spell, enter 2.\nTo do nothing, enter -1.\n";
+			choices.resize(1);
+			choices.push_back(2);
+			choices.push_back(-1);
+			switch (userChoice(choices)) {
+			case -1:
+				return 0;
+			case 0:
+				showInventory();
+				break;
+			case 2:
+				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < spellSlots; i++) {
+					cout << i + 1 << ": ";
+					spells[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!spells[*slot1].getReal()) {
+					cout << "Selected spell slot is empty!\n";
+					break;
+				}
+				if (spells[*slot1].getHitCount() == 0 || spells[*slot1].getTiming() == 0) {
+					cout << "Selected spell cannot be cast at this time!\n";
+					break;
+				}
+				if (spells[*slot1].getCurrentCooldown() > 0) {
+					cout << "Selected spell is on cooldown!\n";
+					break;
+				}
+				if (spells[*slot1].getHealthChange() < -health) { //Check can afford
+					if (spells[*slot1].getManaChange() < -mana) {
+						if (spells[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (spells[*slot1].getManaChange() < -mana) {
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (spells[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				currentBonusActions--;
+				return 2;
+			}
+			break;
+		case 2: //Responding to spell
+			cout << enemyName << " is casting a spell: " << itemName1 << '\n';
+			cout << "To view your inventory, enter 0.\nTo cast a spell, enter 2.\nTo do nothing, enter -1.\n";
+			choices.resize(1);
+			choices.push_back(2);
+			choices.push_back(-1);
+			switch (userChoice(choices)) {
+			case -1:
+				return 0;
+			case 0:
+				showInventory();
+				break;
+			case 2:
+				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < spellSlots; i++) {
+					cout << i + 1 << ": ";
+					spells[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!spells[*slot1].getReal()) {
+					cout << "Selected spell slot is empty!\n";
+					break;
+				}
+				if (spells[*slot1].getHitCount() == 0 || spells[*slot1].getTiming() == 0) {
+					cout << "Selected spell cannot be cast at this time!\n";
+					break;
+				}
+				if (spells[*slot1].getCurrentCooldown() > 0) {
+					cout << "Selected spell is on cooldown!\n";
+					break;
+				}
+				if (spells[*slot1].getHealthChange() < -health) { //Check can afford
+					if (spells[*slot1].getManaChange() < -mana) {
+						if (spells[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (spells[*slot1].getManaChange() < -mana) {
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (spells[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				currentBonusActions--;
+				return 2;
+			}
+			break;
+		case 4:
+			cout << enemyName << " is attacking with two weapons: " << itemName1 << " and " << itemName2 << '\n';
+			cout << "To view your inventory, enter 0.\nTo cast a spell, enter 2.\nTo do nothing, enter -1.\n";
+			choices.resize(1);
+			choices.push_back(2);
+			choices.push_back(-1);
+			switch (userChoice(choices)) {
+			case -1:
+				return 0;
+			case 0:
+				showInventory();
+				break;
+			case 2:
+				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < spellSlots; i++) {
+					cout << i + 1 << ": ";
+					spells[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!spells[*slot1].getReal()) {
+					cout << "Selected spell slot is empty!\n";
+					break;
+				}
+				if (spells[*slot1].getHitCount() == 0 || spells[*slot1].getTiming() == 0) {
+					cout << "Selected spell cannot be cast at this time!\n";
+					break;
+				}
+				if (spells[*slot1].getCurrentCooldown() > 0) {
+					cout << "Selected spell is on cooldown!\n";
+					break;
+				}
+				if (spells[*slot1].getHealthChange() < -health) { //Check can afford
+					if (spells[*slot1].getManaChange() < -mana) {
+						if (spells[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (spells[*slot1].getManaChange() < -mana) {
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (spells[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				currentBonusActions--;
+				return 2;
+			}
+			break;
+		case 3: //Counter attacking
+			cout << "Counter attack opportunity.\nTo view your inventory, enter 0.\nTo counter attack with a weapon, enter 1.\nTo counter attack with a spell, enter 2.\nTo do nothing, enter -1.\n";
+			switch (userChoice(-1, 2)) {
+			case -1:
+				return 0;
+			case 0:
+				showInventory();
+				break;
+			case 1:
+				if (weaponSlots == 0) {
+					cout << "No weapon slots!\n";
+					break;
+				}
+				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < weaponSlots; i++) {
+					cout << i + 1 << ": ";
+					weapons[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, weaponSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!weapons[*slot1].getReal()) {
+					cout << "Cannot attack with empty slot!\n";
+					break;
+				}
+				if (weapons[*slot1].getCounterHits() == 0) {
+					cout << "Selected weapon cannot be used at this time!\n";
+					break;
+				}
+				if (weapons[*slot1].getHealthChange() < -health) { //Check can afford
+					if (weapons[*slot1].getManaChange() < -mana) {
+						if (weapons[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (weapons[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (weapons[*slot1].getManaChange() < -mana) {
+					if (weapons[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (weapons[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				currentBonusActions--;
+				if (!weapons[*slot1].getDualWield() || currentBonusActions <= 0) { //If cannot dual wield, done with selection
+					return 1;
+				}
+				//Can dual wield, choose another weapon
+				//Find possible weapons
+				choices.resize(1);
+				for (unsigned char i = 0; i < weaponSlots; i++) {
+					if (i == *slot1) { //Can't dual wield the same weapon twice
+						continue;
+					}
+					if (weapons[i].getDualWield() && weapons[i].getReal() && weapons[i].getCounterHits() != 0) { //If the weapon can dual wield, add it to list
+						choices.push_back(i + 1);
+					}
+				}
+				if (choices.size() == 1) { //Found nothing
+					return 1;
+				}
+				modifyHealth(weapons[*slot1].getHealthChange());
+				modifyMana(weapons[*slot1].getManaChange());
+				modifyProjectiles(weapons[*slot1].getProjectileChange());
+				while (true) {
+					cout << "The selected weapon can be dual wielded\n";
+					cout << "(After applying costs for selected weapon)\n";
+					cout << "Health: " << health << '/' << maxHealth << ' ' << g_manaName.Plural() << ": " << mana << '/' << maxMana << ' ' << g_projName.Plural() << ": " << projectiles << ' ' << "Bonus Actions: " << +currentBonusActions << ' ';
+					if (poison > 0) {
+						cout << "Poison: " << +poison << ' ';
+					}
+					if (bleed > 0) {
+						cout << "Bleed: " << +bleed << ' ';
+					}
+					if (tempRegen > 0) {
+						cout << "Regeneration: " << +tempRegen;
+					}
+					cout << '\n';
+					cout << "To view your inventory, enter 0.\nTo select a second weapon, enter 1.\nTo proceed without dual wielding, enter -1.\n";
+					switch (userChoice(-1, 1)) {
+					case -1:
+						health = currentHealth;
+						mana = currentMana;
+						projectiles = currentProjectiles;
+						return 1;
+					case 0:
+						showInventory();
+						break;
+					case 1:
+						cout << "Enter the number of the additional weapon you wish to attack with.\nTo go back, enter 0.\n";
+						for (short i = 1; i < choices.size(); i++) {
+							cout << choices[i] << ": ";
+							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+						}
+						*slot2 = static_cast<unsigned char>(userChoice(choices));
+						if (*slot2 == 0) {
+							break;
+						}
+						(*slot2)--;
+						if (!weapons[*slot2].getReal()) {
+							cout << "Cannot attack with empty slot!\n";
+							break;
+						}
+						if (weapons[*slot2].getCounterHits() == 0) {
+							cout << "Selected weapon cnnot be used at this time!\n";
+							break;
+						}
+						if (weapons[*slot2].getHealthChange() < -health) { //Check can afford
+							if (weapons[*slot2].getManaChange() < -mana) {
+								if (weapons[*slot2].getProjectileChange() < -projectiles) {
+									cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+									break;
+								}
+								cout << "Not enough health or " << g_manaName.plural() << "!\n";
+								break;
+							}
+							if (weapons[*slot2].getProjectileChange() < -projectiles) {
+								cout << "Not enough health or " << g_projName.plural() << "!\n";
+								break;
+							}
+							cout << "Not enough health!\n";
+							break;
+						}
+						if (weapons[*slot2].getManaChange() < -mana) {
+							if (weapons[*slot2].getProjectileChange() < -projectiles) {
+								cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+								break;
+							}
+							cout << "Not enough " << g_manaName.plural() << "!\n";
+							break;
+						}
+						if (weapons[*slot2].getProjectileChange() < -projectiles) {
+							cout << "Not enough " << g_projName.plural() << "!\n";
+							break;
+						}
+						//Can afford, so done selecting
+						health = currentHealth;
+						mana = currentMana;
+						projectiles = currentProjectiles;
+						currentBonusActions--;
+						return 3;
+					}
+				}
+				break;
+			case 2: //Casting a spell
+				if (spellSlots == 0) {
+					cout << "No spell slots!\n";
+					break;
+				}
+				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
+				for (unsigned char i = 0; i < spellSlots; i++) {
+					cout << i + 1 << ": ";
+					spells[i].displayName();
+					cout << '\n';
+				}
+				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				if (*slot1 == 0) {
+					break;
+				}
+				(*slot1)--;
+				if (!spells[*slot1].getReal()) {
+					cout << "Selected spell slot is empty!\n";
+					break;
+				}
+				if (spells[*slot1].getCounterHits() == 0) {
+					cout << "Selected spell cannot be cast at this time!\n";
+					break;
+				}
+				if (spells[*slot1].getCurrentCooldown() > 0) {
+					cout << "Selected spell is on cooldown!\n";
+					break;
+				}
+				if (spells[*slot1].getHealthChange() < -health) { //Check can afford
+					if (spells[*slot1].getManaChange() < -mana) {
+						if (spells[*slot1].getProjectileChange() < -projectiles) {
+							cout << "Not enough health, " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+							break;
+						}
+						cout << "Not enough health or " << g_manaName.plural() << "!\n";
+						break;
+					}
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough health or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough health!\n";
+					break;
+				}
+				if (spells[*slot1].getManaChange() < -mana) {
+					if (spells[*slot1].getProjectileChange() < -projectiles) {
+						cout << "Not enough " << g_manaName.plural() << " or " << g_projName.plural() << "!\n";
+						break;
+					}
+					cout << "Not enough " << g_manaName.plural() << "!\n";
+					break;
+				}
+				if (spells[*slot1].getProjectileChange() < -projectiles) {
+					cout << "Not enough " << g_projName.plural() << "!\n";
+					break;
+				}
+				currentBonusActions--;
+				return 2;
+			}
+			break;
 		}
 	}
 }

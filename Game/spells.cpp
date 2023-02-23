@@ -1252,6 +1252,9 @@ void spell::displayName() {
 		return;
 	}
 	cout << name << ' ';
+	if (currentCooldown > 0) {
+		cout << "- on cooldown ";
+	}
 	if (manaChange < 0 || projectileChange < 0 || healthChange < 0) {
 		cout << '(';
 		if (healthChange < 0) {
