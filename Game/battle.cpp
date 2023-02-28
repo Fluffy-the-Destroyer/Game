@@ -3,9 +3,12 @@
 #include <iostream>
 #include "resources.h"
 #include "inputs.h"
+#include "armour.h"
+#include "blueprints.h"
 using namespace std;
 
 extern resource g_manaName, g_projName;
+extern bool g_useCustomData;
 
 //Error codes:
 // 6: Trying to access slot which is out of range
@@ -24,11 +27,15 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 	while (true) { //Turn cycle loop
 		//Player turn
 		playerCharacter->turnStart();
-		if (playerCharacter->getHealth() <= 0) {
+		switch (deathCheck(playerCharacter, opponent)) {
+		case 1:
+			return 1;
+		case 2:
 			return 2;
 		}
 		switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName())) { //Get player choice
 		case 0: //Did nothing
+			cout << "You do nothing\n";
 			break;
 		case 1: //Attacking with weapon
 			cout << "You attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
@@ -38,7 +45,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
 				spellDeclare(opponent->getSpell(e_selection1), opponent);
 				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
-				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) { //Only run death check if enemiy's spell was damaging
+				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) { //Only run death check if enemy's spell was damaging
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
 						return 1;
@@ -53,13 +60,694 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					}
 					else {
 						cout << "The effects of " << playerCharacter->getWeapon(p_selection1) << " are countered\n";
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
 						break;
 					}
 				}
 			}
 			weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent);
-			deathCheck(playerCharacter, opponent);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (playerCharacter->getWeapon(p_selection1)->getNoCounterAttack()) { //If doesn't trigger counter attack, done
+				break;
+			}
+			if (rng(0.f, 1.f) < opponent->getCounterAttackChance()) { //Roll for counter attack
+				switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, "", "", firstTurn)) { //Get opponent's action
+				case 1:
+					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+					weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+					weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 2:
+					cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
+					spellDeclare(opponent->getSpell(e_selection1), opponent);
+					spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 3:
+					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+					weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+					weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				}
+			}
+			break;
+		case 2: //Casting a spell
+			cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+			spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+			health = playerCharacter->getHealth();
+			if (opponent->chooseAction(&e_selection1, &e_selection2, 2, playerCharacter->getSpell(p_selection1)->getName(), "", firstTurn) == 2) {
+				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
+				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
+				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) {
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+				}
+				if (opponent->getSpell(e_selection1)->getCounterSpell() == 1 || opponent->getSpell(e_selection1)->getCounterSpell() == 3) {
+					if (playerCharacter->getSpell(p_selection1)->getNoCounter()) {
+						cout << playerCharacter->getSpell(p_selection1)->getName() << " cannot be countered!\n";
+						opponent->addNoCounter(2, playerCharacter->getSpell(p_selection1)->getName());
+					}
+					else {
+						cout << "The effects of " << playerCharacter->getSpell(p_selection1)->getName() << " are countered\n";
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					}
+				}
+			}
+			spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (playerCharacter->getSpell(p_selection1)->getCanCounterAttack()) {
+				if (rng(0.f, 1.f) < opponent->getCounterAttackChance()) {
+					switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, "", "", firstTurn)) { //Get opponent's action
+					case 1:
+						cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+						weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+						weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					case 2:
+						cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
+						spellDeclare(opponent->getSpell(e_selection1), opponent);
+						spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					case 3:
+						cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+						weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+						weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					}
+				}
+			}
+			break;
+		case 3: //Dual weapon attack
+			cout << "You attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+			weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+			health = playerCharacter->getHealth();
+			if (opponent->chooseAction(&e_selection1, &e_selection2, 4, playerCharacter->getWeapon(p_selection1)->getName(), playerCharacter->getWeapon(p_selection2)->getName(), firstTurn) == 2) {
+				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
+				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
+				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) {
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+				}
+				if (opponent->getSpell(e_selection1)->getCounterSpell() >= 2) {
+					if (playerCharacter->getWeapon(p_selection1)->getNoCounter()) {
+						if (playerCharacter->getWeapon(p_selection2)->getNoCounter()) {
+							cout << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << " cannot be countered!\n";
+							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName());
+							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection2)->getName());
+						}
+						else {
+							cout << "The effects of " << playerCharacter->getWeapon(p_selection2)->getName() << " are countered, but " << playerCharacter->getWeapon(p_selection1)->getName() << " cannot be countered!\n";
+							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName());
+							weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent);
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							if (playerCharacter->getWeapon(p_selection1)->getNoCounterAttack()) {
+								break;
+							}
+							if (rng(0.f, 1.f) < opponent->getCounterAttackChance()) {
+								switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, "", "", firstTurn)) {
+								case 1:
+									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+									weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+									weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 2:
+									cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
+									spellDeclare(opponent->getSpell(e_selection1), opponent);
+									spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 3:
+									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+									weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+									weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								}
+							}
+							break;
+						}
+					}
+					else {
+						if (playerCharacter->getWeapon(p_selection2)->getNoCounter()) {
+							cout << "The effects of " << playerCharacter->getWeapon(p_selection1)->getName() << " are countered, but " << playerCharacter->getWeapon(p_selection2)->getName() << " cannot be countered!\n";
+							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection2)->getName());
+							weaponAttack(playerCharacter->getWeapon(p_selection2), playerCharacter, opponent);
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							if (playerCharacter->getWeapon(p_selection2)->getNoCounterAttack()) {
+								break;
+							}
+							if (rng(0.f, 1.f) < opponent->getCounterAttackChance()) {
+								switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, "", "", firstTurn)) {
+								case 1:
+									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+									weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+									weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 2:
+									cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
+									spellDeclare(opponent->getSpell(e_selection1), opponent);
+									spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 3:
+									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+									weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+									weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								}
+							}
+							break;
+						}
+						else {
+							cout << "The effects of " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << " are countered!\n";
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							break;
+						}
+					}
+				}
+			}
+			weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (playerCharacter->getWeapon(p_selection1)->getNoCounterAttack() && playerCharacter->getWeapon(p_selection2)->getNoCounterAttack()) {
+				break;
+			}
+			if (rng(0.f, 1.f) < opponent->getCounterAttackChance()) {
+				switch (opponent->chooseAction(&e_selection1, &e_selection2, 3, "", "", firstTurn)) {
+				case 1:
+					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+					weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+					weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 2:
+					cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
+					spellDeclare(opponent->getSpell(e_selection1), opponent);
+					spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 3:
+					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+					weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+					weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				}
+			}
+			break;
 		}
+		//Enemy turn
+		opponent->turnStart();
+		switch (deathCheck(playerCharacter, opponent)) {
+		case 1:
+			return 1;
+		case 2:
+			return 2;
+		}
+		switch (opponent->chooseAction(&e_selection1, &e_selection2, 0, "", "", firstTurn)) {
+		case 0:
+			cout << opponent->getName() << " does nothing\n";
+			break;
+		case 1:
+			cout << opponent->getName() << " attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
+			weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+			health = opponent->getHealth();
+			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 1, opponent->getWeapon(e_selection1)->getName()) == 2) {
+				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
+				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
+				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+				}
+				if (playerCharacter->getSpell(p_selection1)->getCounterSpell() >= 2) {
+					if (opponent->getWeapon(e_selection1)->getNoCounter()) {
+						cout << opponent->getWeapon(e_selection1)->getName() << " cannot be countered!\n";
+					}
+					else {
+						cout << "The effects of " << opponent->getWeapon(e_selection1)->getName() << " are countered!\n";
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					}
+				}
+			}
+			weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (opponent->getWeapon(e_selection1)->getNoCounterAttack()) {
+				break;
+			}
+			if (rng(0.f, 1.f) < playerCharacter->getCounterAttackChance()) {
+				switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 3)) {
+				case 1:
+					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 2:
+					cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+					spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+					spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 3:
+					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				}
+			}
+			break;
+		case 2:
+			cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << '\n';
+			spellDeclare(opponent->getSpell(e_selection1), opponent);
+			health = opponent->getHealth();
+			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 2, opponent->getSpell(e_selection1)->getName()) == 2) {
+				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
+				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
+				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+				}
+				if (playerCharacter->getSpell(p_selection1)->getCounterSpell() == 1 || playerCharacter->getSpell(p_selection1)->getCounterSpell() == 3) {
+					if (opponent->getSpell(e_selection1)->getNoCounter()) {
+						cout << opponent->getSpell(e_selection1)->getName() << " cannot be countered!\n";
+					}
+					else {
+						cout << "The effects of " << opponent->getSpell(e_selection1)->getName() << " are countered!\n";
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					}
+				}
+			}
+			spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (opponent->getSpell(e_selection1)->getCanCounterAttack()) {
+				if (rng(0.f, 1.f) < playerCharacter->getCounterAttackChance()) {
+					switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 3)) {
+					case 1:
+						cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+						weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+						weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					case 2:
+						cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+						spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+						spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					case 3:
+						cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+						weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+						weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
+						switch (deathCheck(playerCharacter, opponent)) {
+						case 1:
+							return 1;
+						case 2:
+							return 2;
+						}
+						break;
+					}
+				}
+			}
+			break;
+		case 3:
+			cout << opponent->getName() << " attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
+			weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+			health = opponent->getHealth();
+			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 4, opponent->getWeapon(e_selection1)->getName(), opponent->getWeapon(e_selection2)->getName()) == 2) {
+				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
+				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
+				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+				}
+				if (playerCharacter->getSpell(p_selection1)->getCounterSpell() >= 2) {
+					if (opponent->getWeapon(e_selection1)->getNoCounter()) {
+						if (opponent->getWeapon(e_selection2)->getNoCounter()) {
+							cout << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << " cannot be countered!\n";
+						}
+						else {
+							cout << "The effects of " << opponent->getWeapon(e_selection2)->getName() << " are countered, but " << opponent->getWeapon(e_selection1)->getName() << " cannot be countered!\n";
+							weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter);
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							if (opponent->getWeapon(e_selection1)->getNoCounterAttack()) {
+								break;
+							}
+							if (rng(0.f, 1.f) < playerCharacter->getCounterAttackChance()) {
+								switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 3)) {
+								case 1:
+									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 2:
+									cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+									spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+									spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 3:
+									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								}
+							}
+							break;
+						}
+					}
+					else {
+						if (opponent->getWeapon(e_selection2)->getNoCounter()) {
+							cout << "The effects of " << opponent->getWeapon(e_selection1)->getName() << " are countered, but " << opponent->getWeapon(e_selection2)->getName() << " cannot be countered!\n";
+							weaponAttack(opponent->getWeapon(e_selection2), opponent, playerCharacter);
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							if (opponent->getWeapon(e_selection2)->getNoCounterAttack()) {
+								break;
+							}
+							if (rng(0.f, 1.f) < playerCharacter->getCounterAttackChance()) {
+								switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 3)) {
+								case 1:
+									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 2:
+									cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+									spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+									spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								case 3:
+									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
+									switch (deathCheck(playerCharacter, opponent)) {
+									case 1:
+										return 1;
+									case 2:
+										return 2;
+									}
+									break;
+								}
+							}
+							break;
+						}
+						else {
+							cout << "The effects of " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << " are countered!\n";
+							switch (deathCheck(playerCharacter, opponent)) {
+							case 1:
+								return 1;
+							case 2:
+								return 2;
+							}
+							break;
+						}
+					}
+				}
+			}
+			weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter);
+			switch (deathCheck(playerCharacter, opponent)) {
+			case 1:
+				return 1;
+			case 2:
+				return 2;
+			}
+			if (opponent->getWeapon(e_selection1)->getNoCounterAttack() && opponent->getWeapon(e_selection2)->getNoCounterAttack()) {
+				break;
+			}
+			if (rng(0.f, 1.f) < playerCharacter->getCounterAttackChance()) {
+				switch (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 3)) {
+				case 1:
+					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
+					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 2:
+					cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
+					spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+					spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				case 3:
+					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
+					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
+					switch (deathCheck(playerCharacter, opponent)) {
+					case 1:
+						return 1;
+					case 2:
+						return 2;
+					}
+					break;
+				}
+			}
+			break;
+		}
+		firstTurn = false;
 	}
 	return 1;
 }
@@ -720,4 +1408,76 @@ unsigned char deathCheck(player* playerCharacter, enemy* opponent) {
 		return 1;
 	}
 	return 0;
+}
+
+unsigned char battleMode() {
+	bool done = false;
+	while (!done) {
+		cout << "To enable custom data, enter 1.\nTo play without custom data, enter 0.\n";
+		switch (userChoice(0, 1)) {
+		case 0:
+			g_useCustomData = false;
+			break;
+		case 1:
+			g_useCustomData = true;
+			break;
+		}
+		cout << "Enter the blueprint name of the class you wish to play as:\n";
+		string blueprintSelection;
+		getline(cin, blueprintSelection);
+		player playerCharacter(blueprintSelection);
+		enemy opponent;
+		while (!done) {
+			while (!done) {
+				cout << "To give yourself a new piece of equipment, enter its blueprint name, prefixed by the first letter of its type and an underscore.\n(h_ for a helmet, t_ for a chestplate, l_ for leggings, f_ for footwear, w_ for a weapon, s_ for a spell)\n";
+				getline(cin, blueprintSelection);
+				switch (blueprintListSelector(&blueprintSelection)) {
+				case 1:
+				{
+					armourHead helmet(blueprintSelection);
+					playerCharacter.equip(&helmet);
+					break;
+				}
+				case 2:
+				{
+					armourTorso chesplate(blueprintSelection);
+					playerCharacter.equip(&chesplate);
+					break;
+				}
+				case 3:
+				{
+					armourLegs greaves(blueprintSelection);
+					playerCharacter.equip(&greaves);
+					break;
+				}
+				case 4:
+				{
+					armourFeet boots(blueprintSelection);
+					playerCharacter.equip(&boots);
+					break;
+				}
+				case 5:
+				{
+					weapon w(blueprintSelection);
+					playerCharacter.equip(&w);
+					break;
+				}
+				case 6:
+				{
+					spell s(blueprintSelection);
+					playerCharacter.equip(&s);
+					break;
+				}
+				}
+				cout << "To add another item, enter 1.\nTo stop adding items, enter 2.\n";
+				if (userChoice(1, 2) == 2) {
+					done = true;
+				}
+			}
+			done = false;
+			cout << "Enter the blueprint name of the enemy you wish to fight:\n";
+			getline(cin, blueprintSelection);
+			opponent.loadFromFile(blueprintSelection);
+		}
+	}
 }

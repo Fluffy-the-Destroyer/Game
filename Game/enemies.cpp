@@ -487,11 +487,11 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		maxHealth = projectiles = maxMana = turnManaRegen = constRegen = flatArmour = flatMagicArmour = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = 0;
 		poison = bleed = tempRegen = 0;
 		AIType = 2;
-		poisonResist = bleedResist = evadeChance = 0.1f;
+		poisonResist = bleedResist = evadeChance = counterAttackChance = 0.1f;
 		weapons.resize(0);
 		spells.resize(0);
 		initialSpell = -1;
-		propArmour = propMagicArmour = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = counterAttackChance = 0;
+		propArmour = propMagicArmour = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = 0;
 		bonusActions = 1;
 		blueprintName = "enemyBlueprint name=\"" + blueprint + '\"';
 		while (buffer != blueprintName) {

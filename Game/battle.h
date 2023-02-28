@@ -49,3 +49,5 @@ void weaponDeclare(weapon* weapon1, weapon* weapon2, enemy* attacker);
 void resetPlayer(player* playerCharacter);
 //If enemy is dead and has a death spell, casts it, then returns 2 if player is dead, then returns 1 if enemy is dead, then returns 0
 unsigned char deathCheck(player* playerCharacter, enemy* opponent);
+//Battle mode. Returns 0 if quitting, 1 if returning to main menu
+unsigned char battleMode();

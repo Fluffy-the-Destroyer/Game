@@ -1272,7 +1272,7 @@ void spell::displayName() {
 		else if (projectileChange < -1) {
 			cout << projectileChange << ' ' << g_projName.plural() << ", ";
 		}
-		cout << (char)8 << (char)8 << ')';
+		cout << '\b' << '\b' << ')';
 	}
 }
 

@@ -55,7 +55,7 @@ private:
 	short flatArmourPiercingDamageModifier = 0;
 	float propArmourPiercingDamageModifier = 0;
 	float evadeChance = 0.1f;
-	float counterAttackChance = 0;
+	float counterAttackChance = 0.1f;
 	signed char bonusActions = 1;
 	signed char currentBonusActions = 0;
 	unsigned char AIType = 2; //What sort of AI it has. See top of file
