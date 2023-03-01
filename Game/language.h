@@ -31,14 +31,14 @@ public:
 };
 
 //Interprets cond as a condition
-bool evalCond(std::string cond);
+bool evalCond(std::string cond, player* playerCharacter);
 //Reads and executes a line of code. Returns 1 if victory, 2 if defeat, 3 if break, 4 if continue, 0 if going to next line. 5 if saving, not allowed inside a while loop
 unsigned char doLine(std::ifstream* file, player* playerCharacter);
 //Moves to end of if statement, or to an else (if) statement
-void endIf(std::ifstream* file, bool newCond = false);
+void endIf(std::ifstream* file, player* playerCharacter, bool newCond = false);
 //Moves to end of while loop
 void endWhile(std::ifstream* file);
 //Modifies var according to operation
-void modifyVar(std::string var, std::string operation);
+void modifyVar(std::string var, std::string operation, player* playerCharacter);
 //Saves the game
 void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);

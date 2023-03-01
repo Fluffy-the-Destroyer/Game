@@ -19,6 +19,8 @@ bool g_useCustomData = false; //Are we using custom stuff
 
 int main() {
 	
+	
+	
 	bool done = false;
 	while (!done) {
 		cout << "To play adventure mode, enter 1. (Not implemented)\nTo play battle mode, enter 2.\nTo quit, enter 0.\n";
@@ -32,6 +34,5 @@ int main() {
 			done = true;
 		}
 	}
-
 	return 0;
 }

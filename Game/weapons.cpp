@@ -27,6 +27,7 @@ string weapon::getName() {
 void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as the functions to load armour from files
 	ifstream weaponBlueprints;
 	string stringbuffer = "";
+	string valBuffer;
 	try { //Throws exception if cannot find properly formed blueprint
 		if (blueprint == "EMPTY") {
 			throw 3;
@@ -113,44 +114,52 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 				}
 				if (stringbuffer == "name") {
 					getline(weaponBlueprints, name, '<');
-					weaponBlueprints.seekg(-1, ios_base::cur);
 				}
 				else if (stringbuffer == "description") {
 					getline(weaponBlueprints, description, '<');
-					weaponBlueprints.seekg(-1, ios_base::cur);
 				}
 				else if (stringbuffer == "flatDamageMin") {
-					weaponBlueprints >> flatDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatDamageMax") {
-					weaponBlueprints >> flatDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatDamage") { //For setting a fixed damage
-					weaponBlueprints >> flatDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatDamageMin = numFromString(&valBuffer);
 					flatDamageMax = flatDamageMin;
 				}
 				else if (stringbuffer == "flatMagicDamageMin") {
-					weaponBlueprints >> flatMagicDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatMagicDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatMagicDamageMax") {
-					weaponBlueprints >> flatMagicDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatMagicDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatMagicDamage") {
-					weaponBlueprints >> flatMagicDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatMagicDamageMin = numFromString(&valBuffer);
 					flatMagicDamageMax = flatMagicDamageMin;
 				}
 				else if (stringbuffer == "flatArmourPiercingDamageMin") {
-					weaponBlueprints >> flatArmourPiercingDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatArmourPiercingDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatArmourPiercingDamageMax") {
-					weaponBlueprints >> flatArmourPiercingDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatArmourPiercingDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatArmourPiercingDamage") {
-					weaponBlueprints >> flatArmourPiercingDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatArmourPiercingDamageMin = numFromString(&valBuffer);
 					flatArmourPiercingDamageMax = flatArmourPiercingDamageMin;
 				}
 				else if (stringbuffer == "propDamage") {
-					weaponBlueprints >> propDamage;
+					getline(weaponBlueprints, valBuffer, '<');
+					propDamage = floatFromString(&valBuffer);
 					if (propDamage < -1) {
 						propDamage = -1;
 					}
@@ -159,37 +168,47 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					}
 				}
 				else if (stringbuffer == "flatSelfDamageMin") {
-					weaponBlueprints >> flatSelfDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfDamageMax") {
-					weaponBlueprints >> flatSelfDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfDamage") {
-					weaponBlueprints >> flatDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfDamageMin = numFromString(&valBuffer);
 					flatSelfDamageMax = flatSelfDamageMin;
 				}
 				else if (stringbuffer == "flatSelfMagicDamageMin") {
-					weaponBlueprints >> flatSelfMagicDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfMagicDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfMagicDamageMax") {
-					weaponBlueprints >> flatSelfMagicDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfMagicDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfMagicDamage") {
-					weaponBlueprints >> flatSelfMagicDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfMagicDamageMin = numFromString(&valBuffer);
 					flatSelfMagicDamageMax = flatSelfMagicDamageMin;
 				}
 				else if (stringbuffer == "flatSelfArmourPiercingDamageMin") {
-					weaponBlueprints >> flatArmourPiercingDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfArmourPiercingDamageMin = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfArmourPiercingDamageMax") {
-					weaponBlueprints >> flatArmourPiercingDamageMax;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfArmourPiercingDamageMax = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "flatSelfArmourPiercingDamage") {
-					weaponBlueprints >> flatArmourPiercingDamageMin;
+					getline(weaponBlueprints, valBuffer, '<');
+					flatSelfArmourPiercingDamageMin = numFromString(&valBuffer);
 					flatSelfArmourPiercingDamageMax = flatArmourPiercingDamageMin;
 				}
 				else if (stringbuffer == "propSelfDamage") {
-					weaponBlueprints >> propSelfDamage;
+					getline(weaponBlueprints, valBuffer, '<');
+					propSelfDamage = floatFromString(&valBuffer);
 					if (propSelfDamage < -1) {
 						propSelfDamage = -1;
 					}
@@ -198,7 +217,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					}
 				}
 				else if (stringbuffer == "hitCount") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -217,13 +237,16 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					continue;
 				}
 				else if (stringbuffer == "manaChange") {
-					weaponBlueprints >> manaChange;
+					getline(weaponBlueprints, valBuffer, '<');
+					manaChange = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "projectileChange") {
-					weaponBlueprints >> projectileChange;
+					getline(weaponBlueprints, valBuffer, '<');
+					projectileChange = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "poison") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -233,7 +256,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					poison = static_cast<unsigned char>(charBuf);
 				}
 				else if (stringbuffer == "selfPoison") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -243,7 +267,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					selfPoison = static_cast<unsigned char>(charBuf);
 				}
 				else if (stringbuffer == "bleed") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -253,7 +278,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					bleed = static_cast<unsigned char>(charBuf);
 				}
 				else if (stringbuffer == "selfBleed") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -263,7 +289,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					selfBleed = static_cast<unsigned char>(charBuf);
 				}
 				else if (stringbuffer == "counterHits") {
-					weaponBlueprints >> charBuf;
+					getline(weaponBlueprints, valBuffer, '<');
+					charBuf = numFromString(&valBuffer);
 					if (charBuf < 0) {
 						charBuf = 0;
 					}
@@ -300,7 +327,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					continue;
 				}
 				else if (stringbuffer == "healthChange") {
-					weaponBlueprints >> healthChange;
+					getline(weaponBlueprints, valBuffer, '<');
+					healthChange = numFromString(&valBuffer);
 				}
 				else if (stringbuffer == "dualWield/") {
 					dualWield = true;
@@ -314,6 +342,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 				else {
 					throw 1;
 				}
+				weaponBlueprints.seekg(-1, ios_base::cur);
 				if (getTag(&weaponBlueprints) != '/' + stringbuffer) {
 					throw 1;
 				}

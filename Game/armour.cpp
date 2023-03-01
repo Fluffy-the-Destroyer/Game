@@ -27,6 +27,7 @@ string armour::getName() {
 void armour::loadFromFile(string blueprint, bool custom) {
 	ifstream armourBlueprints;
 	string stringbuffer = "";
+	string valBuffer;
 	string type = "";
 	switch (armourType()) {
 	case 1:
@@ -125,106 +126,126 @@ void armour::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
-				armourBlueprints >> maxHealthModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				maxHealthModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "maxManaModifier") {
-				armourBlueprints >> maxManaModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				maxManaModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "turnManaRegenModifier") {
-				armourBlueprints >> turnManaRegenModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				turnManaRegenModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "battleManaRegenModifier") {
-				armourBlueprints >> battleManaRegenModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				battleManaRegenModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "constRegenModifier") {
-				armourBlueprints >> constRegenModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				constRegenModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "battleRegenModifier") {
-				armourBlueprints >> battleRegenModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				battleRegenModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "flatArmourModifier") {
-				armourBlueprints >> flatArmourModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				flatArmourModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "propArmourModifier") {
-				armourBlueprints >> propArmourModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				propArmourModifier = floatFromString(&valBuffer);
 				if (propArmourModifier < -1) {
 					propArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicArmourModifier") {
-				armourBlueprints >> flatMagicArmourModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				flatMagicArmourModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "propMagicArmourModifier") {
-				armourBlueprints >> propMagicArmourModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				propMagicArmourModifier = floatFromString(&valBuffer);
 				if (propMagicArmourModifier < -1) {
 					propMagicArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatDamageModifier") {
-				armourBlueprints >> flatDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				flatDamageModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "propDamageModifier") {
-				armourBlueprints >> propDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				propDamageModifier = floatFromString(&valBuffer);
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "evadeChanceModifier") {
-				armourBlueprints >> evadeChanceModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				evadeChanceModifier = floatFromString(&valBuffer);
 				if (evadeChanceModifier < -1) {
 					evadeChanceModifier = -1;
 				}
 			}
 			else if (stringbuffer == "poisonResistModifier") {
-				armourBlueprints >> poisonResistModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				poisonResistModifier = floatFromString(&valBuffer);
 				if (poisonResistModifier < -1) {
 					poisonResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "bleedResistModifier") {
-				armourBlueprints >> bleedResistModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				bleedResistModifier = floatFromString(&valBuffer);
 				if (bleedResistModifier < -1) {
 					bleedResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicDamageModifier") {
-				armourBlueprints >> flatMagicDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				flatMagicDamageModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "propMagicDamageModifier") {
-				armourBlueprints >> propMagicDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				propMagicDamageModifier = floatFromString(&valBuffer);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-				armourBlueprints >> flatArmourPiercingDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				flatArmourPiercingDamageModifier = numFromString(&valBuffer);
 			}
 			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-				armourBlueprints >> propArmourPiercingDamageModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				propArmourPiercingDamageModifier = floatFromString(&valBuffer);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "counterAttackChanceModifier") {
-				armourBlueprints >> counterAttackChanceModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				counterAttackChanceModifier = floatFromString(&valBuffer);
 				if (counterAttackChanceModifier < -1) {
 					counterAttackChanceModifier = -1;
 				}
 			}
 			else if (stringbuffer == "name") {
 				getline(armourBlueprints, name, '<');
-				armourBlueprints.seekg(-1, ios_base::cur); //Goes back one character, to before the <
 			}
 			else if (stringbuffer == "description") {
 				getline(armourBlueprints, description, '<');
-				armourBlueprints.seekg(-1, ios_base::cur);
 			}
 			else if (stringbuffer == "bonusActionsModifier") {
-				armourBlueprints >> bonusActionsModifier;
+				getline(armourBlueprints, valBuffer, '<');
+				bonusActionsModifier = numFromString(&valBuffer);
 			}
 			else {
 				throw 1;
 			}
+			armourBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&armourBlueprints) != '/' + stringbuffer) { //Closing tag is different from opening tag
 				throw 1;
 			}

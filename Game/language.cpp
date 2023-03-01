@@ -58,7 +58,7 @@ void variables::reset() {
 	vars.resize(0);
 }
 
-bool evalCond(string cond) {
+bool evalCond(string cond, player* playerCharacter) {
 	short var1 = 0, var2 = 0;
 	char op = '='; //= is ==, < is <, > is >, ! is !=, l is <=, g is >=
 	clearSpace(&cond);
@@ -76,7 +76,7 @@ bool evalCond(string cond) {
 		}
 	}
 	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(") {
-		var1 = numFromString(&cond);
+		var1 = numFromString(&cond, playerCharacter);
 	}
 	else {
 		return false;
@@ -132,7 +132,7 @@ bool evalCond(string cond) {
 		return false;
 	}
 	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(") {
-		var2 = numFromString(&cond);
+		var2 = numFromString(&cond, playerCharacter);
 	}
 	else {
 		return false;
@@ -214,7 +214,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 			throw 1;
 		}
 		ignoreLine(file);
-		modifyVar(buffer1, buffer2);
+		modifyVar(buffer1, buffer2, playerCharacter);
 		return 0;
 	}
 	else if (buffer1.substr(0, 9) == "if cond=\"") {
@@ -224,15 +224,15 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		}
 		buffer1.pop_back();
 		ignoreLine(file);
-		if (evalCond(buffer1)) {
+		if (evalCond(buffer1, playerCharacter)) {
 			return 0;
 		}
-		endIf(file, true);
+		endIf(file, playerCharacter, true);
 		return 0;
 	}
 	else if (buffer1.substr(0, 5) == "else/" || buffer1.substr(0, 14) == "else if cond=\"") {
 		ignoreLine(file);
-		endIf(file);
+		endIf(file, playerCharacter);
 		return 0;
 	}
 	else if (buffer1 == "if/") {
@@ -249,7 +249,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		streampos startPos = file->tellg();
 		endWhile(file);
 		streampos endPos = file->tellg();
-		while (evalCond(buffer1)) {
+		while (evalCond(buffer1, playerCharacter)) {
 			file->seekg(startPos);
 			unsigned char i = 0;
 			while (i == 0 || i == 5) {
@@ -283,13 +283,13 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 	}
 }
 
-void endIf(ifstream* file, bool newCond) {
+void endIf(ifstream* file, player* playerCharacter, bool newCond) {
 	string buffer = "";
 	while (true) {
 		buffer = getTag(file);
 		if (buffer.substr(0, 7) == "if cond") {
 			ignoreLine(file);
-			endIf(file);
+			endIf(file, playerCharacter);
 			continue;
 		}
 		else if (newCond && buffer.substr(0, 14) == "else if cond=\"") {
@@ -302,7 +302,7 @@ void endIf(ifstream* file, bool newCond) {
 				throw 1;
 			}
 			buffer.pop_back();
-			if (evalCond(buffer)) {
+			if (evalCond(buffer, playerCharacter)) {
 				ignoreLine(file);
 				return;
 			}
@@ -335,7 +335,7 @@ void endWhile(ifstream* file) {
 	}
 }
 
-void modifyVar(string var, string operation) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --
+void modifyVar(string var, string operation, player* playerCharacter) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --
 	short value;
 	signed char op;
 	clearSpace(&operation);
@@ -445,7 +445,7 @@ void modifyVar(string var, string operation) { //= num (=), += num (+), -= num (
 		throw 1;
 	}
 	if ((operation[0] > 47 && operation[0] < 58) || operation[0] == '-' || operation.substr(0, 2) == "v_" || operation.substr(0, 4) == "rng(") {
-		value = numFromString(&operation);
+		value = numFromString(&operation, playerCharacter);
 	}
 	else {
 		throw 1;

@@ -191,7 +191,9 @@ public: //Not providing set functions, as these values should not usually be set
 	short getBattleManaRegenBase() { return battleManaRegenBase; }
 	short getBattleManaRegen() { return battleManaRegen; }
 	unsigned char getPoison() { return poison; }
+	float getPoisonResist() { return poisonResist; }
 	unsigned char getBleed() { return bleed; }
+	float getBleedResist() { return bleedResist; }
 	unsigned char getRegen() { return tempRegen; }
 	short getConstRegen() { return constRegen; }
 	short getConstRegenBase() { return constRegenBase; }

@@ -875,7 +875,7 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatDamageModifier()) * (1 + caster->getPropDamageModifier())), 1);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -886,7 +886,7 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatMagicDamageModifier()) * (1 + caster->getPropMagicDamageModifier())), 2);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -897,7 +897,7 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatArmourPiercingDamageModifier()) * (1 + caster->getPropArmourPiercingDamageModifier())), 3);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -960,7 +960,7 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatDamageModifier()) * (1 + caster->getPropDamageModifier())), 1);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -971,7 +971,7 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatMagicDamageModifier()) * (1 + caster->getPropMagicDamageModifier())), 2);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -982,7 +982,7 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatArmourPiercingDamageModifier()) * (1 + caster->getPropArmourPiercingDamageModifier())), 3);
 		if (magic->getLifelink()) {
-			caster->flatDamage(-damageBuffer);
+			caster->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1161,7 +1161,7 @@ void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatDamageModifier()) * (1 + attacker->getPropDamageModifier()))), 1);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1171,7 +1171,7 @@ void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatMagicDamageModifier()) * (1 + attacker->getPropMagicDamageModifier()))), 2);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1181,7 +1181,7 @@ void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatArmourPiercingDamageModifier()) * (1 + attacker->getPropArmourPiercingDamageModifier()))), 3);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1209,7 +1209,7 @@ void weaponHit(weapon* weaponry, enemy* attacker, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatDamageModifier()) * (1 + attacker->getPropDamageModifier()))), 1);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1219,7 +1219,7 @@ void weaponHit(weapon* weaponry, enemy* attacker, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatMagicDamageModifier()) * (1 + attacker->getPropMagicDamageModifier()))), 2);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {
@@ -1229,7 +1229,7 @@ void weaponHit(weapon* weaponry, enemy* attacker, player* target) {
 	if (damageBuffer > 0) {
 		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatArmourPiercingDamageModifier()) * (1 + attacker->getPropArmourPiercingDamageModifier()))), 3);
 		if (weaponry->getLifelink()) {
-			attacker->flatDamage(-damageBuffer);
+			attacker->modifyHealth(damageBuffer);
 		}
 	}
 	else if (damageBuffer < 0) {

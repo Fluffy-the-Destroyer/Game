@@ -378,7 +378,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 	vector<choice> possibleChoices; //Choices which are allowed
 	vector<Event> newEvents; //Events which the choices will load
 	for (short i = 0; i < choices.size(); i++) {
-		if (evalCond(choices[i].req) && (choices[i].hidden || (choices[i].manaChange >= -playerCharacter->getMana() && choices[i].projectileChange >= -playerCharacter->getProjectiles() && choices[i].healthChange >= -playerCharacter->getHealth()))) { //Are requirements met for the choice
+		if (evalCond(choices[i].req, playerCharacter) && (choices[i].hidden || (choices[i].manaChange >= -playerCharacter->getMana() && choices[i].projectileChange >= -playerCharacter->getProjectiles() && choices[i].healthChange >= -playerCharacter->getHealth()))) { //Are requirements met for the choice
 			possibleChoices.push_back(choices[i]); //Add choice to list
 			newEvents.emplace_back(choices[i].eventName); //Load its event
 		}

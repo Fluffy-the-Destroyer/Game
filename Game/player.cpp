@@ -779,6 +779,7 @@ void player::calculateBonusActions() {
 void player::loadClass(string playerClass, bool custom) {
 	ifstream classBlueprints;
 	string buffer = "";
+	string valBuffer;
 	//Open blueprint file
 	try {
 		if (custom) {
@@ -851,34 +852,42 @@ void player::loadClass(string playerClass, bool custom) {
 				throw 1;
 			}
 			if (buffer == "maxHealth") {
-				classBlueprints >> maxHealthBase;
+				getline(classBlueprints, valBuffer, '<');
+				maxHealthBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "maxMana") {
-				classBlueprints >> maxManaBase;
+				getline(classBlueprints, valBuffer, '<');
+				maxManaBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "turnManaRegen") {
-				classBlueprints >> turnManaRegenBase;
+				getline(classBlueprints, valBuffer, '<');
+				turnManaRegenBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "battleManaRegen") {
-				classBlueprints >> battleManaRegenBase;
+				getline(classBlueprints, valBuffer, '<');
+				battleManaRegenBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "poisonResist") {
-				classBlueprints >> poisonResistBase;
+				getline(classBlueprints, valBuffer, '<');
+				poisonResistBase = floatFromString(&valBuffer);
 				if (poisonResistBase < 0) {
 					poisonResistBase = 0;
 				}
 			}
 			else if (buffer == "bleedResist") {
-				classBlueprints >> bleedResistBase;
+				getline(classBlueprints, valBuffer, '<');
+				bleedResistBase = floatFromString(&valBuffer);
 				if (bleedResistBase < 0) {
 					bleedResistBase = 0;
 				}
 			}
 			else if (buffer == "constRegen") {
-				classBlueprints >> constRegenBase;
+				getline(classBlueprints, valBuffer, '<');
+				constRegenBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "battleRegen") {
-				classBlueprints >> battleRegenBase;
+				getline(classBlueprints, valBuffer, '<');
+				battleRegenBase = numFromString(&valBuffer);
 			}
 			else if (buffer.substr(0, 15) == "weapons count=\"") { //It's the weapons tag, count is how many slots there are, which varies, so only checking the beginning of the tag
 				buffer.erase(0, 15); //Get rid of the stuff that has been checked
@@ -978,19 +987,23 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "flatArmour") {
-				classBlueprints >> flatArmourBase;
+				getline(classBlueprints, valBuffer, '<');
+				flatArmourBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "propArmour") {
-				classBlueprints >> propArmourBase;
+				getline(classBlueprints, valBuffer, '<');
+				propArmourBase = floatFromString(&valBuffer);
 				if (propArmourBase < -1) {
 					propArmourBase = -1;
 				}
 			}
 			else if (buffer == "flatMagicArmour") {
-				classBlueprints >> flatMagicArmourBase;
+				getline(classBlueprints, valBuffer, '<');
+				flatMagicArmourBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "propMagicArmour") {
-				classBlueprints >> propMagicArmourBase;
+				getline(classBlueprints, valBuffer, '<');
+				propMagicArmourBase = floatFromString(&valBuffer);
 				if (propMagicArmourBase < -1) {
 					propMagicArmourBase = -1;
 				}
@@ -1052,34 +1065,41 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "flatDamageModifier") {
-				classBlueprints >> flatDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				flatDamageModifierBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "propDamageModifier") {
-				classBlueprints >> propDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				propDamageModifierBase = floatFromString(&valBuffer);
 				if (propDamageModifierBase < -1) {
 					propDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "flatMagicDamageModifier") {
-				classBlueprints >> flatMagicDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				flatMagicDamageModifierBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "propMagicDamageModifier") {
-				classBlueprints >> propMagicDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				propMagicDamageModifierBase = floatFromString(&valBuffer);
 				if (propMagicDamageModifierBase < -1) {
 					propMagicDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "flatArmourPiercingDamageModifier") {
-				classBlueprints >> flatArmourPiercingDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				flatArmourPiercingDamageModifierBase = numFromString(&valBuffer);
 			}
 			else if (buffer == "propArmourPiercingDamageModifier") {
-				classBlueprints >> propArmourPiercingDamageModifierBase;
+				getline(classBlueprints, valBuffer, '<');
+				propArmourPiercingDamageModifierBase = floatFromString(&valBuffer);
 				if (propArmourPiercingDamageModifierBase < -1) {
 					propArmourPiercingDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "evadeChance") {
-				classBlueprints >> evadeChanceBase;
+				getline(classBlueprints, valBuffer, '<');
+				evadeChanceBase = floatFromString(&valBuffer);
 				if (evadeChanceBase < 0) {
 					evadeChanceBase = 0;
 				}
@@ -1087,6 +1107,7 @@ void player::loadClass(string playerClass, bool custom) {
 			else {
 				throw 1;
 			}
+			classBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&classBlueprints) != '/' + buffer) {
 				throw 1;
 			}
