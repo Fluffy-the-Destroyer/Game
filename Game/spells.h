@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include "rng.h"
-#define SPELL_TYPES_NO 4 //Number of types of spell, excluding the no type set type (type 0)
+#define SPELL_TYPES_NO 5 //Number of types of spell, excluding the no type set type (type 0)
 #define ATTACK_SPELL_FLAT_CUTOFF 10 //Amount of flat damage a spell must do to be considered an attack spell
 #define ATTACK_SPELL_PROP_CUTOFF 0.2f //Amount of prop damage a spell must do to be considered an attack spell
 #define HEALING_SPELL_FLAT_CUTOFF 10 //Amount of flat healing a spell must do to be considered a healing spell
@@ -13,6 +13,7 @@
 // 2: Healing spell
 // 3: Support spell - not attack or healing
 // 4: Attack and healing, e.g. a life drain spell
+// 5: Counter only - spell does nothing except counter actions
 
 extern bool g_useCustomData;
 
@@ -51,7 +52,7 @@ private:
 	short maxHealthModifierEnemy; //Modifies enemy's maximum health
 	short maxHealthModifier; //Modifies player's max health
 	short maxManaModifierEnemy; //Modifies enemy's max mana
-	short maxManaModifier; //Modifies player's max health
+	short maxManaModifier; //Modifies player's max mana
 	short turnManaRegenModifierEnemy; //Modifies enemy's turn mana regen
 	short turnManaRegenModifier; //Modifies player's turn mana regen
 	short battleManaRegenModifierEnemy;

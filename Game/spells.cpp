@@ -94,7 +94,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		real = true;
 		spellName = blueprint;
 		name = description = "";
-		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = constRegenModifierEnemy = constRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = 0;
+		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = constRegenModifierEnemy = constRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = battleManaRegenModifierEnemy = battleRegenModifierEnemy = 0;
 		propDamage = propSelfDamage = poisonResistModifierEnemy = poisonResistModifier = bleedResistModifierEnemy = bleedResistModifier = propArmourModifierEnemy = propArmourModifier = propMagicArmourModifierEnemy = propMagicArmourModifier = propDamageModifierEnemy = propDamageModifier = propMagicDamageModifierEnemy = propMagicDamageModifier = propArmourPiercingDamageModifierEnemy = propArmourPiercingDamageModifier = evadeChanceModifierEnemy = evadeChanceModifier = 0;
 		hitCount = cooldown = 1;
 		counterHits = currentCooldown = spellType = timing = counterSpell = 0;
@@ -584,6 +584,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 
 void spell::displayStats() {
 	if (!real) {
+		cout << "None\n";
 		return;
 	}
 	//Name

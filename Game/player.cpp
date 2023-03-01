@@ -966,16 +966,16 @@ void player::loadClass(string playerClass, bool custom) {
 					else {
 						throw 1;
 					}
-					while (buffer != "/spells") {
-						buffer = getTag(&classBlueprints);
-						ignoreLine(&classBlueprints);
-					}
-					if (!classBlueprints) {
-						throw 1;
-					}
-					buffer = getTag(&classBlueprints);
-					continue;
 				}
+				while (buffer != "/spells") {
+					buffer = getTag(&classBlueprints);
+					ignoreLine(&classBlueprints);
+				}
+				if (!classBlueprints) {
+					throw 1;
+				}
+				buffer = getTag(&classBlueprints);
+				continue;
 			}
 			else if (buffer == "flatArmour") {
 				classBlueprints >> flatArmourBase;
@@ -1276,7 +1276,7 @@ void player::showInventory() {
 			spells.resize(spellSlots);
 		}
 		cout << "To view armour stats, enter 1.\nTo view weapon stats, enter 2.\nTo view spell stats, enter 3.\nTo view player stats, enter 4.\n";
-		switch (userChoice(1, 3)) {
+		switch (userChoice(1, 4)) {
 		case 1:
 			cout << "To view head armour stats, enter 1.\nTo view torso armour stats, enter 2.\nTo view leg armour stats, enter 3.\nTo view foot armour stats, enter 4.\n";
 			switch (userChoice(1, 4)) {

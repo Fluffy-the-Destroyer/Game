@@ -727,6 +727,7 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		enemyBlueprints.close();
 		health = maxHealth;
 		mana = maxMana;
+		currentBonusActions = bonusActions;
 	}
 	catch (int err) {
 		enemyBlueprints.close();

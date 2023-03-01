@@ -24,3 +24,31 @@
 	<counterAttackChanceModifier>0</counterAttackChanceModifier> <!--Counter attack chance-->
 	<bonusActionsModifier>0</bonusActionsModifier><!--Number of bonus actions each turn-->
 </armourHeadBlueprint>
+
+<armourHeadBlueprint name="HELMET_1">
+	<name>Helmet</name>
+	<description>A basic helmet</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+</armourHeadBlueprint>
+
+<armourTorsoBlueprint name="CHESTPLATE_1">
+	<name>Chestplate</name>
+	<description>A basic chestplate</description>
+	<flatArmourModifier>2</flatArmourModifier>
+	<flatMagicArmourModifier>2</flatMagicArmourModifier>
+</armourTorsoBlueprint>
+
+<armourLegsBlueprint name="GREAVES_1">
+	<name>Greaves</name>
+	<description>Basic greaves</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+</armourLegsBlueprint>
+
+<armourFeetBlueprint name="BOOTS_1">
+	<name>Boots</name>
+	<description>Basic boots</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+</armourFeetBlueprint>

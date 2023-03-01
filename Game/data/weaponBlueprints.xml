@@ -38,3 +38,31 @@
 	<lifelink/>
 	<dualWield/><!--Two weapons with this tag can be dual wielded, they may both be used as a single action, as long as either could be used on its own. Dual wielding costs an additional bonus action-->
 </weaponBlueprint>
+
+<weaponBlueprint name="SWORD">
+	<name>Sword</name>
+	<description>A basic sword</description>
+	<flatDamageMin>5</flatDamageMin>
+	<flatDamageMax>10</flatDamageMax>
+	<hitCount>2</hitCount>
+	<counterHits>1</counterHits>
+	<noCounter/>
+</weaponBlueprint>
+
+<weaponBlueprint name="BOW">
+	<name>Bow</name>
+	<description>A basic bow</description>
+	<flatDamageMin>15</flatDamageMin>
+	<flatDamageMax>25</flatDamageMax>
+	<projectileChange>-1</projectileChange>
+	<noCounterAttack/>
+</weaponBlueprint>
+
+<weaponBlueprint name="SWORD_ENEMY">
+	<name>Sword</name>
+	<flatDamageMin>5</flatDamageMin>
+	<flatDamageMax>10</flatDamageMax>
+	<hitCount>2</hitCount>
+	<counterHits>1</counterHits>
+	<noCounter/>
+</weaponBlueprint>

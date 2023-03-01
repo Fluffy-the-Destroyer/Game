@@ -25,7 +25,7 @@ extern bool g_useCustomData;
 
 class enemy {
 private:
-	bool real = true;
+	bool real = false;
 	std::string name = "";
 	std::string introduction = "";
 	short health = 0;

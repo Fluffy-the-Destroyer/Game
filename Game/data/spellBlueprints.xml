@@ -4,6 +4,7 @@
 	2: Healing spell
 	3: Support spell (not attack or healing)
 	4: Attack and healing
+	5: Only a counter spell, should not be cast for any other reason
 	
 	Spell timing
 	0: Can only be cast during own turn
@@ -101,4 +102,26 @@
 	<timing>0</timing><!--When the spell can be cast, see top of file-->
 	<counterSpell>0</counterSpell><!--Can the spell counter enemy attacks (prevent their effects), see top of file-->
 	<lifelink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
+</spellBlueprint>
+
+<spellBlueprint name="HEAL_SPELL_1">
+	<name>Heal</name>
+	<description>A basic healing spell</description>
+	<flatSelfDamageMin>-30</flatSelfDamageMin>
+	<flatSelfDamageMax>-20</flatSelfDamageMax>
+	<manaChange>-25</manaChange>
+	<selfPoison>-5</selfPoison>
+	<selfBleed>-5</selfBleed>
+	<cooldown>4</cooldown>
+	<spellType>2</spellType>
+</spellBlueprint>
+
+<spellBlueprint name="COUNTERSPELL">
+	<name>Counterspell</name>
+	<description>It counters things</description>
+	<manaChange>-30</manaChange>
+	<cooldown>2</cooldown>
+	<spellType>5</spellType>
+	<timing>2</timing>
+	<counterSpell>3</counterSpell>
 </spellBlueprint>

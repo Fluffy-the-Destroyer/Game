@@ -3,9 +3,9 @@
 #include "enemies.h"
 #include "spells.h"
 #include "weapons.h"
-#define POISON_MULTIPLIER 10 //Multiplier for poison effect
-#define BLEED_MULTIPLIER 10
-#define REGEN_MULTIPLIER 10
+#define POISON_MULTIPLIER 1 //Multiplier for poison effect
+#define BLEED_MULTIPLIER 1
+#define REGEN_MULTIPLIER 1
 
 //Handles battle, returns 1 if enemy killed, returns 2 if player killed
 unsigned char battleHandler(player* playerCharacter, enemy* opponent);

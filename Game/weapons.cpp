@@ -116,7 +116,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					weaponBlueprints.seekg(-1, ios_base::cur);
 				}
 				else if (stringbuffer == "description") {
-					getline(weaponBlueprints, stringbuffer, '<');
+					getline(weaponBlueprints, description, '<');
 					weaponBlueprints.seekg(-1, ios_base::cur);
 				}
 				else if (stringbuffer == "flatDamageMin") {

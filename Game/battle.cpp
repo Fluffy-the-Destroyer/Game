@@ -1422,16 +1422,33 @@ unsigned char battleMode() {
 			g_useCustomData = true;
 			break;
 		}
-		cout << "Enter the blueprint name of the class you wish to play as:\n";
+		g_manaName.loadFromFile("MANA");
+		g_projName.loadFromFile("PROJECTILE");
+		player playerCharacter;
 		string blueprintSelection;
-		getline(cin, blueprintSelection);
-		player playerCharacter(blueprintSelection);
+		while (true) {
+			cout << "Enter the blueprint name of the class you wish to play as:\n";
+			getline(cin, blueprintSelection);
+			try {
+				playerCharacter.loadClass(blueprintSelection);
+				break;
+			}
+			catch (int err) {
+				cout << err;
+			}
+		}
 		enemy opponent;
 		while (!done) {
 			while (!done) {
-				cout << "To give yourself a new piece of equipment, enter its blueprint name, prefixed by the first letter of its type and an underscore.\n(h_ for a helmet, t_ for a chestplate, l_ for leggings, f_ for footwear, w_ for a weapon, s_ for a spell)\n";
+				cout << "To give yourself a new piece of equipment, enter its blueprint name, prefixed by the first letter of its type and an underscore.\n(h_ for a helmet, t_ for a chestplate, l_ for leggings, f_ for footwear, w_ for a weapon, s_ for a spell)\nIf you wish not to add new equipment, enter EMPTY\n";
 				getline(cin, blueprintSelection);
+				if (blueprintSelection == "EMPTY") {
+					goto endEquip;
+				}
 				switch (blueprintListSelector(&blueprintSelection)) {
+				case 0:
+					cout << "No item selected\n";
+					break;
 				case 1:
 				{
 					armourHead helmet(blueprintSelection);
@@ -1475,9 +1492,47 @@ unsigned char battleMode() {
 				}
 			}
 			done = false;
-			cout << "Enter the blueprint name of the enemy you wish to fight:\n";
-			getline(cin, blueprintSelection);
-			opponent.loadFromFile(blueprintSelection);
+		endEquip:
+			playerCharacter.calculateModifiers();
+			while (!done) {
+				cout << "Enter the blueprint name of the enemy you wish to fight:\n";
+				getline(cin, blueprintSelection);
+				opponent.loadFromFile(blueprintSelection);
+				if (opponent.getReal()) {
+					done = true;
+				}
+				else {
+					cout << "Failed to load enemy\n";
+				}
+			}
+			done = false;
+			cout << opponent.getIntroduction() << '\n';
+			if (battleHandler(&playerCharacter, &opponent) == 2) { //Do the fight, do this if the player died
+				cout << "To choose a new class, enter 2.\nTo exit to the main menu, enter 0.\n";
+				vector<short> options({ 0, 2 });
+				switch (userChoice(options)) {
+				case 0:
+					return 1;
+				case 2:
+					done = true;
+					break;
+				}
+			}
+			else {
+				cout << "To fight another enemy, enter 1.\nTo choose a new class, enter 2.\nTo exit to the main menu, enter 0.\n";
+				switch (userChoice(0, 2)) {
+				case 0:
+					return 1;
+				case 1:
+					playerCharacter.reset();
+					break;
+				case 2:
+					done = true;
+					break;
+				}
+			}
 		}
+		done = false;
 	}
+	return 0;
 }

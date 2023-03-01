@@ -32,3 +32,21 @@
 	<counterAttackChance>0.1</counterAttackChance>
 	<bonusActions>1</bonusActions>
 </classBlueprint>
+
+<classBlueprint name="WARRIOR">
+	<maxHealth>200</maxHealth>
+	<maxMana>100</maxMana>
+	<turnManaRegen>5</turnManaRegen>
+	<battleRegen>10</battleRegen>
+	<weapons count="3" projectiles="10">
+		<weapon>SWORD</weapon>
+		<weapon>BOW</weapon>
+	</weapons>
+	<spells count="2">
+		<spell>HEAL_SPELL_1</spell>
+	</spells>
+	<helmet>HELMET_1</helmet>
+	<chestplate>CHESTPLATE_1</chestplate>
+	<greaves>GREAVES_1</greaves>
+	<boots>BOOTS_1</boots>
+</classBlueprint>

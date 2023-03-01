@@ -44,3 +44,18 @@
 	<bonusActions>1</bonusActions>
 	<AIType>2</AIType> <!--See reference at top of file-->
 </enemyBlueprint>
+
+<enemyBlueprint name="BAD_GUY">
+	<name>Bad guy</name>
+	<introduction>You must fight a bad guy</introduction>
+	<maxHealth>50</maxHealth>
+	<maxMana>50</maxMana>
+	<turnManaRegen>5</turnManaRegen>
+	<weapons projectiles="0">
+		<weapon>SWORD_ENEMY</weapon>
+	</weapons>
+	<spells>
+		<spell>COUNTERSPELL</spell>
+	</spells>
+	<flatArmour>3</flatArmour>
+</enemyBlueprint>
