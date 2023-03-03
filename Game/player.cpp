@@ -18,31 +18,59 @@ using namespace std;
 extern resource g_manaName;
 extern resource g_projName;
 
-short player::flatDamage(short d, char t) {
-	if (d > 0) { //Dealing damage
-		if (t == 1) { //Normal damage
-			d = max(0, d - flatArmour); //Apply flat damage reduction, prevent going negative
-			d = static_cast<short>(d * (1 + propArmour)); //Apply damage multiplier
-		}
-		else if (t == 2) {
-			d = max(0, d - flatMagicArmour);
-			d = static_cast<short>(d * (1 + propMagicArmour));
-		}
-		short healthLoss = min(d, health); //Actual amount of health lost
-		if (SHRT_MIN + d > health) { //Happens exactly if health would underflow
-			health = SHRT_MIN; //Set to minimum value
-		}
-		else {
-			health -= d;
-		}
-		return max((short)0, healthLoss);
+short player::flatDamage(short p, short m, short a, bool overheal) {
+	if (p > 0) { //Apply physical armour
+		p = max(0, p - flatArmour);
+		p = static_cast<short>(p * (1 + propArmour));
 	}
-	else if (d < 0) { //Healing
-		if (health - d > maxHealth || SHRT_MAX + d < health) { //Health would overflow or exceed max
-			health = maxHealth;
+	if (m > 0) { //Apply magic armour
+		m = max(0, m - flatMagicArmour);
+		m = static_cast<short>(m * (1 + propMagicArmour));
+	}
+	long totDamage = p + m + a; //Calculate total damage
+	if (totDamage > 0) {
+		if (SHRT_MIN + totDamage > health) { //Check for underflow
+			health = SHRT_MIN;
 		}
 		else {
-			health -= d;
+			health = static_cast<short>(health - totDamage);
+		}
+		if (totDamage > SHRT_MAX) {
+			return SHRT_MAX;
+		}
+		return static_cast<short>(totDamage);
+	}
+	else if (totDamage < 0) {
+		if (overheal) { //May overheal
+			if (SHRT_MAX + totDamage < health) { //Check for overflow
+				health = SHRT_MAX;
+			}
+			else {
+				health = static_cast<short>(health - totDamage);
+			}
+			if (totDamage < SHRT_MIN) {
+				return SHRT_MIN;
+			}
+			return static_cast<short>(totDamage);
+		}
+		else {
+			if (health >= maxHealth) { //Already overhealed
+				return 0;
+			}
+			if (health - totDamage > maxHealth || SHRT_MAX + totDamage < health) { //Overflow or exceed max
+				totDamage = health;
+				totDamage -= maxHealth;
+				health = maxHealth;
+				if (totDamage < SHRT_MIN) {
+					return SHRT_MIN;
+				}
+				return static_cast<short>(totDamage);
+			}
+			health = static_cast<short>(health - totDamage);
+			if (totDamage < SHRT_MIN) {
+				return SHRT_MIN;
+			}
+			return static_cast<short>(totDamage);
 		}
 	}
 	return 0;

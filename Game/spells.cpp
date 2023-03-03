@@ -99,7 +99,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		propDamage = propSelfDamage = poisonResistModifierEnemy = poisonResistModifier = bleedResistModifierEnemy = bleedResistModifier = propArmourModifierEnemy = propArmourModifier = propMagicArmourModifierEnemy = propMagicArmourModifier = propDamageModifierEnemy = propDamageModifier = propMagicDamageModifierEnemy = propMagicDamageModifier = propArmourPiercingDamageModifierEnemy = propArmourPiercingDamageModifier = evadeChanceModifierEnemy = evadeChanceModifier = 0;
 		hitCount = cooldown = 1;
 		counterHits = currentCooldown = spellType = timing = counterSpell = 0;
-		noEvade = canCounterAttack = noCounter = lifelink = false;
+		noEvade = canCounterAttack = noCounter = lifelink = selfOverheal = targetOverheal = false;
 		blueprintName = "spellBlueprint name=\"" + blueprint + '\"';
 		//Read blueprint
 		while (stringbuffer != blueprintName) {
@@ -607,6 +607,24 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				getline(spellBlueprints, valBuffer, '<');
 				healthChange = numFromString(&valBuffer);
 			}
+			else if (stringbuffer == "selfOverheal/") {
+				selfOverheal = true;
+				ignoreLine(&spellBlueprints);
+				if (!spellBlueprints) {
+					throw 1;
+				}
+				stringbuffer = getTag(&spellBlueprints);
+				continue;
+			}
+			else if (stringbuffer == "targetOverheal/") {
+				targetOverheal = true;
+				ignoreLine(&spellBlueprints);
+				if (!spellBlueprints) {
+					throw 1;
+				}
+				stringbuffer = getTag(&spellBlueprints);
+				continue;
+			}
 			else {
 				throw 1;
 			}
@@ -626,6 +644,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		if (spellType == 0) { //Set based on stats
 			setSpellType();
 		}
+		setEffectType();
 		spellBlueprints.close();
 	}
 	catch (int err) {
@@ -737,6 +756,9 @@ void spell::displayStats() {
 			cout << '\n';
 		}
 	}
+	if (targetOverheal) {
+		cout << "May overheal target\n";
+	}
 	//Proportional damage
 	if (propDamage > 0) {
 		cout << "Reduces target's health by " << 100 * propDamage << "% per hit\n";
@@ -813,6 +835,9 @@ void spell::displayStats() {
 			}
 			cout << " on cast\n";
 		}
+	}
+	if (selfOverheal) {
+		cout << "May overheal caster\n";
 	}
 	//Prop self damage
 	if (propSelfDamage > 0) {
@@ -1356,5 +1381,107 @@ void spell::displayName() {
 void spell::decCooldown() {
 	if (currentCooldown > 0) {
 		currentCooldown--;
+	}
+}
+
+bool spell::checkSelfEffect() {
+	if (flatSelfDamageMin != 0 || flatSelfDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfMagicDamageMin != 0 || flatSelfMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfArmourPiercingDamageMin != 0 || flatSelfArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	if (propSelfDamage != 0) {
+		return true;
+	}
+	if (selfPoison != 0 || selfBleed != 0 || tempRegenSelf != 0) {
+		return true;
+	}
+	if (maxHealthModifier != 0 || maxManaModifier != 0) {
+		return true;
+	}
+	if (turnManaRegenModifier != 0 || constRegenModifier != 0) {
+		return true;
+	}
+	if (poisonResistModifier != 0 || bleedResistModifier != 0) {
+		return true;
+	}
+	if (flatArmourModifier != 0 || propArmourModifier != 0 || flatMagicArmourModifier != 0 || propMagicArmourModifier != 0) {
+		return true;
+	}
+	if (flatDamageModifier != 0 || flatMagicDamageModifier != 0 || flatArmourPiercingDamageModifier != 0) {
+		return true;
+	}
+	if (propDamageModifier != 0 || propMagicDamageModifier != 0 || propArmourPiercingDamageModifier != 0) {
+		return true;
+	}
+	if (evadeChanceModifier != 0 || bonusActionsModifier != 0) {
+		return true;
+	}
+	return false;
+}
+
+bool spell::checkTargetEffect() {
+	if (flatDamageMin != 0 || flatDamageMax != 0) {
+		return true;
+	}
+	if (flatMagicDamageMin != 0 || flatMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatArmourPiercingDamageMin != 0 || flatArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	if (propDamage != 0) {
+		return true;
+	}
+	if (manaChangeEnemy != 0) {
+		return 0;
+	}
+	if (poison != 0 || bleed != 0 || tempRegen != 0) {
+		return true;
+	}
+	if (maxHealthModifierEnemy != 0 || maxManaModifierEnemy != 0) {
+		return true;
+	}
+	if (turnManaRegenModifierEnemy != 0 || constRegenModifierEnemy != 0) {
+		return true;
+	}
+	if (poisonResistModifierEnemy != 0 || bleedResistModifierEnemy != 0) {
+		return true;
+	}
+	if (flatArmourModifierEnemy != 0 || propArmourModifierEnemy != 0 || flatMagicArmourModifierEnemy != 0 || propMagicArmourModifierEnemy != 0) {
+		return true;
+	}
+	if (flatDamageModifierEnemy != 0 || flatMagicDamageModifierEnemy != 0 || flatArmourPiercingDamageModifierEnemy != 0) {
+		return true;
+	}
+	if (propDamageModifierEnemy != 0 || propMagicDamageModifierEnemy != 0 || propArmourPiercingDamageModifierEnemy != 0) {
+		return true;
+	}
+	if (evadeChanceModifierEnemy != 0 || bonusActionsModifierEnemy != 0) {
+		return true;
+	}
+	return false;
+}
+
+void spell::setEffectType() {
+	if (checkSelfEffect()) {
+		if (checkTargetEffect()) {
+			effectType = 2;
+		}
+		else {
+			effectType = 1;
+		}
+	}
+	else {
+		if (checkTargetEffect()) {
+			effectType = 3;
+		}
+		else {
+			effectType = 0;
+		}
 	}
 }

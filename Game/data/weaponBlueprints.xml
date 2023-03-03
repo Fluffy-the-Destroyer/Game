@@ -37,6 +37,8 @@
 	<selfBleed>0</selfBleed>
 	<lifelink/>
 	<dualWield/><!--Two weapons with this tag can be dual wielded, they may both be used as a single action, as long as either could be used on its own. Dual wielding costs an additional bonus action-->
+	<selfOverheal/><!--Allows it to overheal attacker, defaults to false-->
+	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
 </weaponBlueprint>
 
 <weaponBlueprint name="SWORD">

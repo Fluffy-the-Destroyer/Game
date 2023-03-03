@@ -878,6 +878,7 @@ void armour::displayStats() {
 		cout << "None\n";
 		return;
 	}
+	cout << showpos;
 	//Name
 	cout << name << '\n';
 	//Type of armour
@@ -899,168 +900,106 @@ void armour::displayStats() {
 	//Description
 	cout << description << '\n';
 	//Max health
-	if (maxHealthModifier > 0) {
-		cout << '+' << maxHealthModifier << " maximum health\n";
-	}
-	else if (maxHealthModifier < 0) {
+	if (maxHealthModifier != 0) {
 		cout << maxHealthModifier << " maximum health\n";
 	}
 	//Health regen per turn
-	if (constRegenModifier > 0) {
-		cout << '+' << constRegenModifier << " health per turn\n";
-	}
-	else if (constRegenModifier < 0) {
+	if (constRegenModifier != 0) {
 		cout << constRegenModifier << " health per turn\n";
 	}
 	//Health regen at end of battle
-	if (battleRegenModifier > 0) {
-		cout << '+' << battleRegenModifier << " healing after battle\n";
-	}
-	else if (battleRegenModifier < 0) {
+	if (battleRegenModifier != 0) {
 		cout << battleRegenModifier << " healing after battle\n";
 	}
 	//Max mana
-	if (maxManaModifier > 0) {
-		cout << '+' << maxManaModifier << " maximum " << g_manaName.plural() << '\n';
-	}
-	else if (maxManaModifier < 0) {
+	if (maxManaModifier != 0) {
 		cout << maxManaModifier << " maximum " << g_manaName.plural() << '\n';
 	}
 	//Mana regen per turn
 	if (turnManaRegenModifier == 1) {
 		cout << "+1 " << g_manaName.singular() << " per turn\n";
 	}
-	else if (turnManaRegenModifier > 1) {
-		cout << '+' << turnManaRegenModifier << ' ' << g_manaName.plural() << " per turn\n";
-	}
 	else if (turnManaRegenModifier == -1) {
 		cout << "-1 " << g_manaName.singular() << " per turn\n";
 	}
-	else if (turnManaRegenModifier < -1) {
+	else if (turnManaRegenModifier != 0) {
 		cout << turnManaRegenModifier << ' ' << g_manaName.plural() << " per turn\n";
 	}
 	//Post battle mana regeneration
 	if (battleManaRegenModifier == 1) {
 		cout << "+1 " << g_manaName.singular() << " recovered after battle\n";
 	}
-	else if (battleManaRegenModifier > 1) {
-		cout << '+' << battleManaRegenModifier << ' ' << g_manaName.plural() << " recovered after battle\n";
-	}
 	else if (battleManaRegenModifier == -1) {
 		cout << "-1 " << g_manaName.singular() << " recovered after battle\n";
 	}
-	else if (battleManaRegenModifier < -1) {
+	else if (battleManaRegenModifier != 0) {
 		cout << battleManaRegenModifier << ' ' << g_manaName.plural() << " recovered after battle\n";
 	}
 	//Flat armour
-	if (flatArmourModifier > 0) {
-		cout << '+' << flatArmourModifier << " physical armour rating\n";
-	}
-	else if (flatArmourModifier < 0) {
+	if (flatArmourModifier != 0) {
 		cout << flatArmourModifier << " physical armour rating\n";
 	}
 	//Proportional armour
-	if (propArmourModifier > 0) {
-		cout << '+' << 100 * propArmourModifier << "% physical damage received\n";
-	}
-	else if (propArmourModifier < 0) {
+	if (propArmourModifier != 0) {
 		cout << 100 * propArmourModifier << "% physical damage received\n";
 	}
 	//Flat magic armour
-	if (flatMagicArmourModifier > 0) {
-		cout << '+' << flatMagicArmourModifier << " magic armour rating\n";
-	}
-	else if (flatMagicArmourModifier < 0) {
+	if (flatMagicArmourModifier != 0) {
 		cout << flatMagicArmourModifier << " magic armour rating\n";
 	}
 	//Proportional magic armour
-	if (propMagicArmourModifier > 0) {
-		cout << '+' << 100 * propMagicArmourModifier << "% magic damage received\n";
-	}
-	else if (propMagicArmourModifier < 0) {
+	if (propMagicArmourModifier != 0) {
 		cout << 100 * propMagicArmourModifier << "% magic damage received\n";
 	}
 	//Flat damage modifier
-	if (flatDamageModifier > 0) {
-		cout << '+' << flatDamageModifier << " physical damage\n";
-	}
-	else if (flatDamageModifier < 0) {
+	if (flatDamageModifier != 0) {
 		cout << flatDamageModifier << " physical damage\n";
 	}
 	//Prop damage modifier
-	if (propDamageModifier > 0) {
-		cout << '+' << 100 * propDamageModifier << "% physical damage\n";
-	}
-	else if (propDamageModifier < 0) {
+	if (propDamageModifier != 0) {
 		cout << 100 * propDamageModifier << "% physical damage\n";
 	}
 	//Flat magic damage
-	if (flatMagicDamageModifier > 0) {
-		cout << '+' << flatMagicDamageModifier << " magic damage\n";
-	}
-	else if (flatMagicDamageModifier < 0) {
+	if (flatMagicDamageModifier != 0) {
 		cout << flatMagicDamageModifier << " magic damage\n";
 	}
 	//Prop magic damage
-	if (propMagicDamageModifier > 0) {
-		cout << '+' << 100 * propMagicDamageModifier << "% magic damage\n";
-	}
-	else if (propMagicDamageModifier < 0) {
+	if (propMagicDamageModifier != 0) {
 		cout << 100 * propMagicDamageModifier << "% magic damage\n";
 	}
 	//Flat AP damage
-	if (flatArmourPiercingDamageModifier > 0) {
-		cout << '+' << flatArmourPiercingDamageModifier << " armour piercing damage\n";
-	}
-	else if (flatArmourPiercingDamageModifier < 0) {
+	if (flatArmourPiercingDamageModifier != 0) {
 		cout << flatArmourPiercingDamageModifier << " armour piercing damage\n";
 	}
 	//Prop AP damage
-	if (propArmourPiercingDamageModifier > 0) {
-		cout << '+' << 100 * propArmourPiercingDamageModifier << "% armour piercing damage\n";
-	}
-	else if (propArmourPiercingDamageModifier < 0) {
+	if (propArmourPiercingDamageModifier != 0) {
 		cout << 100 * propArmourPiercingDamageModifier << "% armour piercing damage\n";
 	}
 	//Evade chance
-	if (evadeChanceModifier > 0) {
-		cout << '+' << 100 * evadeChanceModifier << "% evade chance\n";
-	}
-	else if (evadeChanceModifier < 0) {
+	if (evadeChanceModifier != 0) {
 		cout << 100 * evadeChanceModifier << "% evade chance\n";
 	}
 	//Counter attack chance
-	if (counterAttackChanceModifier > 0) {
-		cout << '+' << 100 * counterAttackChanceModifier << "% chance to counter attack\n";
-	}
-	else if (counterAttackChanceModifier < 0) {
+	if (counterAttackChanceModifier != 0) {
 		cout << 100 * counterAttackChanceModifier << "% chance to counter attack\n";
 	}
 	//Poison resist
-	if (poisonResistModifier > 0) {
-		cout << '+' << 100 * poisonResistModifier << "% poison resistance\n";
-	}
-	else if (poisonResistModifier < 0) {
+	if (poisonResistModifier != 0) {
 		cout << 100 * poisonResistModifier << "% poison resistance\n";
 	}
 	//Bleed resist
-	if (bleedResistModifier > 0) {
-		cout << '+' << 100 * bleedResistModifier << "% bleed resistance\n";
-	}
-	else if (bleedResistModifier < 0) {
-		cout << 100 * bleedResistModifier << "% bleed resist\n";
+	if (bleedResistModifier != 0) {
+		cout << 100 * bleedResistModifier << "% bleed resistance\n";
 	}
 	//Bonus actions
 	if (bonusActionsModifier == 1) {
 		cout << "+1 bonus action\n";
 	}
-	else if (bonusActionsModifier > 0) {
-		cout << '+' << bonusActionsModifier << " bonus actions\n";
-	}
 	else if (bonusActionsModifier == -1) {
 		cout << "-1 bonus action\n";
 	}
-	else if (bonusActionsModifier < -1) {
+	else if (bonusActionsModifier != 0) {
 		cout << bonusActionsModifier << " bonus actions\n";
 	}
+	cout << noshowpos;
 }

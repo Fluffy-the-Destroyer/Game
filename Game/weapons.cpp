@@ -96,7 +96,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		propDamage = propSelfDamage = 0;
 		hitCount = 1;
 		counterHits = poison = bleed = selfPoison = selfBleed = 0;
-		noEvade = noCounter = noCounterAttack = lifelink = dualWield = false;
+		noEvade = noCounter = noCounterAttack = lifelink = dualWield = selfOverheal = targetOverheal = false;
 		blueprintName = "weaponBlueprint name=\"" + blueprint + '\"';
 		while (stringbuffer != blueprintName) {
 			stringbuffer = getTag(&weaponBlueprints);
@@ -338,6 +338,23 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					}
 					stringbuffer = getTag(&weaponBlueprints);
 					continue;
+					}
+				else if (stringbuffer == "selfOverheal/") {
+					selfOverheal = true;
+					ignoreLine(&weaponBlueprints);
+					if (!weaponBlueprints) {
+						throw 1;
+					}
+					stringbuffer = getTag(&weaponBlueprints);
+					continue;
+				}
+				else if (stringbuffer == "targetOverheal") {
+					targetOverheal = true;
+					ignoreLine(&weaponBlueprints);
+					if (!weaponBlueprints) {
+						throw 1;
+					}
+					continue;
 				}
 				else {
 					throw 1;
@@ -357,6 +374,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		if (flatDamageMax < flatDamageMin || flatMagicDamageMax < flatMagicDamageMin || flatArmourPiercingDamageMax < flatArmourPiercingDamageMin || flatSelfDamageMax < flatSelfDamageMin || flatSelfMagicDamageMax < flatSelfMagicDamageMin || flatSelfArmourPiercingDamageMax < flatSelfArmourPiercingDamageMin) {
 			throw 1;
 		}
+		setEffectType();
 		weaponBlueprints.close();
 	}
 	catch (int err) {
@@ -469,6 +487,9 @@ void weapon::displayStats() {
 			cout << '\n';
 		}
 	}
+	if (targetOverheal) {
+		cout << "Attacks may overheal the target\n";
+	}
 	//Proportional damage
 	if (propDamage > 0) {
 		cout << "Reduces target's health by " << 100 * propDamage << "%\n";
@@ -545,6 +566,9 @@ void weapon::displayStats() {
 			}
 			cout << " on attack\n";
 		}
+	}
+	if (selfOverheal) {
+		cout << "May overheal user\n";
 	}
 	//Prop self damage
 	if (propSelfDamage > 0) {
@@ -662,5 +686,62 @@ void weapon::displayName() {
 			cout << projectileChange << ' ' << g_projName.plural() << ", ";
 		}
 		cout << '\b' << '\b' << ')';
+	}
+}
+
+bool weapon::checkSelfEffect() {
+	if (flatSelfDamageMin != 0 || flatSelfDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfMagicDamageMin != 0 || flatSelfMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfArmourPiercingDamageMin != 0 || flatSelfArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	if (propSelfDamage != 0) {
+		return true;
+	}
+	if (selfPoison != 0 || selfBleed != 0) {
+		return true;
+	}
+	return false;
+}
+
+bool weapon::checkTargetEffect() {
+	if (flatDamageMin != 0 || flatDamageMax != 0) {
+		return true;
+	}
+	if (flatMagicDamageMin != 0 || flatMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatArmourPiercingDamageMin != 0 || flatArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	if (propDamage != 0) {
+		return true;
+	}
+	if (poison != 0 || bleed != 0) {
+		return true;
+	}
+	return false;
+}
+
+void weapon::setEffectType() {
+	if (checkSelfEffect()) {
+		if (checkTargetEffect()) {
+			effectType = 2;
+		}
+		else {
+			effectType = 1;
+		}
+	}
+	else {
+		if (checkTargetEffect()) {
+			effectType = 3;
+		}
+		else {
+			effectType = 0;
+		}
 	}
 }

@@ -75,7 +75,7 @@ bool evalCond(string cond, player* playerCharacter) {
 			return false;
 		}
 	}
-	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(") {
+	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(" || cond.substr(0, 2) == "p_") {
 		var1 = numFromString(&cond, playerCharacter);
 	}
 	else {
@@ -131,7 +131,7 @@ bool evalCond(string cond, player* playerCharacter) {
 	if (cond.empty()) {
 		return false;
 	}
-	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(") {
+	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(" || cond.substr(0, 2) == "p_") {
 		var2 = numFromString(&cond, playerCharacter);
 	}
 	else {
@@ -444,7 +444,7 @@ void modifyVar(string var, string operation, player* playerCharacter) { //= num 
 	if (operation.empty()) {
 		throw 1;
 	}
-	if ((operation[0] > 47 && operation[0] < 58) || operation[0] == '-' || operation.substr(0, 2) == "v_" || operation.substr(0, 4) == "rng(") {
+	if ((operation[0] > 47 && operation[0] < 58) || operation[0] == '-' || operation.substr(0, 2) == "v_" || operation.substr(0, 4) == "rng(" || operation.substr(0, 2) == "p_") {
 		value = numFromString(&operation, playerCharacter);
 	}
 	else {

@@ -5,6 +5,8 @@
 #include "inputs.h"
 #include "armour.h"
 #include "blueprints.h"
+#include <thread>
+#include <chrono>
 using namespace std;
 
 extern resource g_manaName, g_projName;
@@ -26,6 +28,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 	bool firstTurn = true; //Is it the first turn
 	while (true) { //Turn cycle loop
 		//Player turn
+		this_thread::sleep_for(chrono::milliseconds(500));
 		playerCharacter->turnStart();
 		switch (deathCheck(playerCharacter, opponent)) {
 		case 1:
@@ -41,9 +44,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << "You attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 			weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
 			health = playerCharacter->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (opponent->chooseAction(&e_selection1, &e_selection2, 1, playerCharacter->getWeapon(p_selection1)->getName(), "", firstTurn) == 2) { //Get enemy action choice
 				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
 				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
 				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) { //Only run death check if enemy's spell was damaging
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -59,7 +64,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 						opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName()); //Tell enemy it cannot be countered
 					}
 					else {
-						cout << "The effects of " << playerCharacter->getWeapon(p_selection1) << " are countered\n";
+						cout << "The effects of " << playerCharacter->getWeapon(p_selection1)->getName() << " are countered\n";
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
 							return 1;
@@ -68,6 +73,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 						}
 						break;
 					}
+					this_thread::sleep_for(chrono::milliseconds(500));
 				}
 			}
 			weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent);
@@ -85,6 +91,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 1:
 					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 					weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -96,6 +103,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 2:
 					cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
 					spellDeclare(opponent->getSpell(e_selection1), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -107,6 +115,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 3:
 					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 					weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -122,9 +131,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 			spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
 			health = playerCharacter->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (opponent->chooseAction(&e_selection1, &e_selection2, 2, playerCharacter->getSpell(p_selection1)->getName(), "", firstTurn) == 2) {
 				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
 				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
 				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) {
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -149,6 +160,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 						}
 						break;
 					}
+					this_thread::sleep_for(chrono::milliseconds(500));
 				}
 			}
 			spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
@@ -164,6 +176,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 1:
 						cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 						weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -175,6 +188,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 2:
 						cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
 						spellDeclare(opponent->getSpell(e_selection1), opponent);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -186,6 +200,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 3:
 						cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 						weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -202,9 +217,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << "You attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 			weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
 			health = playerCharacter->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (opponent->chooseAction(&e_selection1, &e_selection2, 4, playerCharacter->getWeapon(p_selection1)->getName(), playerCharacter->getWeapon(p_selection2)->getName(), firstTurn) == 2) {
 				cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << " in response\n";
 				spellDeclare(opponent->getSpell(e_selection1), opponent);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter);
 				if (opponent->getSpell(e_selection1)->getPropDamage() > 0 || playerCharacter->getHealth() < health) {
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -220,9 +237,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 							cout << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << " cannot be countered!\n";
 							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName());
 							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection2)->getName());
+							this_thread::sleep_for(chrono::milliseconds(500));
 						}
 						else {
 							cout << "The effects of " << playerCharacter->getWeapon(p_selection2)->getName() << " are countered, but " << playerCharacter->getWeapon(p_selection1)->getName() << " cannot be countered!\n";
+							this_thread::sleep_for(chrono::milliseconds(500));
 							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName());
 							weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent);
 							switch (deathCheck(playerCharacter, opponent)) {
@@ -239,6 +258,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 1:
 									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 									weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -250,6 +270,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 2:
 									cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
 									spellDeclare(opponent->getSpell(e_selection1), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -261,6 +282,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 3:
 									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 									weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -278,6 +300,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 						if (playerCharacter->getWeapon(p_selection2)->getNoCounter()) {
 							cout << "The effects of " << playerCharacter->getWeapon(p_selection1)->getName() << " are countered, but " << playerCharacter->getWeapon(p_selection2)->getName() << " cannot be countered!\n";
 							opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection2)->getName());
+							this_thread::sleep_for(chrono::milliseconds(500));
 							weaponAttack(playerCharacter->getWeapon(p_selection2), playerCharacter, opponent);
 							switch (deathCheck(playerCharacter, opponent)) {
 							case 1:
@@ -293,6 +316,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 1:
 									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 									weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -304,6 +328,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 2:
 									cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
 									spellDeclare(opponent->getSpell(e_selection1), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -315,6 +340,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 3:
 									cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 									weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -355,6 +381,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 1:
 					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 					weaponDeclare(opponent->getWeapon(e_selection1), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -366,6 +393,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 2:
 					cout << opponent->getName() << " counter attacks by casting " << opponent->getSpell(e_selection1)->getName() << '\n';
 					spellDeclare(opponent->getSpell(e_selection1), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					spellCast(opponent->getSpell(e_selection1), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -377,6 +405,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 3:
 					cout << opponent->getName() << " counter attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 					weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent, playerCharacter, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -390,6 +419,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			break;
 		}
 		//Enemy turn
+		this_thread::sleep_for(chrono::milliseconds(500));
 		opponent->turnStart();
 		switch (deathCheck(playerCharacter, opponent)) {
 		case 1:
@@ -405,9 +435,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << opponent->getName() << " attacks with " << opponent->getWeapon(e_selection1)->getName() << '\n';
 			weaponDeclare(opponent->getWeapon(e_selection1), opponent);
 			health = opponent->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 1, opponent->getWeapon(e_selection1)->getName()) == 2) {
 				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
 				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
 				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -420,6 +452,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				if (playerCharacter->getSpell(p_selection1)->getCounterSpell() >= 2) {
 					if (opponent->getWeapon(e_selection1)->getNoCounter()) {
 						cout << opponent->getWeapon(e_selection1)->getName() << " cannot be countered!\n";
+						this_thread::sleep_for(chrono::milliseconds(500));
 					}
 					else {
 						cout << "The effects of " << opponent->getWeapon(e_selection1)->getName() << " are countered!\n";
@@ -448,6 +481,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 1:
 					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -459,6 +493,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 2:
 					cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 					spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -470,6 +505,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 3:
 					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -485,9 +521,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << opponent->getName() << " casts " << opponent->getSpell(e_selection1)->getName() << '\n';
 			spellDeclare(opponent->getSpell(e_selection1), opponent);
 			health = opponent->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 2, opponent->getSpell(e_selection1)->getName()) == 2) {
 				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
 				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
 				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -500,6 +538,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				if (playerCharacter->getSpell(p_selection1)->getCounterSpell() == 1 || playerCharacter->getSpell(p_selection1)->getCounterSpell() == 3) {
 					if (opponent->getSpell(e_selection1)->getNoCounter()) {
 						cout << opponent->getSpell(e_selection1)->getName() << " cannot be countered!\n";
+						this_thread::sleep_for(chrono::milliseconds(500));
 					}
 					else {
 						cout << "The effects of " << opponent->getSpell(e_selection1)->getName() << " are countered!\n";
@@ -526,6 +565,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 1:
 						cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 						weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -537,6 +577,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 2:
 						cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 						spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -548,6 +589,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					case 3:
 						cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 						weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+						this_thread::sleep_for(chrono::milliseconds(500));
 						weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
 						switch (deathCheck(playerCharacter, opponent)) {
 						case 1:
@@ -564,9 +606,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			cout << opponent->getName() << " attacks with " << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << '\n';
 			weaponDeclare(opponent->getWeapon(e_selection1), opponent->getWeapon(e_selection2), opponent);
 			health = opponent->getHealth();
+			this_thread::sleep_for(chrono::milliseconds(500));
 			if (playerCharacter->chooseAction(&p_selection1, &p_selection2, opponent->getName(), 4, opponent->getWeapon(e_selection1)->getName(), opponent->getWeapon(e_selection2)->getName()) == 2) {
 				cout << "You cast " << playerCharacter->getSpell(p_selection1)->getName() << " in response\n";
 				spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+				this_thread::sleep_for(chrono::milliseconds(500));
 				spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent);
 				if (playerCharacter->getSpell(p_selection1)->getPropDamage() > 0 || opponent->getHealth() < health) {
 					switch (deathCheck(playerCharacter, opponent)) {
@@ -580,9 +624,11 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					if (opponent->getWeapon(e_selection1)->getNoCounter()) {
 						if (opponent->getWeapon(e_selection2)->getNoCounter()) {
 							cout << opponent->getWeapon(e_selection1)->getName() << " and " << opponent->getWeapon(e_selection2)->getName() << " cannot be countered!\n";
+							this_thread::sleep_for(chrono::milliseconds(500));
 						}
 						else {
 							cout << "The effects of " << opponent->getWeapon(e_selection2)->getName() << " are countered, but " << opponent->getWeapon(e_selection1)->getName() << " cannot be countered!\n";
+							this_thread::sleep_for(chrono::milliseconds(500));
 							weaponAttack(opponent->getWeapon(e_selection1), opponent, playerCharacter);
 							switch (deathCheck(playerCharacter, opponent)) {
 							case 1:
@@ -598,6 +644,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 1:
 									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -609,6 +656,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 2:
 									cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 									spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -620,6 +668,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 3:
 									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -636,6 +685,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 					else {
 						if (opponent->getWeapon(e_selection2)->getNoCounter()) {
 							cout << "The effects of " << opponent->getWeapon(e_selection1)->getName() << " are countered, but " << opponent->getWeapon(e_selection2)->getName() << " cannot be countered!\n";
+							this_thread::sleep_for(chrono::milliseconds(500));
 							weaponAttack(opponent->getWeapon(e_selection2), opponent, playerCharacter);
 							switch (deathCheck(playerCharacter, opponent)) {
 							case 1:
@@ -651,6 +701,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 1:
 									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -662,6 +713,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 2:
 									cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 									spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -673,6 +725,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 								case 3:
 									cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 									weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+									this_thread::sleep_for(chrono::milliseconds(500));
 									weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
 									switch (deathCheck(playerCharacter, opponent)) {
 									case 1:
@@ -713,6 +766,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 1:
 					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << '\n';
 					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -724,6 +778,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 2:
 					cout << "You counter attack by casting " << playerCharacter->getSpell(p_selection1)->getName() << '\n';
 					spellDeclare(playerCharacter->getSpell(p_selection1), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					spellCast(playerCharacter->getSpell(p_selection1), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -735,6 +790,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 				case 3:
 					cout << "You counter attack with " << playerCharacter->getWeapon(p_selection1)->getName() << " and " << playerCharacter->getWeapon(p_selection2)->getName() << '\n';
 					weaponDeclare(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter);
+					this_thread::sleep_for(chrono::milliseconds(500));
 					weaponAttack(playerCharacter->getWeapon(p_selection1), playerCharacter->getWeapon(p_selection2), playerCharacter, opponent, true);
 					switch (deathCheck(playerCharacter, opponent)) {
 					case 1:
@@ -753,53 +809,88 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 }
 
 void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
-	//Self damage
-	caster->propDamage(magic->getPropSelfDamage());
-	caster->flatDamage(magic->getFlatSelfDamage(), 1);
-	caster->flatDamage(magic->getFlatSelfMagicDamage(), 2);
-	caster->flatDamage(magic->getFlatSelfArmourPiercingDamage(), 3);
-	//Poison
-	caster->modifyPoison(magic->getSelfPoison());
-	//Bleed
-	caster->modifyBleed(magic->getSelfBleed());
-	//Turn mana regen
-	caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
-	//Battle mana regen
-	caster->modifyBattleManaRegen(magic->getBattleManaRegenModifier());
-	//Temp regen
-	caster->modifyTempRegen(magic->getTempRegenSelf());
-	//Const regen
-	caster->modifyConstRegen(magic->getConstRegenModifier());
-	//Battle regen
-	caster->modifyBattleRegen(magic->getBattleRegenModifier());
-	//Do hits
-	unsigned char hits;
-	if (counter) {
-		hits = magic->getCounterHits();
+	if (magic->getEffectType() == 1 || magic->getEffectType() == 2) { //Spell affects caster
+		cout << "Caster effects:\n";
+		if (magic->getPropSelfDamage() > 0) {
+			cout << -100 * magic->getPropSelfDamage() << "% health\n";
+		}
+		else if (magic->getPropSelfDamage() < 0) {
+			cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
+		}
+		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		cout << showpos;
+		if (magic->getSelfPoison() != 0 || magic->getSelfBleed() != 0 || magic->getTempRegenSelf() != 0) {
+			if (magic->getSelfPoison() != 0) {
+				cout << magic->getSelfPoison() << " poison, ";
+			}
+			if (magic->getSelfBleed() != 0) {
+				cout << magic->getSelfBleed() << " bleed, ";
+			}
+			if (magic->getTempRegenSelf() != 0) {
+				cout << magic->getTempRegenSelf() << " regeneration, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getPoisonResistModifier() != 0 || magic->getBleedResistModifier() != 0) {
+			if (magic->getPoisonResistModifier() != 0) {
+				cout << magic->getPoisonResistModifier() << " poison resist, ";
+			}
+			if (magic->getBleedResistModifier() != 0) {
+				cout << magic->getBleedResistModifier() << " bleed resist, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getMaxHealthModifier() != 0 || magic->getConstRegenModifier() != 0 || magic->getBattleRegenModifier() != 0) {
+			if (magic->getMaxHealthModifier() != 0) {
+				cout << magic->getMaxHealthModifier() << " max health, ";
+			}
+			if (magic->getConstRegenModifier() != 0) {
+				cout << magic->getConstRegenModifier() << " health per turn, ";
+			}
+			if (magic->getBattleRegenModifier() != 0) {
+				cout << magic->getBattleRegenModifier() << " health at end of battle, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getMaxManaModifier() != 0 || magic->getTurnManaRegenModifier() != 0 || magic->getBattleManaRegenModifier() != 0) {
+			if (magic->getMaxManaModifier() != 0) {
+				cout << magic->getMaxManaModifier() << " max " << g_manaName.plural() << ", ";
+			}
+			if (magic->getTurnManaRegenModifier() == 1 || magic->getTurnManaRegenModifier() == -1) {
+				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.singular() << " per turn, ";
+			}
+			else if (magic->getTurnManaRegenModifier() != 0) {
+				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.plural() << " per turn, ";
+			}
+			if (magic->getBattleManaRegenModifier() == 1 || magic->getBattleManaRegenModifier() == -1) {
+				cout << magic->getBattleManaRegenModifier() << ' ' << g_manaName.singular() << " at end of battle, ";
+			}
+			else if (magic->getBattleManaRegenModifier() != 0) {
+				cout << magic->getBattleManaRegenModifier() << ' ' << g_manaName.plural() << " at end of battle, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getFlatArmourModifier() != 0 || magic->getFlatMagicArmourModifier() != 0) {
+			if (magic->getFlatArmourModifier() != 0) {
+				cout << magic->getFlatArmourModifier() << " physical armour, ";
+			}
+			if (magic->getFlatMagicArmourModifier() != 0) {
+				cout << magic->getFlatMagicArmourModifier() << " magic armour, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getPropArmourModifier() != 0 || magic->getPropMagicArmourModifier() != 0) {
+			if (magic->getPropArmourModifier() != 0) {
+				cout << 100 * magic->getPropArmourModifier() << "% physical damage received, ";
+			}
+		}
 	}
-	else {
-		hits = magic->getHitCount();
-	}
-	for (unsigned char i = 0; i < hits; i++) {
-		spellHit(magic, caster, target);
-	}
-	//Caster modifiers
-	caster->modifyMaxHealth(magic->getMaxHealthModifier());
-	caster->modifyMaxMana(magic->getMaxManaModifier());
-	caster->modifyPoisonResist(magic->getPoisonResistModifier());
-	caster->modifyBleedResist(magic->getBleedResistModifier());
-	caster->modifyFlatArmour(magic->getFlatArmourModifier());
-	caster->modifyPropArmour(magic->getPropArmourModifier());
-	caster->modifyFlatMagicArmour(magic->getFlatMagicArmourModifier());
-	caster->modifyPropMagicArmour(magic->getPropMagicArmourModifier());
-	caster->modifyFlatDamageModifier(magic->getFlatDamageModifier());
-	caster->modifyPropDamageModifier(magic->getPropDamageModifier());
-	caster->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifier());
-	caster->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifier());
-	caster->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifier());
-	caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
-	caster->modifyEvadeChance(magic->getEvadeChanceModifier());
-	caster->modifyBonusActions(magic->getBonusActionsModifier());
 }
 
 void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
@@ -846,6 +937,7 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 	caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
 	caster->modifyEvadeChance(magic->getEvadeChanceModifier());
 	caster->modifyBonusActions(magic->getBonusActionsModifier());
+	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 unsigned char spellCast(spell* magic, player* target) {
@@ -853,6 +945,7 @@ unsigned char spellCast(spell* magic, player* target) {
 	for (unsigned char i = 0; i < hits; i++) {
 		spellHit(magic, target);
 	}
+	this_thread::sleep_for(chrono::milliseconds(400));
 	if (target->getHealth() <= 0) {
 		return 1;
 	}
@@ -865,6 +958,8 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 	}
 	if (!magic->getNoEvade()) { //If can be dodged, roll for evade
 		if (rng(0.f, 1.f) < target->getEvadeChance()) {
+			cout << "Hit evaded!\n";
+			this_thread::sleep_for(chrono::milliseconds(100));
 			return;
 		}
 	}

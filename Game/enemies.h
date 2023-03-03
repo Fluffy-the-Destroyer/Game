@@ -63,7 +63,7 @@ private:
 	std::vector<std::string> noCounterSpells; //Spells the enemy knows cannot be countered
 public:
 	void removeAllHealth() { health = 0; }
-	short flatDamage(short d, char t = 1);
+	short flatDamage(short p, short m = 0, short a = 0, bool overheal = false);
 	void propDamage(float d);
 	void modifyHealth(short h);
 	void modifyMaxHealth(short m);

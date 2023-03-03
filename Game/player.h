@@ -65,15 +65,15 @@ private:
 	float counterAttackChanceBase = 0.1f; //Chance to counter attack
 	float counterAttackChance = 0;
 	signed char bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
+	signed char currentBonusActions = 0; //How manybonus actions remain this turn
 	signed char bonusActions = 0;
-	signed char currentBonusActions = 0;
 public: //Not providing set functions, as these values should not usually be set. Providing functions for altering some attributes in certain ways
 	//Sets health to 0
 	void removeAllHealth() { health = 0; }
 	//Heals to full
 	void fullHeal() { health = maxHealth; }
-	//Reduces player health by specified amount, negative amounts heal. Adjusts for armour values. Flat armour is applied first. Has checks to prevent overflow and healing beyond max. t=1 is normal damage, t=2 is magic damage, t=3 is armour piercing damage. Returns health loss
-	short flatDamage(short d, char t = 1);
+	//Deals flat damage, applies armour. Negatives heal. p is physical damage, m is magic, a is armour piercing. Returns actual health loss, overheal=true allows overhealing
+	short flatDamage(short p, short m = 0, short a = 0, bool overheal = false);
 	//Damages player by a proportion of their health.
 	void propDamage(float d);
 	void modifyHealth(short h);

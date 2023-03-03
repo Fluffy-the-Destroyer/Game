@@ -56,9 +56,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="weapons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -92,5 +89,18 @@
     <ClInclude Include="battle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="data\armourBlueprints.xml" />
+    <Xml Include="data\blueprintLists.xml" />
+    <Xml Include="data\classBlueprints.xml" />
+    <Xml Include="data\enemyBlueprints.xml" />
+    <Xml Include="data\events.xml" />
+    <Xml Include="data\misc.xml" />
+    <Xml Include="data\spellBlueprints.xml" />
+    <Xml Include="data\weaponBlueprints.xml" />
   </ItemGroup>
 </Project>

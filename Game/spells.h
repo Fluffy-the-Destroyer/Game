@@ -98,6 +98,9 @@ private:
 	short bonusActionsModifier;
 	bool lifelink;
 	short healthChange;
+	bool selfOverheal;
+	bool targetOverheal;
+	unsigned char effectType; //Whom it can affect. 0 is does nothing, 1 is affects only caster, 2 is affects caster and target, 3 is affects only target (excludes costs)
 public:
 	//Loads spell from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -110,12 +113,21 @@ public:
 	std::string getName();
 	std::string getDescription() { return description; }
 	short getFlatDamage() { return rng(flatDamageMin, flatDamageMax); }
+	short getFlatDamageMin() { return flatDamageMin; }
+	short getFlatDamageMax() { return flatDamageMax; }
 	short getFlatMagicDamage() { return rng(flatMagicDamageMin, flatMagicDamageMax); }
+	short getFlatMagicDamageMin() { return flatMagicDamageMin; }
+	short getFlatMagicDamageMax() { return flatMagicDamageMax; }
 	short getFlatArmourPiercingDamage() { return rng(flatArmourPiercingDamageMin, flatArmourPiercingDamageMax); }
+	short getFlatArmourPiercingDamageMin() { return flatArmourPiercingDamageMin; }
+	short getFlatArmourPiercingDamageMax() { return flatArmourPiercingDamageMax; }
 	float getPropDamage() { return propDamage; }
 	short getFlatSelfDamage() { return rng(flatSelfDamageMin, flatSelfDamageMax); }
 	short getFlatSelfMagicDamage() { return rng(flatSelfMagicDamageMin, flatSelfMagicDamageMax); }
 	short getFlatSelfArmourPiercingDamage() { return rng(flatSelfArmourPiercingDamageMin, flatSelfArmourPiercingDamageMax); }
+	short getFlatSelfDamageMin() { return flatSelfDamageMin; }
+	short getFlatSelfMagicDamageMin() { return flatSelfMagicDamageMin; }
+	short getFlatSelfArmourPiercingDamageMin() { return flatSelfArmourPiercingDamageMin; }
 	short getFlatSelfDamageMax() { return flatSelfDamageMax; }
 	short getFlatSelfMagicDamageMax() { return flatSelfMagicDamageMax; }
 	short getFlatSelfArmourPiercingDamageMax() { return flatSelfArmourPiercingDamageMax; }
@@ -182,6 +194,9 @@ public:
 	bool getReal() { return real; }
 	bool getLifelink() { return lifelink; }
 	short getHealthChange() { return healthChange; }
+	unsigned char getEffectType() { return effectType; }
+	bool getSelfOverheal() { return selfOverheal; }
+	bool getTargetOverheal() { return targetOverheal; }
 	//Displays stats
 	void displayStats();
 	//Sets spell type based on stats, pretty rudimentary, ideally the type should be specified in the blueprint. For example, a spell which does nothing would be classified as support, and a support focused enemy would use it
@@ -190,4 +205,10 @@ public:
 	void displayName();
 	//Checks if the spell is the given type, type 4 spells count as type 1 and type 2
 	bool checkSpellType(unsigned char type);
+	//Checks if the spell has any effect on caster
+	bool checkSelfEffect();
+	//Checks if affects target
+	bool checkTargetEffect();
+	//Sets effectType
+	void setEffectType();
 };

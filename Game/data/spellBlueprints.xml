@@ -102,6 +102,8 @@
 	<timing>0</timing><!--When the spell can be cast, see top of file-->
 	<counterSpell>0</counterSpell><!--Can the spell counter enemy attacks (prevent their effects), see top of file-->
 	<lifelink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
+	<selfOverheal/><!--Allows the spell to overheal caster, defaults to false-->
+	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
 </spellBlueprint>
 
 <spellBlueprint name="HEAL_SPELL_1">

@@ -38,6 +38,9 @@ private:
 	unsigned char selfBleed; //Bleed applied to self
 	bool lifelink; //Heals user equal to damage done
 	bool dualWield; //If two weapons with this are equipped, they can both be used in a single attack
+	unsigned char effectType; //0 is has no effect, 1 is only affects attacker, 2 is also affects target, 3 is only affects target
+	bool selfOverheal; //Can it overheal wielder
+	bool targetOverheal;
 public:
 	//Loads weapon from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -46,14 +49,23 @@ public:
 	std::string getName();
 	std::string getDescription() { return description; }
 	short getFlatDamage() { return rng(flatDamageMin, flatDamageMax); }
+	short getFlatDamageMin() { return flatDamageMin; }
+	short getFlatDamageMax() { return flatDamageMax; }
 	short getFlatMagicDamage() { return rng(flatMagicDamageMin, flatMagicDamageMax); }
+	short getFlatMagicDamageMin() { return flatMagicDamageMin; }
+	short getFlatMagicDamageMax() { return flatMagicDamageMax; }
 	short getFlatArmourPiercingDamage() { return rng(flatArmourPiercingDamageMin, flatArmourPiercingDamageMax); }
+	short getFlatArmourPiercingDamageMin() { return flatArmourPiercingDamageMin; }
+	short getFlatArmourPiercingDamageMax() { return flatArmourPiercingDamageMax; }
 	float getPropDamage() { return propDamage; }
 	short getFlatSelfDamage() { return rng(flatSelfDamageMin, flatSelfDamageMax); }
+	short getFlatSelfDamageMin() { return flatSelfDamageMin; }
 	short getFlatSelfDamageMax() { return flatSelfDamageMax; }
 	short getFlatSelfMagicDamage() { return rng(flatSelfMagicDamageMin, flatSelfMagicDamageMax); }
+	short getFlatSelfMagicDamageMin() { return flatSelfMagicDamageMin; }
 	short getFlatSelfMagicDamageMax() { return flatSelfMagicDamageMax; }
 	short getFlatSelfArmourPiercingDamage() { return rng(flatSelfArmourPiercingDamageMin, flatSelfArmourPiercingDamageMax); }
+	short getFlatSelfArmourPiercingDamageMin() { return flatSelfArmourPiercingDamageMin; }
 	short getFlatSelfArmourPiercingDamageMax() { return flatSelfArmourPiercingDamageMax; }
 	float getPropSelfDamage() { return propSelfDamage; }
 	unsigned char getHitCount() { return hitCount; }
@@ -72,8 +84,14 @@ public:
 	short getHealthChange() { return healthChange; }
 	std::string getWeaponName() { return weaponName; }
 	bool getDualWield() { return dualWield; }
+	unsigned char getEffectType() { return effectType; }
+	bool getSelfOverheal() { return selfOverheal; }
+	bool getTargetOverheal() { return targetOverheal; }
 	//Displays weapon stats
 	void displayStats();
 	//Displays name and cost, for use in battle
 	void displayName();
+	bool checkSelfEffect();
+	bool checkTargetEffect();
+	void setEffectType();
 };

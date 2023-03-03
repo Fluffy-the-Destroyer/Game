@@ -12,31 +12,59 @@ using namespace std;
 // 5: Empty list
 // 6: Ateempting to access slot out of range
 
-short enemy::flatDamage(short d, char t) {
-	if (d > 0) {
-		if (t == 1) {
-			d = max(0, d - flatArmour);
-			d = static_cast<short>(d * (1 + propArmour));
-		}
-		else if (t == 2) {
-			d = max(0, d - flatMagicArmour);
-			d = static_cast<short>(d * (1 + propMagicArmour));
-		}
-		short healthLoss = min(d, health); //Actual health loss
-		if (SHRT_MIN + d > health) {
+short enemy::flatDamage(short p, short m, short a, bool overheal) {
+	if (p > 0) { //Apply physical armour
+		p = max(0, p - flatArmour);
+		p = static_cast<short>(p * (1 + propArmour));
+	}
+	if (m > 0) { //Apply magic armour
+		m = max(0, m - flatMagicArmour);
+		m = static_cast<short>(m * (1 + propMagicArmour));
+	}
+	long totDamage = p + m + a; //Calculate total damage
+	if (totDamage > 0) {
+		if (SHRT_MIN + totDamage > health) { //Check for underflow
 			health = SHRT_MIN;
 		}
 		else {
-			health -= d;
+			health = static_cast<short>(health - totDamage);
 		}
-		return max(healthLoss, (short)0);
+		if (totDamage > SHRT_MAX) {
+			return SHRT_MAX;
+		}
+		return static_cast<short>(totDamage);
 	}
-	else if (d < 0) {
-		if (health - d > maxHealth || SHRT_MAX + d < health) {
-			health = maxHealth;
+	else if (totDamage < 0) {
+		if (overheal) { //May overheal
+			if (SHRT_MAX + totDamage < health) { //Check for overflow
+				health = SHRT_MAX;
+			}
+			else {
+				health = static_cast<short>(health - totDamage);
+			}
+			if (totDamage < SHRT_MIN) {
+				return SHRT_MIN;
+			}
+			return static_cast<short>(totDamage);
 		}
 		else {
-			health -= d;
+			if (health >= maxHealth) { //Already overhealed
+				return 0;
+			}
+			if (health - totDamage > maxHealth || SHRT_MAX + totDamage < health) { //Overflow or exceed max
+				totDamage = health;
+				totDamage -= maxHealth;
+				health = maxHealth;
+				if (totDamage < SHRT_MIN) {
+					return SHRT_MIN;
+				}
+				return static_cast<short>(totDamage);
+			}
+			health = static_cast<short>(health - totDamage);
+			if (totDamage < SHRT_MIN) {
+				return SHRT_MIN;
+			}
+			return static_cast<short>(totDamage);
 		}
 	}
 	return 0;
@@ -58,6 +86,9 @@ void enemy::propDamage(float d) {
 
 void enemy::modifyHealth(short h) {
 	if (h > 0) {
+		if (health >= maxHealth) {
+			return;
+		}
 		if (health + h > maxHealth || SHRT_MAX - h < health) { //Overflow or exceed max
 			health = maxHealth;
 		}
@@ -66,11 +97,11 @@ void enemy::modifyHealth(short h) {
 		}
 	}
 	else if (h < 0) {
-		if (maxHealth < SHRT_MIN - h) {
-			maxHealth = SHRT_MIN;
+		if (health < SHRT_MIN - h) {
+			health = SHRT_MIN;
 		}
 		else {
-			maxHealth += h;
+			health += h;
 		}
 	}
 }
@@ -83,7 +114,6 @@ void enemy::modifyMaxHealth(short m) {
 		else {
 			maxHealth += m;
 		}
-		flatDamage(-m); //Heal for m, will account for overflows
 	}
 	else if (m < 0) {
 		if (maxHealth < SHRT_MIN - m) {
@@ -1342,9 +1372,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		//Apply costs and maximum possible self damage
 		modifyHealth(weapons[slot].getHealthChange());
 		propDamage(weapons[slot].getPropSelfDamage());
-		flatDamage(weapons[slot].getFlatSelfDamageMax());
-		flatDamage(weapons[slot].getFlatSelfMagicDamageMax());
-		flatDamage(weapons[slot].getFlatSelfArmourPiercingDamageMax());
+		flatDamage(weapons[slot].getFlatSelfDamageMax(), weapons[slot].getFlatSelfMagicDamageMax(), weapons[slot].getFlatSelfArmourPiercingDamageMax(), weapons[slot].getSelfOverheal());
 		modifyMana(weapons[slot].getManaChange());
 		modifyProjectiles(weapons[slot].getProjectileChange());
 		if (health <= 0) { //Would die
@@ -1433,9 +1461,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		//Apply self damage/health cost
 		modifyHealth(spells[slot].getHealthChange());
 		propDamage(spells[slot].getPropSelfDamage());
-		flatDamage(spells[slot].getFlatSelfDamageMax());
-		flatDamage(spells[slot].getFlatSelfMagicDamageMax(), 2);
-		flatDamage(spells[slot].getFlatSelfArmourPiercingDamageMax(), 3);
+		flatDamage(spells[slot].getFlatSelfDamageMax(), spells[slot].getFlatSelfMagicDamageMax(), spells[slot].getFlatSelfArmourPiercingDamageMax(), spells[slot].getSelfOverheal());
 		modifyMaxHealth(spells[slot].getMaxHealthModifier());
 		if (health <= 0) { //Would die
 			health = currentHealth;
@@ -1784,12 +1810,8 @@ bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char ti
 		propDamage(weapons[weapon1].getPropSelfDamage());
 		propDamage(weapons[weapon2].getPropSelfDamage());
 	}
-	flatDamage(weapons[weapon1].getFlatSelfDamageMax());
-	flatDamage(weapons[weapon2].getFlatSelfDamageMax());
-	flatDamage(weapons[weapon1].getFlatSelfMagicDamageMax(), 2);
-	flatDamage(weapons[weapon2].getFlatSelfMagicDamageMax(), 2);
-	flatDamage(weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), 3);
-	flatDamage(weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), 3);
+	flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), weapons[weapon1].getSelfOverheal());
+	flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverheal());
 	if (health <= 0) {
 		health = currentHealth;
 		mana = currentMana;
