@@ -23,6 +23,7 @@
 	<bleedResistModifier>0</bleedResistModifier> <!--Bleed resist-->
 	<counterAttackChanceModifier>0</counterAttackChanceModifier> <!--Counter attack chance-->
 	<bonusActionsModifier>0</bonusActionsModifier><!--Number of bonus actions each turn-->
+	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
 </armourHeadBlueprint>
 
 <armourHeadBlueprint name="HELMET_1">

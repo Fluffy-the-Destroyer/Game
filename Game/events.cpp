@@ -25,9 +25,12 @@ extern resource g_manaName, g_projName;
 
 void Event::loadFromFile(string blueprint, bool custom) {
 	//Reset attributes to default values
-	eventName = preBattleSpell = enemyBlueprint = postBattleSpell = reward = "EMPTY";
+	eventName = preBattleSpell = enemyBlueprint = reward = "EMPTY";
 	preBattleText = postBattleText = "";
 	choices.resize(0);
+	for (short i = 0; i < 3; i++) {
+		statChanges[i] = 0;
+	}
 	varChanges.reset();
 	ifstream events;
 	string buffer = "", buffer2="";
@@ -117,8 +120,47 @@ void Event::loadFromFile(string blueprint, bool custom) {
 			else if (buffer == "postBattleText") {
 				getline(events, postBattleText, '<');
 			}
-			else if (buffer == "postBattleSpell") {
-				getline(events, postBattleSpell, '<');
+			else if (buffer == "statChanges") {
+				ignoreLine(&events);
+				if (!events) {
+					throw 1;
+				}
+				buffer = getTag(&events);
+				while (buffer != "/statChanges") {
+					if (events.eof()) {
+						throw 1;
+					}
+					if (buffer == "health") {
+						getline(events, buffer2, '<');
+						statChanges[0] += numFromString(&buffer2);
+					}
+					else if (buffer == "mana") {
+						getline(events, buffer2, '<');
+						statChanges[1] += numFromString(&buffer2);
+					}
+					else if (buffer == "projectiles") {
+						getline(events, buffer2, '<');
+						statChanges[2] += numFromString(&buffer2);
+					}
+					else {
+						throw 1;
+					}
+					events.seekg(-1, ios_base::cur);
+					if (getTag(&events) != '/' + buffer) {
+						throw 1;
+					}
+					ignoreLine(&events);
+					if (!events) {
+						throw 1;
+					}
+					buffer = getTag(&events);
+				}
+				ignoreLine(&events);
+				if (!events) {
+					throw 1;
+				}
+				buffer = getTag(&events);
+				continue;
 			}
 			else if (buffer == "reward") {
 				getline(events, reward, '<');
@@ -244,7 +286,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 	}
 	catch (int err) {
 		events.close();
-		eventName = preBattleSpell = enemyBlueprint = postBattleSpell = reward = "EMPTY";
+		eventName = preBattleSpell = enemyBlueprint = reward = "EMPTY";
 		preBattleText = postBattleText = "";
 		choices.resize(0);
 		varChanges.reset();
@@ -304,11 +346,29 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 	if (!postBattleText.empty()) {
 		cout << postBattleText << '\n';
 	}
-	eventSpell.loadFromFile(postBattleSpell);
-	if (eventSpell.getReal()) {
-		if (spellCast(&eventSpell, playerCharacter) == 1) {
-			return 2;
+	if (statChanges[0] != 0 || statChanges[1] != 0 || statChanges[2] != 0) {
+		cout << showpos;
+		if (statChanges[0] != 0) {
+			playerCharacter->modifyHealth(statChanges[0]);
+			cout << statChanges[0] << " health, ";
 		}
+		if (statChanges[1] == 1 || statChanges[1] == -1) {
+			playerCharacter->modifyMana(statChanges[1]);
+			cout << statChanges[1] << ' ' << g_manaName.singular() << ", ";
+		}
+		else if (statChanges[1] != 0) {
+			playerCharacter->modifyMana(statChanges[1]);
+			cout << statChanges[1] << ' ' << g_manaName.plural() << ", ";
+		}
+		if (statChanges[2] == 1 || statChanges[2] == -1) {
+			playerCharacter->modifyProjectiles(statChanges[2]);
+			cout << statChanges[2] << ' ' << g_projName.singular() << ", ";
+		}
+		else if (statChanges[2] != 0) {
+			playerCharacter->modifyProjectiles(statChanges[2]);
+			cout << statChanges[2] << ' ' << g_projName.plural() << ", ";
+		}
+		cout << "\b\b\n" << noshowpos;
 	}
 	switch (blueprintListSelector(&reward)) { //Find type of equipment and its blueprint name
 	case 1: //Helmet

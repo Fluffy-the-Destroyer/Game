@@ -39,6 +39,7 @@
 	<dualWield/><!--Two weapons with this tag can be dual wielded, they may both be used as a single action, as long as either could be used on its own. Dual wielding costs an additional bonus action-->
 	<selfOverheal/><!--Allows it to overheal attacker, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
+	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
 </weaponBlueprint>
 
 <weaponBlueprint name="SWORD">

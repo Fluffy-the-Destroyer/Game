@@ -614,24 +614,18 @@ void player::modifyPropArmourPiercingDamageModifier(float p) {
 }
 
 void player::equip(weapon* w) {
-	if (weaponSlots == 0) {
+	if (weapons.size() == 0) {
 		cout << "Cannot equip weapon, no weapon slots\n";
 		return;
 	}
 	cout << "Currently equipped weapons:\n";
-	try {
-		for (short i = 0; i < weaponSlots; i++) {
-			cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
-		}
-	}
-	catch (int) {
-		cout << "An internal error occurred, stored number of weapon slots does not match size of weapons vector, resizing vector\n";
-		weapons.resize(weaponSlots);
+	for (short i = 0; i < weapons.size(); i++) {
+		cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
 	}
 	while (true) {
 		cout << "Enter the number of the slot in which to equip the weapon.\nTo discard the weapon, enter 0.\n";
 		try {
-			unsigned char slot = userChoice(0, weaponSlots);
+			unsigned char slot = userChoice(0, static_cast<int>(weapons.size()));
 			if (slot == 0) {
 				return;
 			}
@@ -648,10 +642,6 @@ void player::equip(weapon* w) {
 		}
 		catch (int err) {
 			switch (err) {
-			case 6:
-				cout << "An internal error occurred, stored number of weapon slots does not match size of weapons vector, resizing vector\n";
-				weapons.resize(weaponSlots);
-				break;
 			case 7:
 				cout << "An internal error occurred\n";
 				break;
@@ -661,24 +651,18 @@ void player::equip(weapon* w) {
 }
 
 void player::equip(spell* s) {
-	if (spellSlots == 0) {
+	if (spells.size() == 0) {
 		cout << "Cannot equip spell, no spell slots\n";
 		return;
 	}
 	cout << "Currently equipped spells:\n";
-	try {
-		for (short i = 0; i < spellSlots; i++) {
-			cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
-		}
-	}
-	catch (int) {
-		cout << "An internal error occurred, stored number of spell slots does not match size of spells vector, resizing vector\n";
-		spells.resize(spellSlots);
+	for (short i = 0; i < spells.size(); i++) {
+		cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
 	}
 	while (true) {
 		cout << "Enter the number of the slot in which to equip the spell.\nTo discard the spell, enter 0.\n";
 		try {
-			unsigned char slot = userChoice(0, spellSlots);
+			unsigned char slot = userChoice(0, static_cast<int>(spells.size()));
 			if (slot == 0) {
 				return;
 			}
@@ -695,10 +679,6 @@ void player::equip(spell* s) {
 		}
 		catch (int err) {
 			switch (err) {
-			case 6:
-				cout << "An internal error occurred, stored number of spell slots does not match size of spells vector, resizing vector\n";
-				spells.resize(spellSlots);
-				break;
 			case 7:
 				cout << "An internal error occurred\n";
 				break;
@@ -752,14 +732,14 @@ void player::equip(armourFeet* b) {
 }
 
 weapon* player::getWeapon(unsigned char i) {
-	if (i >= weaponSlots || i >= weapons.size()) {
+	if (i >= weapons.size()) {
 		throw 6;
 	}
 	return &(weapons[i]);
 }
 
 spell* player::getSpell(unsigned char i) {
-	if (i >= spellSlots || i >= spells.size()) {
+	if (i >= spells.size()) {
 		throw 6;
 	}
 	return &(spells[i]);
@@ -921,11 +901,7 @@ void player::loadClass(string playerClass, bool custom) {
 			}
 			else if (buffer.substr(0, 15) == "weapons count=\"") { //It's the weapons tag, count is how many slots there are, which varies, so only checking the beginning of the tag
 				buffer.erase(0, 15); //Get rid of the stuff that has been checked
-				weaponSlots = static_cast<unsigned char>(numFromString(&buffer)); //If the number is negative or bigger than 255, it will overflow or underflow, but the documentation will say it must be in this range so it is an error by whoever made the class
-				weapons.resize(weaponSlots); //Set the number of slots and resize the vector appropriately, weaponSlots cannot go negative, so this will be fine
-				if (weapons.size() != weaponSlots) { //Failed to resize weapons
-					throw 1;
-				}
+				weapons.resize(static_cast<unsigned char>(numFromString(&buffer))); //If the number is negative or bigger than 255, it will overflow or underflow, but the documentation will say it must be in this range so it is an error by whoever made the class
 				if (buffer.substr(0, 15) != "\" projectiles=\"") { //This should be next
 					throw 1;
 				}
@@ -935,7 +911,7 @@ void player::loadClass(string playerClass, bool custom) {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints); //Go to next line
-				for (int i = 0; i < weaponSlots; i++) {
+				for (int i = 0; i < weapons.size(); i++) {
 					buffer = getTag(&classBlueprints);
 					if (buffer == "weapon") { //It's a weapon
 						getline(classBlueprints, buffer, '<'); //Get the blueprint of the weapon (which could be a list)
@@ -951,7 +927,7 @@ void player::loadClass(string playerClass, bool custom) {
 					}
 					else if (buffer == "/weapons") { //Reached end of list of starting weapons, this would occur if the number of listed weapons is lower than the number of slots, which is fine, the player starts with excess slots empty
 						ignoreLine(&classBlueprints);
-						for (int j = i; j < weaponSlots; j++) { //Iterate over the current slot and all later ones
+						for (int j = i; j < weapons.size(); j++) { //Iterate over the current slot and all later ones
 							weapons[j].loadFromFile("EMPTY"); //Load empty slots
 						}
 						break;
@@ -972,16 +948,12 @@ void player::loadClass(string playerClass, bool custom) {
 			}
 			else if (buffer.substr(0, 14) == "spells count=\"") { //Similar to weapon setting
 				buffer.erase(0, 14);
-				spellSlots = static_cast<unsigned char>(numFromString(&buffer));
-				spells.resize(spellSlots);
-				if (spells.size() != spellSlots) {
-					throw 1;
-				}
+				spells.resize(static_cast<unsigned char>(numFromString(&buffer)));
 				if (buffer != "\"") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
-				for (int i = 0; i < spellSlots; i++) {
+				for (int i = 0; i < spells.size(); i++) {
 					buffer = getTag(&classBlueprints);
 					if (buffer == "spell") {
 						getline(classBlueprints, buffer, '<');
@@ -997,7 +969,7 @@ void player::loadClass(string playerClass, bool custom) {
 					}
 					else if (buffer == "/spells") {
 						ignoreLine(&classBlueprints);
-						for (int j = i; j < spellSlots; j++) {
+						for (int j = i; j < spells.size(); j++) {
 							spells[j].loadFromFile("EMPTY");
 						}
 						break;
@@ -1307,24 +1279,12 @@ void player::showInventory() {
 		cout << "Legs: " << greaves.getName() << '\n';
 		cout << "Feet: " << boots.getName() << '\n';
 		cout << "Weapons:\n";
-		try {
-			for (short i = 0; i < weaponSlots; i++) {
-				cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
-			}
-		}
-		catch (int) {
-			cout << "An internal error occurred, stored number of weapon slots does not match size of weapons vector, resizing vector\n";
-			weapons.resize(weaponSlots);
+		for (short i = 0; i < weapons.size(); i++) {
+			cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
 		}
 		cout << "Spells:\n";
-		try {
-			for (short i = 0; i < spellSlots; i++) {
-				cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
-			}
-		}
-		catch (int) {
-			cout << "An internal error occurred, stored number of spell slots does not match size of spells vector, resizing vector\n";
-			spells.resize(spellSlots);
+		for (short i = 0; i < spells.size(); i++) {
+			cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
 		}
 		cout << "To view armour stats, enter 1.\nTo view weapon stats, enter 2.\nTo view spell stats, enter 3.\nTo view player stats, enter 4.\n";
 		switch (userChoice(1, 4)) {
@@ -1346,13 +1306,13 @@ void player::showInventory() {
 			}
 			break;
 		case 2:
-			if (weaponSlots == 0) {
+			if (weapons.size() == 0) {
 				cout << "No weapon slots\n";
 				break;
 			}
 			cout << "Enter the number of the weapon slot you wish to view\n";
 			try {
-				getWeapon(static_cast<unsigned char>(userChoice(1, weaponSlots) - 1))->displayStats(); //Using getWeapon as it has protection against attempts to access outside the weapons vector
+				getWeapon(static_cast<unsigned char>(userChoice(1, static_cast<int>(weapons.size())) - 1))->displayStats(); //Using getWeapon as it has protection against attempts to access outside the weapons vector
 			}
 			catch (int err) {
 				switch (err) {
@@ -1366,19 +1326,16 @@ void player::showInventory() {
 			}
 			break;
 		case 3:
-			if (spellSlots == 0) {
+			if (spells.size() == 0) {
 				cout << "No spell slots\n";
 				break;
 			}
 			cout << "Enter the number of the spell slot you wish to view\n";
 			try {
-				getSpell(static_cast<unsigned char>(userChoice(1, spellSlots) - 1))->displayStats();
+				getSpell(static_cast<unsigned char>(userChoice(1, static_cast<int>(spells.size())) - 1))->displayStats();
 			}
 			catch (int err) {
 				switch (err) {
-				case 6:
-					cout << "An internal error occurred, specified spell slot does not exist\n";
-					break;
 				case 7:
 					cout << "An internal error occurred, no spell slots\n";
 					break;
@@ -1415,7 +1372,7 @@ void player::turnStart() {
 	if (tempRegen > 0) {
 		tempRegen--;
 	}
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	for (unsigned char i = 0; i < spells.size(); i++) {
 		spells[i].decCooldown();
 	}
 	if (bonusActions < 0) {
@@ -1435,7 +1392,7 @@ void player::decBonusActions() {
 void player::reset() {
 	modifyHealth(battleRegen);
 	modifyMana(battleManaRegen);
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	for (unsigned char i = 0; i < spells.size(); i++) {
 		spells[i].resetCooldown();
 	}
 	calculateModifiers();
@@ -1457,7 +1414,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 		if (currentBonusActions <= 0) {
 			return 0;
 		}
-		for (unsigned char i = 0; i < spellSlots; i++) {
+		for (unsigned char i = 0; i < spells.size(); i++) {
 			if (spells[i].getReal() && spells[i].getHitCount() > 0 && spells[i].getTiming() != 0) {
 				choiceCounter++;
 			}
@@ -1470,12 +1427,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 		if (currentBonusActions <= 0) {
 			return 0;
 		}
-		for (unsigned char i = 0; i < weaponSlots; i++) {
+		for (unsigned char i = 0; i < weapons.size(); i++) {
 			if (weapons[i].getReal() && weapons[i].getCounterHits() > 0) {
 				choiceCounter++;
 			}
 		}
-		for (unsigned char i = 0; i < spellSlots; i++) {
+		for (unsigned char i = 0; i < spells.size(); i++) {
 			if (spells[i].getReal() && spells[i].getCounterHits() > 0) {
 				choiceCounter++;
 			}
@@ -1507,17 +1464,17 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				showInventory();
 				break;
 			case 1:
-				if (weaponSlots == 0) {
+				if (weapons.size() == 0) {
 					cout << "No weapon slots!\n";
 					break;
 				}
 				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < weaponSlots; i++) {
+				for (unsigned char i = 0; i < weapons.size(); i++) {
 					cout << i + 1 << ": ";
 					weapons[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, weaponSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(weapons.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1564,7 +1521,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				//Can dual wield, choose another weapon
 				//Find possible weapons
 				choices.resize(1);
-				for (unsigned char i = 0; i < weaponSlots; i++) {
+				for (unsigned char i = 0; i < weapons.size(); i++) {
 					if (i == *slot1) { //Can't dual wield the same weapon twice
 						continue;
 					}
@@ -1659,17 +1616,17 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				}
 				break;
 			case 2: //Casting a spell
-				if (spellSlots == 0) {
+				if (spells.size() == 0) {
 					cout << "No spell slots!\n";
 					break;
 				}
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spellSlots; i++) {
+				for (unsigned char i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1731,12 +1688,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spellSlots; i++) {
+				for (unsigned char i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1799,12 +1756,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spellSlots; i++) {
+				for (unsigned char i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1867,12 +1824,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spellSlots; i++) {
+				for (unsigned char i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1930,17 +1887,17 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				showInventory();
 				break;
 			case 1:
-				if (weaponSlots == 0) {
+				if (weapons.size() == 0) {
 					cout << "No weapon slots!\n";
 					break;
 				}
 				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < weaponSlots; i++) {
+				for (unsigned char i = 0; i < weapons.size(); i++) {
 					cout << i + 1 << ": ";
 					weapons[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, weaponSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(weapons.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1988,7 +1945,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				//Can dual wield, choose another weapon
 				//Find possible weapons
 				choices.resize(1);
-				for (unsigned char i = 0; i < weaponSlots; i++) {
+				for (unsigned char i = 0; i < weapons.size(); i++) {
 					if (i == *slot1) { //Can't dual wield the same weapon twice
 						continue;
 					}
@@ -2083,17 +2040,17 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				}
 				break;
 			case 2: //Casting a spell
-				if (spellSlots == 0) {
+				if (spells.size() == 0) {
 					cout << "No spell slots!\n";
 					break;
 				}
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spellSlots; i++) {
+				for (unsigned char i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, spellSlots));
+				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -2200,6 +2157,70 @@ void player::applyDamageModifiers(short* p, short* m, short* a) {
 		}
 		else {
 			*a = static_cast<short>(damStorage);
+		}
+	}
+}
+
+void player::upgradeItems(short upgradeNum) {
+	bool done = false;
+	for (short i = upgradeNum; i > 0; i--) {
+		done = false;
+		while (!done) {
+			cout << "Armour:\n";
+			cout << "Head: " << helmet.getName() << '\n';
+			cout << "Torso: " << chestplate.getName() << '\n';
+			cout << "Legs: " << greaves.getName() << '\n';
+			cout << "Feet: " << boots.getName() << '\n';
+			cout << "Weapons:\n";
+			for (short j = 0; j < weapons.size(); j++) {
+				cout << j + 1 << ": " << getWeapon(static_cast<unsigned char>(j))->getName() << '\n';
+			}
+			cout << "Spells:\n";
+			for (short j = 0; j < spells.size(); j++) {
+				cout << j + 1 << ": " << getSpell(static_cast<unsigned char>(j))->getName() << '\n';
+			}
+			cout << i << " upgrade points remaining\n";
+			cout << "To upgrade an armour piece, enter 1.\nTo upgrade a weapon, enter 2.\nTo upgrade a spell, enter 3.\nTo upgrade nothing, enter 0.\n";
+			unsigned char j;
+			switch (userChoice(0, 3)) {
+			case 1:
+				cout << "To upgrade your head armour, enter 1.\nTo upgrade your torso armour, enter 2.\nTo upgrade your leg armour, enter 3.\nTo upgrade your foot armour, enter 4.\nTo go back, enter 0.\n";
+				switch (userChoice(0, 4)) {
+				case 1:
+					done = helmet.upgradeItem();
+					break;
+				case 2:
+					done = chestplate.upgradeItem();
+					break;
+				case 3:
+					done = greaves.upgradeItem();
+					break;
+				case 4:
+					done = boots.upgradeItem();
+					break;
+				}
+				break;
+			case 2:
+				cout << "Enter the slot number of the weapon you wish to upgrade.\nTo go back, enter 0.\n";
+				j = userChoice(0, static_cast<int>(weapons.size()));
+				if (j == 0) {
+					break;
+				}
+				j--;
+				done = weapons[j].upgradeItem();
+				break;
+			case 3:
+				cout << "Enter the slot number of the spell you wish to upgrade.\nTo go back, enter 0.\n";
+				j = userChoice(0, static_cast<int>(spells.size()));
+				if (j == 0) {
+					break;
+				}
+				j--;
+				done = spells[j].upgradeItem();
+				break;
+			default:
+				done = true;
+			}
 		}
 	}
 }

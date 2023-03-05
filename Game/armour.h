@@ -30,6 +30,7 @@ protected:
 	std::string armourName;
 	std::string name; //Armour name
 	std::string description; //Description
+	std::string upgrade; //Upgraded version
 public:
 	//Get attributes
 	std::string getArmourName() { return armourName; }
@@ -64,6 +65,8 @@ public:
 	//Loads armour from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
 	armour(std::string blueprint = "EMPTY") { loadFromFile(blueprint); }
+	//Upgrades the item, returns false if it wasn't upgraded
+	virtual bool upgradeItem() { return false; }
 };
 
 class armourHead :public armour {
@@ -74,6 +77,7 @@ public:
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
 	char armourType() { return 1; }
+	bool upgradeItem();
 };
 
 class armourTorso :public armour {
@@ -84,6 +88,7 @@ public:
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
 	char armourType() { return 2; }
+	bool upgradeItem();
 };
 
 class armourLegs :public armour {
@@ -94,6 +99,7 @@ public:
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
 	char armourType() { return 3; }
+	bool upgradeItem();
 };
 
 class armourFeet :public armour {
@@ -104,4 +110,5 @@ public:
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
 	char armourType() { return 4; }
+	bool upgradeItem();
 };

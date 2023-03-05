@@ -32,9 +32,7 @@ private:
 	short constRegenBase = 0; //Base per turn regen
 	short battleRegenBase = 0; //Base battle regen
 	short battleRegen = 0; //Actual battle regen
-	unsigned char weaponSlots = 0; //How many weapons can be carried
 	std::vector<weapon> weapons; //The player's weapons
-	unsigned char spellSlots = 0; //How many spells can be equipped
 	std::vector<spell> spells; //The player's spells
 	short flatArmourBase = 0;
 	short flatArmour = 0; //Flat damage reduction, sum of values on armour pieces, only allows non negative values
@@ -199,10 +197,10 @@ public: //Not providing set functions, as these values should not usually be set
 	short getConstRegenBase() { return constRegenBase; }
 	short getBattleRegenBase() { return battleRegenBase; }
 	short getBattleRegen() { return battleRegen; }
-	unsigned char getWeaponSlots() { return weaponSlots; }
+	unsigned char getWeaponSlots() { return static_cast<unsigned char>(weapons.size()); }
 	//Will throw a 6 if looking at a slot out of range, must be in a try block
 	weapon* getWeapon(unsigned char i);
-	unsigned char getSpellSlots() { return spellSlots; }
+	unsigned char getSpellSlots() { return static_cast<unsigned char>(spells.size()); }
 	//Will throw a 6 if looking at a slot out of range, must be in a try block
 	spell* getSpell(unsigned char i);
 	short getFlatArmourBase() { return flatArmourBase; }
@@ -253,4 +251,6 @@ public: //Not providing set functions, as these values should not usually be set
 	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, std::string enemyName, const unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "");
 	//Applies modifiers to damage
 	void applyDamageModifiers(short* p, short* m, short* a);
+	//Lets the player upgrade some items
+	void upgradeItems(short upgradeNum = 1);
 };

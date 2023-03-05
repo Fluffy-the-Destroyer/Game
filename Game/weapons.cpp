@@ -97,6 +97,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		hitCount = 1;
 		counterHits = poison = bleed = selfPoison = selfBleed = 0;
 		noEvade = noCounter = noCounterAttack = lifelink = dualWield = selfOverheal = targetOverheal = false;
+		upgrade = "EMPTY";
 		blueprintName = "weaponBlueprint name=\"" + blueprint + '\"';
 		while (stringbuffer != blueprintName) {
 			stringbuffer = getTag(&weaponBlueprints);
@@ -355,6 +356,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 						throw 1;
 					}
 					continue;
+					}
+				else if (stringbuffer == "upgrade") {
+					getline(weaponBlueprints, upgrade, '<');
 				}
 				else {
 					throw 1;
@@ -379,7 +383,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 	}
 	catch (int err) {
 		weaponBlueprints.close();
-		weaponName = "EMPTY";
+		weaponName = upgrade = "EMPTY";
 		name = "";
 		description = "";
 		real = false;
@@ -765,4 +769,26 @@ bool weapon::checkSelfDamage() {
 		return true;
 	}
 	return false;
+}
+
+bool weapon::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	weapon newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
 }

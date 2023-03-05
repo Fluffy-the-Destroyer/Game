@@ -110,6 +110,7 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		maxHealthModifier = maxManaModifier = turnManaRegenModifier = battleManaRegenModifier = constRegenModifier = battleRegenModifier = flatArmourModifier = flatMagicArmourModifier = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = bonusActionsModifier = 0;
 		propArmourModifier = propMagicArmourModifier = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = evadeChanceModifier = poisonResistModifier = bleedResistModifier = counterAttackChanceModifier = 0;
 		name = description = "";
+		upgrade = "EMPTY";
 		//Find and read actual blueprint
 		blueprintName = type + "Blueprint name=\"" + blueprint + '\"';
 		while (stringbuffer != blueprintName) { //Haven't found a blueprint
@@ -241,6 +242,9 @@ void armour::loadFromFile(string blueprint, bool custom) {
 			else if (stringbuffer == "bonusActionsModifier") {
 				getline(armourBlueprints, valBuffer, '<');
 				bonusActionsModifier = numFromString(&valBuffer);
+				}
+			else if (stringbuffer == "upgrade") {
+				getline(armourBlueprints, upgrade, '<');
 			}
 			else {
 				throw 1;
@@ -259,7 +263,7 @@ void armour::loadFromFile(string blueprint, bool custom) {
 	}
 	catch (int err) { //Default values for an empty slot
 		armourBlueprints.close();
-		armourName = "EMPTY";
+		armourName = upgrade = "EMPTY";
 		real = false;
 		name = "";
 		description = "";
@@ -287,591 +291,6 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		}
 	}
 }
-
-//void armourTorso::loadFromFile(string blueprint) {
-//	real = true;
-//	ifstream armourBlueprints;
-//	string stringbuffer = "";
-//	try { //Will throw an exception if it fails to find a properly formed blueprint
-//		if (blueprint == "EMPTY") { //Refers to an empty armour slot
-//			throw 3;
-//		}
-//		//Open blueprint file
-//		armourBlueprints.open("data\\armourBlueprints.xml");
-//		if (!armourBlueprints.is_open()) { //Could not open file
-//			throw 4;
-//		}
-//		//Check for a blueprint list
-//		{
-//			bool noList = false; //Set when end of file is reached without finding a list
-//			streampos filePos = 0; //Position in file
-//			short listCount = -1; //Number of items in a list, initialising to -1 to streamline later code, also using to store which entry we have chosen
-//			while (stringbuffer != "armourTorsoBlueprintList name=\"" + blueprint + "\"") { //Haven't found a list
-//				stringbuffer = getTag(&armourBlueprints);
-//				ignoreLine(&armourBlueprints);
-//				if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
-//					armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
-//					noList = true;
-//					break;
-//				}
-//			}
-//			if (!noList) { //Found a list, position in the file is start of line containing first item in list
-//				filePos = armourBlueprints.tellg(); //Store file position
-//				do {
-//					if (armourBlueprints.eof()) { //File ends before list terminates
-//						throw 1;
-//					}
-//					listCount++;
-//					stringbuffer = getTag(&armourBlueprints);
-//					ignoreLine(&armourBlueprints);
-//				} while (stringbuffer != "/armourTorsoBlueprintList");
-//				armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
-//				if (listCount == 0) { //Empty list
-//					throw 5;
-//				}
-//				listCount = rng(1, listCount); //Pick a random entry in the list
-//				armourBlueprints.seekg(filePos); //Go back to start of first entry
-//				for (int i = 1; i < listCount; i++) { //Ignore lines up to the one we picked
-//					ignoreLine(&armourBlueprints);
-//				}
-//				if (getTag(&armourBlueprints) != "name") { //It should be this
-//					throw 1;
-//				}
-//				getline(armourBlueprints, blueprint, '<'); //Get the blueprint name
-//				if (blueprint == "EMPTY") {
-//					throw 3;
-//				}
-//				getline(armourBlueprints, stringbuffer, '>');
-//				if (stringbuffer != "/name") {
-//					throw 1;
-//				}
-//			}
-//			armourBlueprints.seekg(0); //Go back to beginning of file
-//			stringbuffer = "";
-//		}
-//		//Find and read actual blueprint
-//		while (stringbuffer != "armourTorsoBlueprint name=\"" + blueprint + "\"") { //Haven't found a blueprint
-//			stringbuffer = getTag(&armourBlueprints);
-//			ignoreLine(&armourBlueprints);
-//			if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
-//				throw 2;
-//			}
-//		}
-//		while (stringbuffer != "/armourTorsoBlueprint") { //Keep reading data until we reach the end of the blueprint, this is what getTag will return
-//			if (armourBlueprints.eof()) { //Reached end of file without finding proper closing tag for blueprint
-//				throw 1;
-//			}
-//			stringbuffer = getTag(&armourBlueprints); //Get the tag
-//			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
-//				armourBlueprints >> maxHealthModifier;
-//			}
-//			else if (stringbuffer == "maxManaModifier") {
-//				armourBlueprints >> maxManaModifier;
-//			}
-//			else if (stringbuffer == "turnManaRegenModifier") {
-//				armourBlueprints >> turnManaRegenModifier;
-//			}
-//			else if (stringbuffer == "battleManaRegenModifier") {
-//				armourBlueprints >> battleManaRegenModifier;
-//			}
-//			else if (stringbuffer == "constRegenModifier") {
-//				armourBlueprints >> constRegenModifier;
-//			}
-//			else if (stringbuffer == "battleRegenModifier") {
-//				armourBlueprints >> battleRegenModifier;
-//			}
-//			else if (stringbuffer == "flatArmourModifier") {
-//				armourBlueprints >> flatArmourModifier;
-//			}
-//			else if (stringbuffer == "propArmourModifier") {
-//				armourBlueprints >> propArmourModifier;
-//				if (propArmourModifier < -1) {
-//					propArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicArmourModifier") {
-//				armourBlueprints >> flatMagicArmourModifier;
-//			}
-//			else if (stringbuffer == "propMagicArmourModifier") {
-//				armourBlueprints >> propMagicArmourModifier;
-//				if (propMagicArmourModifier < -1) {
-//					propMagicArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatDamageModifier") {
-//				armourBlueprints >> flatDamageModifier;
-//			}
-//			else if (stringbuffer == "propDamageModifier") {
-//				armourBlueprints >> propDamageModifier;
-//				if (propDamageModifier < -1) {
-//					propDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "evadeChanceModifier") {
-//				armourBlueprints >> evadeChanceModifier;
-//				if (evadeChanceModifier < -1) {
-//					evadeChanceModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "poisonResistModifier") {
-//				armourBlueprints >> poisonResistModifier;
-//				if (poisonResistModifier < -1) {
-//					poisonResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "bleedResistModifier") {
-//				armourBlueprints >> bleedResistModifier;
-//				if (bleedResistModifier < -1) {
-//					bleedResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicDamageModifier") {
-//				armourBlueprints >> flatMagicDamageModifier;
-//			}
-//			else if (stringbuffer == "propMagicDamageModifier") {
-//				armourBlueprints >> propMagicDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-//				armourBlueprints >> flatArmourPiercingDamageModifier;
-//			}
-//			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-//				armourBlueprints >> propArmourPiercingDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "name") {
-//				getline(armourBlueprints, name, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			else if (stringbuffer == "description") {
-//				getline(armourBlueprints, description, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			if (getTag(&armourBlueprints) != '/' + stringbuffer) {
-//				throw 1;
-//			}
-//			ignoreLine(&armourBlueprints);
-//			if (!armourBlueprints) {
-//				throw 1;
-//			}
-//		}
-//		armourBlueprints.close();
-//	}
-//	catch (int err) { //Default values for an empty slot
-//		armourBlueprints.close();
-//		real = false;
-//		name = "";
-//		description = "";
-//		switch (err) {
-//		case 1:
-//			cout << "Unable to parse blueprint or blueprintList " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 2:
-//			cout << "No blueprint or blueprintList found with name " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 4:
-//			cout << "Could not open armourBlueprints.xml, using default armour.\n";
-//			break;
-//		case 5:
-//			cout << "blueprintList " << blueprint << " contains no entries, using default armour.\n";
-//			break;
-//		}
-//	}
-//}
-//
-//void armourLegs::loadFromFile(string blueprint) {
-//	real = true;
-//	ifstream armourBlueprints;
-//	string stringbuffer = "";
-//	try { //Will throw an exception if it fails to find a properly formed blueprint
-//		if (blueprint == "EMPTY") { //Refers to an empty armour slot
-//			throw 3;
-//		}
-//		//Open blueprint file
-//		armourBlueprints.open("data\\armourBlueprints.xml");
-//		if (!armourBlueprints.is_open()) { //Could not open file
-//			throw 4;
-//		}
-//		//Check for a blueprint list
-//		{
-//			bool noList = false; //Set when end of file is reached without finding a list
-//			streampos filePos = 0; //Position in file
-//			short listCount = -1; //Number of items in a list, initialising to -1 to streamline later code, also using to store which entry we have chosen
-//			while (stringbuffer != "armourLegsBlueprintList name=\"" + blueprint + "\"") { //Haven't found a list
-//				stringbuffer = getTag(&armourBlueprints);
-//				ignoreLine(&armourBlueprints);
-//				if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
-//					armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
-//					noList = true;
-//					break;
-//				}
-//			}
-//			if (!noList) { //Found a list, position in the file is start of line containing first item in list
-//				filePos = armourBlueprints.tellg(); //Store file position
-//				do {
-//					if (armourBlueprints.eof()) { //File ends before list terminates
-//						throw 1;
-//					}
-//					listCount++;
-//					stringbuffer = getTag(&armourBlueprints);
-//					ignoreLine(&armourBlueprints);
-//				} while (stringbuffer != "/armourLegsBlueprintList");
-//				armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
-//				if (listCount == 0) { //Empty list
-//					throw 5;
-//				}
-//				listCount = rng(1, listCount); //Pick a random entry in the list
-//				armourBlueprints.seekg(filePos); //Go back to start of first entry
-//				for (int i = 1; i < listCount; i++) { //Ignore lines up to the one we picked
-//					ignoreLine(&armourBlueprints);
-//				}
-//				if (getTag(&armourBlueprints) != "name") { //It should be this
-//					throw 1;
-//				}
-//				getline(armourBlueprints, blueprint, '<'); //Get the blueprint name
-//				if (blueprint == "EMPTY") {
-//					throw 3;
-//				}
-//				getline(armourBlueprints, stringbuffer, '>');
-//				if (stringbuffer != "/name") {
-//					throw 1;
-//				}
-//			}
-//			armourBlueprints.seekg(0); //Go back to beginning of file
-//			stringbuffer = "";
-//		}
-//		//Find and read actual blueprint
-//		while (stringbuffer != "armourLegsBlueprint name=\"" + blueprint + "\"") { //Haven't found a blueprint
-//			stringbuffer = getTag(&armourBlueprints);
-//			ignoreLine(&armourBlueprints);
-//			if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
-//				throw 2;
-//			}
-//		}
-//		while (stringbuffer != "/armourLegsBlueprint") { //Keep reading data until we reach the end of the blueprint, this is what getTag will return
-//			if (armourBlueprints.eof()) { //Reached end of file without finding proper closing tag for blueprint
-//				throw 1;
-//			}
-//			stringbuffer = getTag(&armourBlueprints); //Get the tag
-//			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
-//				armourBlueprints >> maxHealthModifier;
-//			}
-//			else if (stringbuffer == "maxManaModifier") {
-//				armourBlueprints >> maxManaModifier;
-//			}
-//			else if (stringbuffer == "turnManaRegenModifier") {
-//				armourBlueprints >> turnManaRegenModifier;
-//			}
-//			else if (stringbuffer == "battleManaRegenModifier") {
-//				armourBlueprints >> battleManaRegenModifier;
-//			}
-//			else if (stringbuffer == "constRegenModifier") {
-//				armourBlueprints >> constRegenModifier;
-//			}
-//			else if (stringbuffer == "battleRegenModifier") {
-//				armourBlueprints >> battleRegenModifier;
-//			}
-//			else if (stringbuffer == "flatArmourModifier") {
-//				armourBlueprints >> flatArmourModifier;
-//			}
-//			else if (stringbuffer == "propArmourModifier") {
-//				armourBlueprints >> propArmourModifier;
-//				if (propArmourModifier < -1) {
-//					propArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicArmourModifier") {
-//				armourBlueprints >> flatMagicArmourModifier;
-//			}
-//			else if (stringbuffer == "propMagicArmourModifier") {
-//				armourBlueprints >> propMagicArmourModifier;
-//				if (propMagicArmourModifier < -1) {
-//					propMagicArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatDamageModifier") {
-//				armourBlueprints >> flatDamageModifier;
-//			}
-//			else if (stringbuffer == "propDamageModifier") {
-//				armourBlueprints >> propDamageModifier;
-//				if (propDamageModifier < -1) {
-//					propDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "evadeChanceModifier") {
-//				armourBlueprints >> evadeChanceModifier;
-//				if (evadeChanceModifier < -1) {
-//					evadeChanceModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "poisonResistModifier") {
-//				armourBlueprints >> poisonResistModifier;
-//				if (poisonResistModifier < -1) {
-//					poisonResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "bleedResistModifier") {
-//				armourBlueprints >> bleedResistModifier;
-//				if (bleedResistModifier < -1) {
-//					bleedResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicDamageModifier") {
-//				armourBlueprints >> flatMagicDamageModifier;
-//			}
-//			else if (stringbuffer == "propMagicDamageModifier") {
-//				armourBlueprints >> propMagicDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-//				armourBlueprints >> flatArmourPiercingDamageModifier;
-//			}
-//			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-//				armourBlueprints >> propArmourPiercingDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "name") {
-//				getline(armourBlueprints, name, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			else if (stringbuffer == "description") {
-//				getline(armourBlueprints, description, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			if (getTag(&armourBlueprints) != '/' + stringbuffer) {
-//				throw 1;
-//			}
-//			ignoreLine(&armourBlueprints);
-//			if (!armourBlueprints) {
-//				throw 1;
-//			}
-//		}
-//		armourBlueprints.close();
-//	}
-//	catch (int err) { //Default values for an empty slot
-//		armourBlueprints.close();
-//		real = false;
-//		name = "";
-//		description = "";
-//		switch (err) {
-//		case 1:
-//			cout << "Unable to parse blueprint or blueprintList " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 2:
-//			cout << "No blueprint or blueprintList found with name " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 4:
-//			cout << "Could not open armourBlueprints.xml, using default armour.\n";
-//			break;
-//		case 5:
-//			cout << "blueprintList " << blueprint << " contains no entries, using default armour.\n";
-//			break;
-//		}
-//	}
-//}
-//
-//void armourFeet::loadFromFile(string blueprint) {
-//	real = true;
-//	ifstream armourBlueprints;
-//	string stringbuffer = "";
-//	try { //Will throw an exception if it fails to find a properly formed blueprint
-//		if (blueprint == "EMPTY") { //Refers to an empty armour slot
-//			throw 3;
-//		}
-//		//Open blueprint file
-//		armourBlueprints.open("data\\armourBlueprints.xml");
-//		if (!armourBlueprints.is_open()) { //Could not open file
-//			throw 4;
-//		}
-//		//Check for a blueprint list
-//		{
-//			bool noList = false; //Set when end of file is reached without finding a list
-//			streampos filePos = 0; //Position in file
-//			short listCount = -1; //Number of items in a list, initialising to -1 to streamline later code, also using to store which entry we have chosen
-//			while (stringbuffer != "armourFeetBlueprintList name=\"" + blueprint + "\"") { //Haven't found a list
-//				stringbuffer = getTag(&armourBlueprints);
-//				ignoreLine(&armourBlueprints);
-//				if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
-//					armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
-//					noList = true;
-//					break;
-//				}
-//			}
-//			if (!noList) { //Found a list, position in the file is start of line containing first item in list
-//				filePos = armourBlueprints.tellg(); //Store file position
-//				do {
-//					if (armourBlueprints.eof()) { //File ends before list terminates
-//						throw 1;
-//					}
-//					listCount++;
-//					stringbuffer = getTag(&armourBlueprints);
-//					ignoreLine(&armourBlueprints);
-//				} while (stringbuffer != "/armourFeetBlueprintList");
-//				armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
-//				if (listCount == 0) { //Empty list
-//					throw 5;
-//				}
-//				listCount = rng(1, listCount); //Pick a random entry in the list
-//				armourBlueprints.seekg(filePos); //Go back to start of first entry
-//				for (int i = 1; i < listCount; i++) { //Ignore lines up to the one we picked
-//					ignoreLine(&armourBlueprints);
-//				}
-//				if (getTag(&armourBlueprints) != "name") { //It should be this
-//					throw 1;
-//				}
-//				getline(armourBlueprints, blueprint, '<'); //Get the blueprint name
-//				if (blueprint == "EMPTY") {
-//					throw 3;
-//				}
-//				getline(armourBlueprints, stringbuffer, '>');
-//				if (stringbuffer != "/name") {
-//					throw 1;
-//				}
-//			}
-//			armourBlueprints.seekg(0); //Go back to beginning of file
-//			stringbuffer = "";
-//		}
-//		//Find and read actual blueprint
-//		while (stringbuffer != "armourFeetBlueprint name=\"" + blueprint + "\"") { //Haven't found a blueprint
-//			stringbuffer = getTag(&armourBlueprints);
-//			ignoreLine(&armourBlueprints);
-//			if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
-//				throw 2;
-//			}
-//		}
-//		while (stringbuffer != "/armourFeetBlueprint") { //Keep reading data until we reach the end of the blueprint, this is what getTag will return
-//			if (armourBlueprints.eof()) { //Reached end of file without finding proper closing tag for blueprint
-//				throw 1;
-//			}
-//			stringbuffer = getTag(&armourBlueprints); //Get the tag
-//			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
-//				armourBlueprints >> maxHealthModifier;
-//			}
-//			else if (stringbuffer == "maxManaModifier") {
-//				armourBlueprints >> maxManaModifier;
-//			}
-//			else if (stringbuffer == "turnManaRegenModifier") {
-//				armourBlueprints >> turnManaRegenModifier;
-//			}
-//			else if (stringbuffer == "battleManaRegenModifier") {
-//				armourBlueprints >> battleManaRegenModifier;
-//			}
-//			else if (stringbuffer == "constRegenModifier") {
-//				armourBlueprints >> constRegenModifier;
-//			}
-//			else if (stringbuffer == "battleRegenModifier") {
-//				armourBlueprints >> battleRegenModifier;
-//			}
-//			else if (stringbuffer == "flatArmourModifier") {
-//				armourBlueprints >> flatArmourModifier;
-//			}
-//			else if (stringbuffer == "propArmourModifier") {
-//				armourBlueprints >> propArmourModifier;
-//				if (propArmourModifier < -1) {
-//					propArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicArmourModifier") {
-//				armourBlueprints >> flatMagicArmourModifier;
-//			}
-//			else if (stringbuffer == "propMagicArmourModifier") {
-//				armourBlueprints >> propMagicArmourModifier;
-//				if (propMagicArmourModifier < -1) {
-//					propMagicArmourModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatDamageModifier") {
-//				armourBlueprints >> flatDamageModifier;
-//			}
-//			else if (stringbuffer == "propDamageModifier") {
-//				armourBlueprints >> propDamageModifier;
-//				if (propDamageModifier < -1) {
-//					propDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "evadeChanceModifier") {
-//				armourBlueprints >> evadeChanceModifier;
-//				if (evadeChanceModifier < -1) {
-//					evadeChanceModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "poisonResistModifier") {
-//				armourBlueprints >> poisonResistModifier;
-//				if (poisonResistModifier < -1) {
-//					poisonResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "bleedResistModifier") {
-//				armourBlueprints >> bleedResistModifier;
-//				if (bleedResistModifier < -1) {
-//					bleedResistModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatMagicDamageModifier") {
-//				armourBlueprints >> flatMagicDamageModifier;
-//			}
-//			else if (stringbuffer == "propMagicDamageModifier") {
-//				armourBlueprints >> propMagicDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-//				armourBlueprints >> flatArmourPiercingDamageModifier;
-//			}
-//			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-//				armourBlueprints >> propArmourPiercingDamageModifier;
-//				if (propMagicDamageModifier < -1) {
-//					propMagicDamageModifier = -1;
-//				}
-//			}
-//			else if (stringbuffer == "name") {
-//				getline(armourBlueprints, name, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			else if (stringbuffer == "description") {
-//				getline(armourBlueprints, description, '<');
-//				armourBlueprints.seekg(-1, ios_base::cur);
-//			}
-//			if (getTag(&armourBlueprints) != '/' + stringbuffer) {
-//				throw 1;
-//			}
-//			ignoreLine(&armourBlueprints);
-//			if (!armourBlueprints) {
-//				throw 1;
-//			}
-//		}
-//		armourBlueprints.close();
-//	}
-//	catch (int err) { //Default values for an empty slot
-//		armourBlueprints.close();
-//		real = false;
-//		name = "";
-//		description = "";
-//		switch (err) {
-//		case 1:
-//			cout << "Unable to parse blueprint or blueprintList " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 2:
-//			cout << "No blueprint or blueprintList found with name " << blueprint << ". Using default armour.\n";
-//			break;
-//		case 4:
-//			cout << "Could not open armourBlueprints.xml, using default armour.\n";
-//			break;
-//		case 5:
-//			cout << "blueprintList " << blueprint << " contains no entries, using default armour.\n";
-//			break;
-//		}
-//	}
-//}
 
 void armour::displayStats() {
 	if (!real) {
@@ -1002,4 +421,92 @@ void armour::displayStats() {
 		cout << bonusActionsModifier << " bonus actions\n";
 	}
 	cout << noshowpos;
+}
+
+bool armourHead::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	armourHead newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
+}
+
+bool armourTorso::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	armourTorso newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
+}
+
+bool armourLegs::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	armourLegs newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
+}
+
+bool armourFeet::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	armourFeet newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
 }

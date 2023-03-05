@@ -3,7 +3,11 @@
 	<preBattleSpell>EMPTY</preBattleSpell><!--This spell will be cast on the player before the battle, its effects will not wear off until after the battle (or the end of the event if there is no battle)-->
 	<enemyBlueprint>EMPTY</enemyBlueprint><!--The enemy to be fought. If EMPTY, there will be no fight-->
 	<postBattleText></postBattleText><!--Displayed after battle-->
-	<postBattleSpell>EMPTY</postBattleSpell><!--Cast on player after battle, only immediate effects will matter-->
+	<statChanges><!--Changes to health, mana and projectiles. Applied after battle.-->
+		<health>0</health><!--Changes health, cannot overheal-->
+		<mana>0</mana><!--Cannot overcharge mana-->
+		<projectiles>0</projectiles>
+	</statChanges>
 	<reward>EMPTY</reward><!--Item reward. Should have a prefix indicating type, see blueprintLists.xml-->
 	<varChanges><!--Changes to variables-->
 		<var name="varName"></var><!--Name is the variable to be modified, the value of the tag will be added to the specified variable. It will accept rng calls and existing variables (prefixed with v_)-->

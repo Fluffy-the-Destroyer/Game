@@ -104,6 +104,7 @@
 	<lifelink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
 	<selfOverheal/><!--Allows the spell to overheal caster, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
+	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
 </spellBlueprint>
 
 <spellBlueprint name="HEAL_SPELL_1">

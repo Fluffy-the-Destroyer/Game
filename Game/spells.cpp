@@ -100,6 +100,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		hitCount = cooldown = 1;
 		counterHits = currentCooldown = spellType = timing = counterSpell = 0;
 		noEvade = canCounterAttack = noCounter = lifelink = selfOverheal = targetOverheal = false;
+		upgrade = "EMPTY";
 		blueprintName = "spellBlueprint name=\"" + blueprint + '\"';
 		//Read blueprint
 		while (stringbuffer != blueprintName) {
@@ -625,6 +626,9 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				stringbuffer = getTag(&spellBlueprints);
 				continue;
 			}
+			else if (stringbuffer == "upgrade") {
+				getline(spellBlueprints, upgrade, '<');
+			}
 			else {
 				throw 1;
 			}
@@ -649,7 +653,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 	}
 	catch (int err) {
 		spellBlueprints.close();
-		spellName = "EMPTY";
+		spellName = upgrade = "EMPTY";
 		real = false;
 		name = "";
 		description = "";
@@ -1505,4 +1509,26 @@ bool spell::checkSelfDamage() {
 		return true;
 	}
 	return false;
+}
+
+bool spell::upgradeItem() {
+	if (!real) {
+		cout << "Cannot upgrade empty slot!\n";
+		return false;
+	}
+	if (upgrade == "EMPTY") {
+		cout << name << " cannot be upgraded\n";
+		return false;
+	}
+	spell newItem(upgrade);
+	cout << "Current version:\n";
+	displayStats();
+	cout << "Upgraded version:\n";
+	newItem.displayStats();
+	cout << "To upgrade this item, enter 1.\nTo choose a different upgrade, enter 2.\n";
+	if (userChoice(1, 2) == 2) {
+		return false;
+	}
+	*this = newItem;
+	return true;
 }

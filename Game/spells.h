@@ -101,6 +101,7 @@ private:
 	bool selfOverheal;
 	bool targetOverheal;
 	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only caster, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
+	std::string upgrade;
 public:
 	//Loads spell from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -213,4 +214,6 @@ public:
 	void setEffectType();
 	bool checkSelfDamage();
 	bool checkTargetDamage();
+	//Upgrades the item, returns false if it wasn't upgraded
+	bool upgradeItem();
 };

@@ -487,14 +487,6 @@ void save(ifstream* file, player* playerCharacter, string filePath, unsigned cha
 	string savePath = "saves\\sav";
 	savePath += slot;
 	savePath += ".xml";
-	if (playerCharacter->weaponSlots != playerCharacter->weapons.size()) {
-		cout << "Save failed, size of weapons vector does not match number of weapon slots\n";
-		return;
-	}
-	if (playerCharacter->spellSlots != playerCharacter->spells.size()) {
-		cout << "Save failed, size of spells vector does not match number of spell slots\n";
-		return;
-	}
 	try {
 		ofstream saveFile(savePath, ofstream::trunc);
 		if (!saveFile.is_open()) {
@@ -535,15 +527,15 @@ void save(ifstream* file, player* playerCharacter, string filePath, unsigned cha
 			saveFile << "\t<tempRegen>" << +playerCharacter->tempRegen << "</tempRegen>\n";
 			saveFile << "\t<constRegenBase>" << playerCharacter->constRegenBase << "</constRegenBase>\n";
 			saveFile << "\t<battleRegenBase>" << playerCharacter->battleRegenBase << "</battleRegenBase>\n";
-			saveFile << "\t<weaponSlots>" << +playerCharacter->weaponSlots << "</weaponSlots>\n";
+			saveFile << "\t<weaponSlots>" << +playerCharacter->weapons.size() << "</weaponSlots>\n";
 			saveFile << "\t<weapons>\n";
-			for (unsigned char i = 0; i < playerCharacter->weaponSlots; i++) {
+			for (unsigned char i = 0; i < playerCharacter->weapons.size(); i++) {
 					saveFile << "\t\t<weapon>" << playerCharacter->weapons[i].getWeaponName() << "</weapon>\n";
 			}
 			saveFile << "\t</weapons>\n";
-			saveFile << "\t<spellSlots>" << +playerCharacter->spellSlots << "</spellSlots>\n";
+			saveFile << "\t<spellSlots>" << +playerCharacter->spells.size() << "</spellSlots>\n";
 			saveFile << "\t<spells>\n";
-			for (unsigned char i = 0; i < playerCharacter->spellSlots; i++) {
+			for (unsigned char i = 0; i < playerCharacter->spells.size(); i++) {
 					saveFile << "\t\t<spell>" << playerCharacter->spells[i].getSpellName() << "</spell>\n";
 			}
 			saveFile << "\t</spells>\n";
