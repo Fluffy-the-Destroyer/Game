@@ -71,8 +71,8 @@ public:
 	void modifyMana(short m);
 	void modifyMaxMana(short m);
 	void modifyTurnManaRegen(short t);
-	void modifyPoison(short p, bool resist = true);
-	void modifyBleed(short b, bool resist = true);
+	bool modifyPoison(short p, bool resist = true);
+	bool modifyBleed(short b, bool resist = true);
 	void modifyTempRegen(short r);
 	void modifyConstRegen(short c);
 	void modifyFlatArmour(short f);
@@ -158,4 +158,6 @@ public:
 	void addNoCounter(unsigned char type, std::string itemName);
 	//Checks if the weapon/spell can be countered (by the enemy's knowledge)
 	bool checkCounter(unsigned char type, std::string itemName);
+	//Applies modifiers to damage
+	void applyDamageModifiers(short* p, short* m, short* a);
 };

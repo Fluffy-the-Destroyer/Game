@@ -809,14 +809,17 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 }
 
 void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
-	if (magic->getEffectType() == 1 || magic->getEffectType() == 2) { //Spell affects caster
+	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2 || magic->getEffectType() % 10 == 1 || magic->getEffectType() % 10 == 2) {
 		cout << "Caster effects:\n";
-		if (magic->getPropSelfDamage() > 0) {
-			cout << -100 * magic->getPropSelfDamage() << "% health\n";
-		}
-		else if (magic->getPropSelfDamage() < 0) {
-			cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
-		}
+	}
+	caster->propDamage(magic->getPropSelfDamage());
+	if (magic->getPropSelfDamage() > 0) {
+		cout << -100 * magic->getPropSelfDamage() << "% health\n";
+	}
+	else if (magic->getPropSelfDamage() < 0) {
+		cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
+	}
+	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2) {
 		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverheal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
@@ -824,92 +827,135 @@ void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 		else if (healthLoss < 0) {
 			cout << -healthLoss << " healing\n";
 		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (magic->getEffectType() % 10 == 1 || magic->getEffectType() % 10 == 2) { //Spell affects caster
 		cout << showpos;
 		if (magic->getSelfPoison() != 0 || magic->getSelfBleed() != 0 || magic->getTempRegenSelf() != 0) {
 			if (magic->getSelfPoison() != 0) {
-				cout << magic->getSelfPoison() << " poison, ";
+				if (caster->modifyPoison(magic->getSelfPoison())) {
+					cout << magic->getSelfPoison() << " poison, ";
+				}
+				else {
+					cout << "Poison resisted, ";
+				}
 			}
 			if (magic->getSelfBleed() != 0) {
-				cout << magic->getSelfBleed() << " bleed, ";
+				if (caster->modifyBleed(magic->getSelfBleed())) {
+					cout << magic->getSelfBleed() << " bleed, ";
+				}
+				else {
+					cout << "Bleed resisted, ";
+				}
 			}
 			if (magic->getTempRegenSelf() != 0) {
+				caster->modifyTempRegen(magic->getTempRegenSelf());
 				cout << magic->getTempRegenSelf() << " regeneration, ";
 			}
 			cout << "\b\b\n";
 		}
 		if (magic->getPoisonResistModifier() != 0 || magic->getBleedResistModifier() != 0) {
 			if (magic->getPoisonResistModifier() != 0) {
+				caster->modifyPoisonResist(magic->getPoisonResistModifier());
 				cout << magic->getPoisonResistModifier() << " poison resist, ";
 			}
 			if (magic->getBleedResistModifier() != 0) {
+				caster->modifyBleedResist(magic->getBleedResistModifier());
 				cout << magic->getBleedResistModifier() << " bleed resist, ";
 			}
 			cout << "\b\b\n";
 		}
 		if (magic->getMaxHealthModifier() != 0 || magic->getConstRegenModifier() != 0 || magic->getBattleRegenModifier() != 0) {
 			if (magic->getMaxHealthModifier() != 0) {
+				caster->modifyMaxHealth(magic->getMaxHealthModifier());
 				cout << magic->getMaxHealthModifier() << " max health, ";
 			}
 			if (magic->getConstRegenModifier() != 0) {
+				caster->modifyConstRegen(magic->getConstRegenModifier());
 				cout << magic->getConstRegenModifier() << " health per turn, ";
 			}
 			if (magic->getBattleRegenModifier() != 0) {
+				caster->modifyBattleRegen(magic->getBattleRegenModifier());
 				cout << magic->getBattleRegenModifier() << " health at end of battle, ";
 			}
 			cout << "\b\b\n";
 		}
 		if (magic->getMaxManaModifier() != 0 || magic->getTurnManaRegenModifier() != 0 || magic->getBattleManaRegenModifier() != 0) {
 			if (magic->getMaxManaModifier() != 0) {
+				caster->modifyMaxMana(magic->getMaxManaModifier());
 				cout << magic->getMaxManaModifier() << " max " << g_manaName.plural() << ", ";
 			}
 			if (magic->getTurnManaRegenModifier() == 1 || magic->getTurnManaRegenModifier() == -1) {
+				caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
 				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.singular() << " per turn, ";
 			}
 			else if (magic->getTurnManaRegenModifier() != 0) {
+				caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
 				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.plural() << " per turn, ";
 			}
 			if (magic->getBattleManaRegenModifier() == 1 || magic->getBattleManaRegenModifier() == -1) {
+				caster->modifyBattleManaRegen(magic->getBattleManaRegenModifier());
 				cout << magic->getBattleManaRegenModifier() << ' ' << g_manaName.singular() << " at end of battle, ";
 			}
 			else if (magic->getBattleManaRegenModifier() != 0) {
+				caster->modifyBattleManaRegen(magic->getBattleManaRegenModifier());
 				cout << magic->getBattleManaRegenModifier() << ' ' << g_manaName.plural() << " at end of battle, ";
 			}
 			cout << "\b\b\n";
 		}
 		if (magic->getFlatArmourModifier() != 0 || magic->getFlatMagicArmourModifier() != 0) {
 			if (magic->getFlatArmourModifier() != 0) {
+				caster->modifyFlatArmour(magic->getFlatArmourModifier());
 				cout << magic->getFlatArmourModifier() << " physical armour, ";
 			}
 			if (magic->getFlatMagicArmourModifier() != 0) {
+				caster->modifyFlatMagicArmour(magic->getFlatMagicArmourModifier());
 				cout << magic->getFlatMagicArmourModifier() << " magic armour, ";
 			}
 			cout << "\b\b\n";
 		}
 		if (magic->getPropArmourModifier() != 0 || magic->getPropMagicArmourModifier() != 0) {
 			if (magic->getPropArmourModifier() != 0) {
+				caster->modifyPropArmour(magic->getPropArmourModifier());
 				cout << 100 * magic->getPropArmourModifier() << "% physical damage received, ";
 			}
+			if (magic->getPropMagicArmourModifier() != 0) {
+				caster->modifyPropMagicArmour(magic->getPropMagicArmourModifier());
+				cout << 100 * magic->getPropMagicArmourModifier() << "% magic damage received, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getFlatDamageModifier() != 0 || magic->getFlatMagicDamageModifier() != 0 || magic->getFlatArmourPiercingDamageModifier() != 0) {
+			if (magic->getFlatDamageModifier() != 0) {
+				caster->modifyFlatDamageModifier(magic->getFlatDamageModifier());
+				cout << magic->getFlatDamageModifier() << " physical damage dealt, ";
+			}
+			if (magic->getFlatMagicDamageModifier() != 0) {
+				caster->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifier());
+				cout << magic->getFlatMagicDamageModifier() << " magic damage dealt, ";
+			}
+			if (magic->getFlatArmourPiercingDamageModifier() != 0) {
+				caster->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifier());
+				cout << magic->getFlatArmourPiercingDamageModifier() << " armour piercing damage dealt, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getEvadeChanceModifier() != 0) {
+			caster->modifyEvadeChance(magic->getEvadeChanceModifier());
+			cout << magic->getEvadeChanceModifier() << " evade chance\n";
+		}
+		if (magic->getBonusActionsModifier() != 0) {
+			caster->modifyBonusActions(magic->getBonusActionsModifier());
+			cout << magic->getBonusActionsModifier() << " bonus actions\n";
 		}
 	}
-}
-
-void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
-	//Self damage
-	caster->propDamage(magic->getPropSelfDamage());
-	caster->flatDamage(magic->getFlatSelfDamage(), 1);
-	caster->flatDamage(magic->getFlatSelfMagicDamage(), 2);
-	caster->flatDamage(magic->getFlatSelfArmourPiercingDamage(), 3);
-	//Poison
-	caster->modifyPoison(magic->getSelfPoison());
-	//Bleed
-	caster->modifyBleed(magic->getSelfBleed());
-	//Turn mana regen
-	caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
-	//Temp regen
-	caster->modifyTempRegen(magic->getTempRegenSelf());
-	//Const regen
-	caster->modifyConstRegen(magic->getConstRegenModifier());
-	//Do hits
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2) {
+		return;
+	}
 	unsigned char hits;
 	if (counter) {
 		hits = magic->getCounterHits();
@@ -920,27 +966,163 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 	for (unsigned char i = 0; i < hits; i++) {
 		spellHit(magic, caster, target);
 	}
-	//Caster modifiers
-	caster->modifyMaxHealth(magic->getMaxHealthModifier());
-	caster->modifyMaxMana(magic->getMaxManaModifier());
-	caster->modifyPoisonResist(magic->getPoisonResistModifier());
-	caster->modifyBleedResist(magic->getBleedResistModifier());
-	caster->modifyFlatArmour(magic->getFlatArmourModifier());
-	caster->modifyPropArmour(magic->getPropArmourModifier());
-	caster->modifyFlatMagicArmour(magic->getFlatMagicArmourModifier());
-	caster->modifyPropMagicArmour(magic->getPropMagicArmourModifier());
-	caster->modifyFlatDamageModifier(magic->getFlatDamageModifier());
-	caster->modifyPropDamageModifier(magic->getPropDamageModifier());
-	caster->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifier());
-	caster->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifier());
-	caster->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifier());
-	caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
-	caster->modifyEvadeChance(magic->getEvadeChanceModifier());
-	caster->modifyBonusActions(magic->getBonusActionsModifier());
+	this_thread::sleep_for(chrono::milliseconds(400));
+}
+
+void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
+	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2 || magic->getEffectType() % 10 == 1 || magic->getEffectType() % 10 == 2) {
+		cout << "Caster effects:\n";
+	}
+	caster->propDamage(magic->getPropSelfDamage());
+	if (magic->getPropSelfDamage() > 0) {
+		cout << -100 * magic->getPropSelfDamage() << "% health\n";
+	}
+	else if (magic->getPropSelfDamage() < 0) {
+		cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
+	}
+	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2) {
+		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (magic->getEffectType() % 10 == 1 || magic->getEffectType() % 10 == 2) { //Spell affects caster
+		cout << showpos;
+		if (magic->getSelfPoison() != 0 || magic->getSelfBleed() != 0 || magic->getTempRegenSelf() != 0) {
+			if (magic->getSelfPoison() != 0) {
+				if (caster->modifyPoison(magic->getSelfPoison())) {
+					cout << magic->getSelfPoison() << " poison, ";
+				}
+				else {
+					cout << "Poison resisted, ";
+				}
+			}
+			if (magic->getSelfBleed() != 0) {
+				if (caster->modifyBleed(magic->getSelfBleed())) {
+					cout << magic->getSelfBleed() << " bleed, ";
+				}
+				else {
+					cout << "Bleed resisted, ";
+				}
+			}
+			if (magic->getTempRegenSelf() != 0) {
+				caster->modifyTempRegen(magic->getTempRegenSelf());
+				cout << magic->getTempRegenSelf() << " regeneration, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getPoisonResistModifier() != 0 || magic->getBleedResistModifier() != 0) {
+			if (magic->getPoisonResistModifier() != 0) {
+				caster->modifyPoisonResist(magic->getPoisonResistModifier());
+				cout << magic->getPoisonResistModifier() << " poison resist, ";
+			}
+			if (magic->getBleedResistModifier() != 0) {
+				caster->modifyBleedResist(magic->getBleedResistModifier());
+				cout << magic->getBleedResistModifier() << " bleed resist, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getMaxHealthModifier() != 0 || magic->getConstRegenModifier() != 0) {
+			if (magic->getMaxHealthModifier() != 0) {
+				caster->modifyMaxHealth(magic->getMaxHealthModifier());
+				cout << magic->getMaxHealthModifier() << " max health, ";
+			}
+			if (magic->getConstRegenModifier() != 0) {
+				caster->modifyConstRegen(magic->getConstRegenModifier());
+				cout << magic->getConstRegenModifier() << " health per turn, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getMaxManaModifier() != 0 || magic->getTurnManaRegenModifier() != 0) {
+			if (magic->getMaxManaModifier() != 0) {
+				caster->modifyMaxMana(magic->getMaxManaModifier());
+				cout << magic->getMaxManaModifier() << " max " << g_manaName.plural() << ", ";
+			}
+			if (magic->getTurnManaRegenModifier() == 1 || magic->getTurnManaRegenModifier() == -1) {
+				caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
+				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.singular() << " per turn, ";
+			}
+			else if (magic->getTurnManaRegenModifier() != 0) {
+				caster->modifyTurnManaRegen(magic->getTurnManaRegenModifier());
+				cout << magic->getTurnManaRegenModifier() << ' ' << g_manaName.plural() << " per turn, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getFlatArmourModifier() != 0 || magic->getFlatMagicArmourModifier() != 0) {
+			if (magic->getFlatArmourModifier() != 0) {
+				caster->modifyFlatArmour(magic->getFlatArmourModifier());
+				cout << magic->getFlatArmourModifier() << " physical armour, ";
+			}
+			if (magic->getFlatMagicArmourModifier() != 0) {
+				caster->modifyFlatMagicArmour(magic->getFlatMagicArmourModifier());
+				cout << magic->getFlatMagicArmourModifier() << " magic armour, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getPropArmourModifier() != 0 || magic->getPropMagicArmourModifier() != 0) {
+			if (magic->getPropArmourModifier() != 0) {
+				caster->modifyPropArmour(magic->getPropArmourModifier());
+				cout << 100 * magic->getPropArmourModifier() << "% physical damage received, ";
+			}
+			if (magic->getPropMagicArmourModifier() != 0) {
+				caster->modifyPropMagicArmour(magic->getPropMagicArmourModifier());
+				cout << 100 * magic->getPropMagicArmourModifier() << "% magic damage received, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getFlatDamageModifier() != 0 || magic->getFlatMagicDamageModifier() != 0 || magic->getFlatArmourPiercingDamageModifier() != 0) {
+			if (magic->getFlatDamageModifier() != 0) {
+				caster->modifyFlatDamageModifier(magic->getFlatDamageModifier());
+				cout << magic->getFlatDamageModifier() << " physical damage dealt, ";
+			}
+			if (magic->getFlatMagicDamageModifier() != 0) {
+				caster->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifier());
+				cout << magic->getFlatMagicDamageModifier() << " magic damage dealt, ";
+			}
+			if (magic->getFlatArmourPiercingDamageModifier() != 0) {
+				caster->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifier());
+				cout << magic->getFlatArmourPiercingDamageModifier() << " armour piercing damage dealt, ";
+			}
+			cout << "\b\b\n";
+		}
+		if (magic->getEvadeChanceModifier() != 0) {
+			caster->modifyEvadeChance(magic->getEvadeChanceModifier());
+			cout << magic->getEvadeChanceModifier() << " evade chance\n";
+		}
+		if (magic->getBonusActionsModifier() != 0) {
+			caster->modifyBonusActions(magic->getBonusActionsModifier());
+			cout << magic->getBonusActionsModifier() << " bonus actions\n";
+		}
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2) {
+		return;
+	}
+	cout << "Target effects:\n";
+	unsigned char hits;
+	if (counter) {
+		hits = magic->getCounterHits();
+	}
+	else {
+		hits = magic->getHitCount();
+	}
+	for (unsigned char i = 0; i < hits; i++) {
+		spellHit(magic, caster, target);
+	}
 	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 unsigned char spellCast(spell* magic, player* target) {
+	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2) {
+		return 0;
+	}
 	unsigned char hits = magic->getHitCount();
 	for (unsigned char i = 0; i < hits; i++) {
 		spellHit(magic, target);
@@ -953,237 +1135,548 @@ unsigned char spellCast(spell* magic, player* target) {
 }
 
 void spellHit(spell* magic, player* caster, enemy* target) {
-	if (target->getHealth() <= 0) {
+	if (!magic->getNoEvade() && rng(0.f, 1.f) < target->getEvadeChance()) {
+		cout << "Evade!\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 		return;
 	}
-	if (!magic->getNoEvade()) { //If can be dodged, roll for evade
-		if (rng(0.f, 1.f) < target->getEvadeChance()) {
-			cout << "Hit evaded!\n";
-			this_thread::sleep_for(chrono::milliseconds(100));
-			return;
-		}
-	}
-	//Prop damage
+	cout << "Hit!\n";
 	target->propDamage(magic->getPropDamage());
-	//Flat damage
-	short damageBuffer = magic->getFlatDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatDamageModifier()) * (1 + caster->getPropDamageModifier())), 1);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+	if (magic->getPropDamage() > 0) {
+		cout << -100 * magic->getPropDamage() << "% health\n";
+	}
+	else if (magic->getPropDamage() < 0) {
+		cout << -100 * magic->getPropDamage() << "% of health recovered\n";
+	}
+	if (magic->getEffectType() / 10 > 1) {
+		short healthSteal = max((short)0, target->getHealth());
+		short p = magic->getFlatDamage(), m = magic->getFlatMagicDamage(), a = magic->getFlatArmourPiercingDamage();
+		caster->applyDamageModifiers(&p, &m, &a);
+		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage";
+			if (magic->getLifelink()) {
+				healthSteal = min(healthSteal, healthLoss);
+				if (healthSteal > 0) {
+					cout << " (caster is healed for " << healthSteal << " by lifelink)";
+					caster->modifyHealth(healthSteal);
+				}
+			}
+			cout << '\n';
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
 		}
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
+	if (magic->getEffectType() % 10 < 2) {
+		this_thread::sleep_for(chrono::milliseconds(100));
+		return;
 	}
-	//Magic damage
-	damageBuffer = magic->getFlatMagicDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatMagicDamageModifier()) * (1 + caster->getPropMagicDamageModifier())), 2);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+	cout << showpos;
+	if (magic->getPoison() != 0 || magic->getBleed() != 0 || magic->getTempRegen() != 0) {
+		if (magic->getPoison() != 0) {
+			if (target->modifyPoison(magic->getPoison())) {
+				cout << magic->getPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
 		}
-	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	//AP damage
-	damageBuffer = magic->getFlatArmourPiercingDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatArmourPiercingDamageModifier()) * (1 + caster->getPropArmourPiercingDamageModifier())), 3);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+		if (magic->getBleed() != 0) {
+			if (target->modifyBleed(magic->getBleed())) {
+				cout << magic->getBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
 		}
+		if (magic->getTempRegen() != 0) {
+			target->modifyTempRegen(magic->getTempRegen());
+			cout << magic->getTempRegen() << " regeneration, ";
+		}
+		cout << "\b\b\n";
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0) {
+		if (magic->getMaxHealthModifierEnemy() != 0) {
+			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
+			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
+		}
+		if (magic->getConstRegenModifierEnemy() != 0) {
+			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
+			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		}
+		cout << "\b\b\n";
 	}
-	//Enemy mana
-	target->modifyMana(magic->getManaChangeEnemy());
-	//Poison
-	target->modifyPoison(magic->getPoison());
-	//Bleed
-	target->modifyBleed(magic->getBleed());
-	//Max health
-	target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
-	//Max mana
-	target->modifyMaxMana(magic->getMaxManaModifierEnemy());
-	//Turn mana regen
-	target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
-	//Poison resist
-	target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
-	//Bleed resist
-	target->modifyBleedResist(magic->getBleedResistModifierEnemy());
-	//Temp regen
-	target->modifyTempRegen(magic->getTempRegen());
-	//Const regen
-	target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-	//Flat armour
-	target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-	//Flat magic armour
-	target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
-	//Prop armour
-	target->modifyPropArmour(magic->getPropArmourModifierEnemy());
-	//Prop magic armour
-	target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
-	//Damage modifiers
-	target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
-	target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
-	target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
-	target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
-	target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
-	target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
-	//Evade chance
-	target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
-	//Bonus actions
-	target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
+	if (magic->getMaxManaModifierEnemy() != 0 || magic->getManaChangeEnemy() != 0 || magic->getTurnManaRegenModifierEnemy() != 0) {
+		if (magic->getMaxManaModifierEnemy() != 0) {
+			target->modifyMaxMana(magic->getMaxManaModifierEnemy());
+			cout << magic->getMaxManaModifierEnemy() << " max " << g_manaName.plural() << ", ";
+		}
+		if (magic->getManaChangeEnemy() == 1 || magic->getManaChangeEnemy() == -1) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.singular() << ", ";
+		}
+		else if (magic->getManaChangeEnemy() != 0) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.plural() << ", ";
+		}
+		if (magic->getTurnManaRegenModifierEnemy() == 1 || magic->getTurnManaRegenModifierEnemy() == -1) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.singular() << " per turn, ";
+		}
+		else if (magic->getTurnManaRegenModifierEnemy() != 0) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.plural() << " per turn, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPoisonResistModifierEnemy() != 0 || magic->getBleedResistModifierEnemy() != 0) {
+		if (magic->getPoisonResistModifierEnemy() != 0) {
+			target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
+			cout << 100 * magic->getPoisonResistModifierEnemy() << "% poison resist, ";
+		}
+		if (magic->getBleedResistModifierEnemy() != 0) {
+			target->modifyBleedResist(magic->getBleedResistModifierEnemy());
+			cout << 100 * magic->getBleedResistModifierEnemy() << "% bleed resist, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
+		if (magic->getFlatArmourModifierEnemy() != 0) {
+			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
+			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+		}
+		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
+			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
+			cout << magic->getFlatMagicArmourModifierEnemy() << " magic armour, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropArmourModifierEnemy() != 0 || magic->getPropMagicArmourModifierEnemy() != 0) {
+		if (magic->getPropArmourModifierEnemy() != 0) {
+			target->modifyPropArmour(magic->getPropArmourModifierEnemy());
+			cout << 100 * magic->getPropArmourModifierEnemy() << "% physical damage received, ";
+		}
+		if (magic->getPropMagicArmourModifierEnemy() != 0) {
+			target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
+			cout << 100 * magic->getPropMagicArmourModifierEnemy() << "% magic damage received, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatDamageModifierEnemy() != 0 || magic->getFlatMagicDamageModifierEnemy() != 0 || magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getFlatDamageModifierEnemy() != 0) {
+			target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
+			cout << magic->getFlatDamageModifierEnemy() << " physical damage dealt, ";
+		}
+		if (magic->getFlatMagicDamageModifierEnemy() != 0) {
+			target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
+			cout << magic->getFlatMagicDamageModifierEnemy() << " magic damage dealt, ";
+		}
+		if (magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
+			cout << magic->getFlatArmourPiercingDamageModifierEnemy() << " armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropDamageModifierEnemy() != 0 || magic->getPropMagicDamageModifierEnemy() != 0 || magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getPropDamageModifierEnemy() != 0) {
+			target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
+			cout << 100 * magic->getPropDamageModifierEnemy() << "% physical damage dealt, ";
+		}
+		if (magic->getPropMagicDamageModifierEnemy() != 0) {
+			target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
+			cout << 100 * magic->getPropMagicDamageModifierEnemy() << "% magic damage dealt, ";
+		}
+		if (magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
+			cout << 100 * magic->getPropArmourPiercingDamageModifierEnemy() << "% armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+		if (magic->getEvadeChanceModifierEnemy() != 0) {
+			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
+			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getBonusActionsModifierEnemy() != 0) {
+			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
+			cout << magic->getBonusActionsModifierEnemy() << " bonus actions, ";
+		}
+		cout << "\b\b\n";
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void spellHit(spell* magic, enemy* caster, player* target) {
-	if (target->getHealth() <= 0) {
+	if (!magic->getNoEvade() && rng(0.f, 1.f) < target->getEvadeChance()) {
+		cout << "Evade!\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 		return;
 	}
-	if (!magic->getNoEvade()) { //If can be dodged, roll for evade
-		if (rng(0.f, 1.f) < target->getEvadeChance()) {
-			return;
-		}
-	}
-	//Prop damage
+	cout << "Hit!\n";
 	target->propDamage(magic->getPropDamage());
-	//Flat damage
-	short damageBuffer = magic->getFlatDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatDamageModifier()) * (1 + caster->getPropDamageModifier())), 1);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+	if (magic->getPropDamage() > 0) {
+		cout << -100 * magic->getPropDamage() << "% health\n";
+	}
+	else if (magic->getPropDamage() < 0) {
+		cout << -100 * magic->getPropDamage() << "% of health recovered\n";
+	}
+	if (magic->getEffectType() / 10 > 1) {
+		short healthSteal = max((short)0, target->getHealth());
+		short p = magic->getFlatDamage(), m = magic->getFlatMagicDamage(), a = magic->getFlatArmourPiercingDamage();
+		caster->applyDamageModifiers(&p, &m, &a);
+		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage";
+			if (magic->getLifelink()) {
+				healthSteal = min(healthSteal, healthLoss);
+				if (healthSteal > 0) {
+					cout << " (caster is healed for " << healthSteal << " by lifelink)";
+					caster->modifyHealth(healthSteal);
+				}
+			}
+			cout << '\n';
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
 		}
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
+	if (magic->getEffectType() % 10 < 2) {
+		this_thread::sleep_for(chrono::milliseconds(100));
+		return;
 	}
-	//Magic damage
-	damageBuffer = magic->getFlatMagicDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatMagicDamageModifier()) * (1 + caster->getPropMagicDamageModifier())), 2);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+	cout << showpos;
+	if (magic->getPoison() != 0 || magic->getBleed() != 0 || magic->getTempRegen() != 0) {
+		if (magic->getPoison() != 0) {
+			if (target->modifyPoison(magic->getPoison())) {
+				cout << magic->getPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
 		}
-	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	//AP damage
-	damageBuffer = magic->getFlatArmourPiercingDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage(static_cast<short>((damageBuffer + caster->getFlatArmourPiercingDamageModifier()) * (1 + caster->getPropArmourPiercingDamageModifier())), 3);
-		if (magic->getLifelink()) {
-			caster->modifyHealth(damageBuffer);
+		if (magic->getBleed() != 0) {
+			if (target->modifyBleed(magic->getBleed())) {
+				cout << magic->getBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
 		}
+		if (magic->getTempRegen() != 0) {
+			target->modifyTempRegen(magic->getTempRegen());
+			cout << magic->getTempRegen() << " regeneration, ";
+		}
+		cout << "\b\b\n";
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
+		if (magic->getMaxHealthModifierEnemy() != 0) {
+			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
+			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
+		}
+		if (magic->getConstRegenModifierEnemy() != 0) {
+			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
+			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		}
+		if (magic->getBattleRegenModifierEnemy() != 0) {
+			target->modifyBattleRegen(magic->getBattleRegenModifierEnemy());
+			cout << magic->getBattleRegenModifierEnemy() << " health at end of battle, ";
+		}
+		cout << "\b\b\n";
 	}
-	//Enemy mana
-	target->modifyMana(magic->getManaChangeEnemy());
-	//Poison
-	target->modifyPoison(magic->getPoison());
-	//Bleed
-	target->modifyBleed(magic->getBleed());
-	//Max health
-	target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
-	//Max mana
-	target->modifyMaxMana(magic->getMaxManaModifierEnemy());
-	//Turn mana regen
-	target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
-	//Poison resist
-	target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
-	//Bleed resist
-	target->modifyBleedResist(magic->getBleedResistModifierEnemy());
-	//Temp regen
-	target->modifyTempRegen(magic->getTempRegen());
-	//Const regen
-	target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-	//Flat armour
-	target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-	//Flat magic armour
-	target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
-	//Prop armour
-	target->modifyPropArmour(magic->getPropArmourModifierEnemy());
-	//Prop magic armour
-	target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
-	//Damage modifiers
-	target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
-	target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
-	target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
-	target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
-	target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
-	target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
-	//Evade chance
-	target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
-	//Bonus actions
-	target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
-	//Battle mana regen
-	target->modifyBattleManaRegen(magic->getBattleManaRegenModifierEnemy());
-	//Battle regen
-	target->modifyBattleRegen(magic->getBattleRegenModifierEnemy());
+	if (magic->getMaxManaModifierEnemy() != 0 || magic->getManaChangeEnemy() != 0 || magic->getTurnManaRegenModifierEnemy() != 0 || magic->getBattleManaRegenModifierEnemy() != 0) {
+		if (magic->getMaxManaModifierEnemy() != 0) {
+			target->modifyMaxMana(magic->getMaxManaModifierEnemy());
+			cout << magic->getMaxManaModifierEnemy() << " max " << g_manaName.plural() << ", ";
+		}
+		if (magic->getManaChangeEnemy() == 1 || magic->getManaChangeEnemy() == -1) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.singular() << ", ";
+		}
+		else if (magic->getManaChangeEnemy() != 0) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.plural() << ", ";
+		}
+		if (magic->getTurnManaRegenModifierEnemy() == 1 || magic->getTurnManaRegenModifierEnemy() == -1) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.singular() << " per turn, ";
+		}
+		else if (magic->getTurnManaRegenModifierEnemy() != 0) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.plural() << " per turn, ";
+		}
+		if (magic->getBattleManaRegenModifierEnemy() == 1 || magic->getBattleManaRegenModifierEnemy() == -1) {
+			target->modifyBattleManaRegen(magic->getBattleManaRegenModifierEnemy());
+			cout << magic->getBattleManaRegenModifierEnemy() << ' ' << g_manaName.singular() << " at end of battle, ";
+		}
+		else if (magic->getBattleManaRegenModifierEnemy() != 0) {
+			target->modifyBattleManaRegen(magic->getBattleManaRegenModifierEnemy());
+			cout << magic->getBattleManaRegenModifierEnemy() << ' ' << g_manaName.plural() << " at end of battle, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPoisonResistModifierEnemy() != 0 || magic->getBleedResistModifierEnemy() != 0) {
+		if (magic->getPoisonResistModifierEnemy() != 0) {
+			target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
+			cout << 100 * magic->getPoisonResistModifierEnemy() << "% poison resist, ";
+		}
+		if (magic->getBleedResistModifierEnemy() != 0) {
+			target->modifyBleedResist(magic->getBleedResistModifierEnemy());
+			cout << 100 * magic->getBleedResistModifierEnemy() << "% bleed resist, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
+		if (magic->getFlatArmourModifierEnemy() != 0) {
+			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
+			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+		}
+		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
+			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
+			cout << magic->getFlatMagicArmourModifierEnemy() << " magic armour, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropArmourModifierEnemy() != 0 || magic->getPropMagicArmourModifierEnemy() != 0) {
+		if (magic->getPropArmourModifierEnemy() != 0) {
+			target->modifyPropArmour(magic->getPropArmourModifierEnemy());
+			cout << 100 * magic->getPropArmourModifierEnemy() << "% physical damage received, ";
+		}
+		if (magic->getPropMagicArmourModifierEnemy() != 0) {
+			target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
+			cout << 100 * magic->getPropMagicArmourModifierEnemy() << "% magic damage received, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatDamageModifierEnemy() != 0 || magic->getFlatMagicDamageModifierEnemy() != 0 || magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getFlatDamageModifierEnemy() != 0) {
+			target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
+			cout << magic->getFlatDamageModifierEnemy() << " physical damage dealt, ";
+		}
+		if (magic->getFlatMagicDamageModifierEnemy() != 0) {
+			target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
+			cout << magic->getFlatMagicDamageModifierEnemy() << " magic damage dealt, ";
+		}
+		if (magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
+			cout << magic->getFlatArmourPiercingDamageModifierEnemy() << " armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropDamageModifierEnemy() != 0 || magic->getPropMagicDamageModifierEnemy() != 0 || magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getPropDamageModifierEnemy() != 0) {
+			target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
+			cout << 100 * magic->getPropDamageModifierEnemy() << "% physical damage dealt, ";
+		}
+		if (magic->getPropMagicDamageModifierEnemy() != 0) {
+			target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
+			cout << 100 * magic->getPropMagicDamageModifierEnemy() << "% magic damage dealt, ";
+		}
+		if (magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
+			cout << 100 * magic->getPropArmourPiercingDamageModifierEnemy() << "% armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+		if (magic->getEvadeChanceModifierEnemy() != 0) {
+			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
+			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getBonusActionsModifierEnemy() != 0) {
+			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
+			cout << magic->getBonusActionsModifierEnemy() << " bonus actions, ";
+		}
+		cout << "\b\b\n";
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void spellHit(spell* magic, player* target) {
-	if (target->getHealth() <= 0) {
+	if (!magic->getNoEvade() && rng(0.f, 1.f) < target->getEvadeChance()) {
+		cout << "Evade!\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 		return;
 	}
-	if (!magic->getNoEvade()) { //If can be dodged, roll for evade
-		if (rng(0.f, 1.f) < target->getEvadeChance()) {
-			return;
+	cout << "Hit!\n";
+	target->propDamage(magic->getPropDamage());
+	if (magic->getPropDamage() > 0) {
+		cout << -100 * magic->getPropDamage() << "% health\n";
+	}
+	else if (magic->getPropDamage() < 0) {
+		cout << -100 * magic->getPropDamage() << "% of health recovered\n";
+	}
+	if (magic->getEffectType() / 10 > 1) {
+		short healthLoss = target->flatDamage(magic->getFlatDamage(), magic->getFlatMagicDamage(), magic->getFlatArmourPiercingDamage(), magic->getTargetOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage";
+			cout << '\n';
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
 		}
 	}
-	//Prop damage
-	target->propDamage(magic->getPropDamage());
-	//Flat damage
-	target->flatDamage(magic->getFlatDamage(), 1);
-	//Magic damage
-	target->flatDamage(magic->getFlatMagicDamage(), 2);
-	//AP damage
-	target->flatDamage(magic->getFlatArmourPiercingDamage(), 3);
-	//Enemy mana
-	target->modifyMana(magic->getManaChangeEnemy());
-	//Poison
-	target->modifyPoison(magic->getPoison());
-	//Bleed
-	target->modifyBleed(magic->getBleed());
-	//Max health
-	target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
-	//Max mana
-	target->modifyMaxMana(magic->getMaxManaModifierEnemy());
-	//Turn mana regen
-	target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
-	//Poison resist
-	target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
-	//Bleed resist
-	target->modifyBleedResist(magic->getBleedResistModifierEnemy());
-	//Temp regen
-	target->modifyTempRegen(magic->getTempRegen());
-	//Const regen
-	target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-	//Flat armour
-	target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-	//Flat magic armour
-	target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
-	//Prop armour
-	target->modifyPropArmour(magic->getPropArmourModifierEnemy());
-	//Prop magic armour
-	target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
-	//Damage modifiers
-	target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
-	target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
-	target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
-	target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
-	target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
-	target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
-	//Evade chance
-	target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
-	//Bonus actions
-	target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
+	if (magic->getEffectType() % 10 < 2) {
+		this_thread::sleep_for(chrono::milliseconds(100));
+		return;
+	}
+	cout << showpos;
+	if (magic->getPoison() != 0 || magic->getBleed() != 0 || magic->getTempRegen() != 0) {
+		if (magic->getPoison() != 0) {
+			if (target->modifyPoison(magic->getPoison())) {
+				cout << magic->getPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
+		}
+		if (magic->getBleed() != 0) {
+			if (target->modifyBleed(magic->getBleed())) {
+				cout << magic->getBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
+		}
+		if (magic->getTempRegen() != 0) {
+			target->modifyTempRegen(magic->getTempRegen());
+			cout << magic->getTempRegen() << " regeneration, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
+		if (magic->getMaxHealthModifierEnemy() != 0) {
+			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
+			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
+		}
+		if (magic->getConstRegenModifierEnemy() != 0) {
+			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
+			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		}
+		if (magic->getBattleRegenModifierEnemy() != 0) {
+			target->modifyBattleRegen(magic->getBattleRegenModifierEnemy());
+			cout << magic->getBattleRegenModifierEnemy() << " health at end of battle, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getMaxManaModifierEnemy() != 0 || magic->getManaChangeEnemy() != 0 || magic->getTurnManaRegenModifierEnemy() != 0 || magic->getBattleManaRegenModifierEnemy() != 0) {
+		if (magic->getMaxManaModifierEnemy() != 0) {
+			target->modifyMaxMana(magic->getMaxManaModifierEnemy());
+			cout << magic->getMaxManaModifierEnemy() << " max " << g_manaName.plural() << ", ";
+		}
+		if (magic->getManaChangeEnemy() == 1 || magic->getManaChangeEnemy() == -1) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.singular() << ", ";
+		}
+		else if (magic->getManaChangeEnemy() != 0) {
+			target->modifyMana(magic->getManaChangeEnemy());
+			cout << magic->getManaChangeEnemy() << ' ' << g_manaName.plural() << ", ";
+		}
+		if (magic->getTurnManaRegenModifierEnemy() == 1 || magic->getTurnManaRegenModifierEnemy() == -1) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.singular() << " per turn, ";
+		}
+		else if (magic->getTurnManaRegenModifierEnemy() != 0) {
+			target->modifyTurnManaRegen(magic->getTurnManaRegenModifierEnemy());
+			cout << magic->getTurnManaRegenModifierEnemy() << ' ' << g_manaName.plural() << " per turn, ";
+		}
+		if (magic->getBattleManaRegenModifierEnemy() == 1 || magic->getBattleManaRegenModifierEnemy() == -1) {
+			target->modifyBattleManaRegen(magic->getBattleManaRegenModifierEnemy());
+			cout << magic->getBattleManaRegenModifierEnemy() << ' ' << g_manaName.singular() << " at end of battle, ";
+		}
+		else if (magic->getBattleManaRegenModifierEnemy() != 0) {
+			target->modifyBattleManaRegen(magic->getBattleManaRegenModifierEnemy());
+			cout << magic->getBattleManaRegenModifierEnemy() << ' ' << g_manaName.plural() << " at end of battle, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPoisonResistModifierEnemy() != 0 || magic->getBleedResistModifierEnemy() != 0) {
+		if (magic->getPoisonResistModifierEnemy() != 0) {
+			target->modifyPoisonResist(magic->getPoisonResistModifierEnemy());
+			cout << 100 * magic->getPoisonResistModifierEnemy() << "% poison resist, ";
+		}
+		if (magic->getBleedResistModifierEnemy() != 0) {
+			target->modifyBleedResist(magic->getBleedResistModifierEnemy());
+			cout << 100 * magic->getBleedResistModifierEnemy() << "% bleed resist, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
+		if (magic->getFlatArmourModifierEnemy() != 0) {
+			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
+			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+		}
+		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
+			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
+			cout << magic->getFlatMagicArmourModifierEnemy() << " magic armour, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropArmourModifierEnemy() != 0 || magic->getPropMagicArmourModifierEnemy() != 0) {
+		if (magic->getPropArmourModifierEnemy() != 0) {
+			target->modifyPropArmour(magic->getPropArmourModifierEnemy());
+			cout << 100 * magic->getPropArmourModifierEnemy() << "% physical damage received, ";
+		}
+		if (magic->getPropMagicArmourModifierEnemy() != 0) {
+			target->modifyPropMagicArmour(magic->getPropMagicArmourModifierEnemy());
+			cout << 100 * magic->getPropMagicArmourModifierEnemy() << "% magic damage received, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getFlatDamageModifierEnemy() != 0 || magic->getFlatMagicDamageModifierEnemy() != 0 || magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getFlatDamageModifierEnemy() != 0) {
+			target->modifyFlatDamageModifier(magic->getFlatDamageModifierEnemy());
+			cout << magic->getFlatDamageModifierEnemy() << " physical damage dealt, ";
+		}
+		if (magic->getFlatMagicDamageModifierEnemy() != 0) {
+			target->modifyFlatMagicDamageModifier(magic->getFlatMagicDamageModifierEnemy());
+			cout << magic->getFlatMagicDamageModifierEnemy() << " magic damage dealt, ";
+		}
+		if (magic->getFlatArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyFlatArmourPiercingDamageModifier(magic->getFlatArmourPiercingDamageModifierEnemy());
+			cout << magic->getFlatArmourPiercingDamageModifierEnemy() << " armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getPropDamageModifierEnemy() != 0 || magic->getPropMagicDamageModifierEnemy() != 0 || magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+		if (magic->getPropDamageModifierEnemy() != 0) {
+			target->modifyPropDamageModifier(magic->getPropDamageModifierEnemy());
+			cout << 100 * magic->getPropDamageModifierEnemy() << "% physical damage dealt, ";
+		}
+		if (magic->getPropMagicDamageModifierEnemy() != 0) {
+			target->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifierEnemy());
+			cout << 100 * magic->getPropMagicDamageModifierEnemy() << "% magic damage dealt, ";
+		}
+		if (magic->getPropArmourPiercingDamageModifierEnemy() != 0) {
+			target->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifierEnemy());
+			cout << 100 * magic->getPropArmourPiercingDamageModifierEnemy() << "% armour piercing damage dealt, ";
+		}
+		cout << "\b\b\n";
+	}
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+		if (magic->getEvadeChanceModifierEnemy() != 0) {
+			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
+			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getBonusActionsModifierEnemy() != 0) {
+			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
+			cout << magic->getBonusActionsModifierEnemy() << " bonus actions, ";
+		}
+		cout << "\b\b\n";
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void spellDeclare(spell* magic, player* caster) {
@@ -1201,13 +1694,53 @@ void spellDeclare(spell* magic, enemy* caster) {
 }
 
 void weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counter) {
-	//Self damage
+	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2 || weaponry->getEffectType() % 10 == 1 || weaponry->getEffectType() % 10 == 2) {
+		cout << "Attacker effects:\n";
+	}
 	attacker->propDamage(weaponry->getPropSelfDamage());
-	attacker->flatDamage(weaponry->getFlatSelfDamage(), 1);
-	attacker->flatDamage(weaponry->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weaponry->getFlatSelfArmourPiercingDamage(), 3);
-	attacker->modifyPoison(weaponry->getSelfPoison());
-	attacker->modifyBleed(weaponry->getSelfBleed());
+	if (weaponry->getPropSelfDamage() > 0) {
+		cout << -100 * weaponry->getPropSelfDamage() << "% health\n";
+	}
+	else if (weaponry->getPropSelfDamage() < 0) {
+		cout << -100 * weaponry->getPropSelfDamage() << "% of health recovered\n";
+	}
+	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2) {
+		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (weaponry->getSelfPoison() != 0 || weaponry->getSelfBleed() != 0) {
+		cout << showpos;
+		if (weaponry->getSelfPoison() != 0) {
+			if (attacker->modifyPoison(weaponry->getSelfPoison())) {
+				cout << +weaponry->getSelfPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
+		}
+		if (weaponry->getSelfBleed() != 0) {
+			if (attacker->modifyBleed(weaponry->getSelfBleed())) {
+				cout << +weaponry->getSelfBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
+		}
+		cout << "\b\b\n";
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (weaponry->getEffectType() / 10 < 2 && weaponry->getEffectType() % 10 < 2) {
+		return;
+	}
 	unsigned char hits;
 	if (counter) {
 		hits = weaponry->getCounterHits();
@@ -1218,16 +1751,57 @@ void weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counte
 	for (unsigned char i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
+	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 void weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counter) {
-	//Self damage
+	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2 || weaponry->getEffectType() % 10 == 1 || weaponry->getEffectType() % 10 == 2) {
+		cout << "Attacker effects:\n";
+	}
 	attacker->propDamage(weaponry->getPropSelfDamage());
-	attacker->flatDamage(weaponry->getFlatSelfDamage(), 1);
-	attacker->flatDamage(weaponry->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weaponry->getFlatSelfArmourPiercingDamage(), 3);
-	attacker->modifyPoison(weaponry->getSelfPoison());
-	attacker->modifyBleed(weaponry->getSelfBleed());
+	if (weaponry->getPropSelfDamage() > 0) {
+		cout << -100 * weaponry->getPropSelfDamage() << "% health\n";
+	}
+	else if (weaponry->getPropSelfDamage() < 0) {
+		cout << -100 * weaponry->getPropSelfDamage() << "% of health recovered\n";
+	}
+	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2) {
+		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (weaponry->getSelfPoison() != 0 || weaponry->getSelfBleed() != 0) {
+		cout << showpos;
+		if (weaponry->getSelfPoison() != 0) {
+			if (attacker->modifyPoison(weaponry->getSelfPoison())) {
+				cout << +weaponry->getSelfPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
+		}
+		if (weaponry->getSelfBleed() != 0) {
+			if (attacker->modifyBleed(weaponry->getSelfBleed())) {
+				cout << +weaponry->getSelfBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
+		}
+		cout << "\b\b\n";
+	}
+	cout << noshowpos;
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (weaponry->getEffectType() / 10 < 2 && weaponry->getEffectType() % 10 < 2) {
+		return;
+	}
 	unsigned char hits;
 	if (counter) {
 		hits = weaponry->getCounterHits();
@@ -1238,102 +1812,127 @@ void weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counte
 	for (unsigned char i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
+	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
-	if (target->getHealth() <= 0) {
+	if (!weaponry->getNoEvade() && rng(0.f, 1.f) < target->getEvadeChance()) {
+		cout << "Evade!\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 		return;
 	}
-	//Check evasion
-	if (!weaponry->getNoEvade()) {
-		if (rng(0.f, 1.f) < target->getEvadeChance()) {
-			return;
-		}
-	}
-	//Damage
+	cout << "Hit!\n";
 	target->propDamage(weaponry->getPropDamage());
-	short damageBuffer = weaponry->getFlatDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatDamageModifier()) * (1 + attacker->getPropDamageModifier()))), 1);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+	if (weaponry->getPropDamage() > 0) {
+		cout << -100 * weaponry->getPropDamage() << "% health\n";
+	}
+	else if (weaponry->getPropDamage() < 0) {
+		cout << -100 * weaponry->getPropDamage() << "% of health recovered\n";
+	}
+	if (weaponry->getEffectType() / 10 > 1) {
+		short healthSteal = max((short)0, target->getHealth());
+		short p = weaponry->getFlatDamage(), m = weaponry->getFlatMagicDamage(), a = weaponry->getFlatArmourPiercingDamage();
+		attacker->applyDamageModifiers(&p, &m, &a);
+		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage";
+			if (weaponry->getLifelink()) {
+				healthSteal = min(healthSteal, healthLoss);
+				if (healthSteal > 0) {
+					cout << " (attacker is healed for " << healthSteal << " by lifelink)";
+					attacker->modifyHealth(healthSteal);
+				}
+			}
+			cout << '\n';
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
 		}
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	damageBuffer = weaponry->getFlatMagicDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatMagicDamageModifier()) * (1 + attacker->getPropMagicDamageModifier()))), 2);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+	if (weaponry->getPoison() > 0 || weaponry->getBleed() > 0) {
+		cout << showpos;
+		if (weaponry->getPoison() > 0) {
+			if (target->modifyPoison(weaponry->getPoison())) {
+				cout << +weaponry->getPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
 		}
-	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	damageBuffer = weaponry->getFlatArmourPiercingDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatArmourPiercingDamageModifier()) * (1 + attacker->getPropArmourPiercingDamageModifier()))), 3);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+		if (weaponry->getBleed() > 0) {
+			if (target->modifyBleed(weaponry->getBleed())) {
+				cout << +weaponry->getBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
 		}
+		cout << "\b\b\n" << noshowpos;
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	//Poison
-	target->modifyPoison(weaponry->getPoison());
-	//Bleed
-	target->modifyBleed(weaponry->getBleed());
+	this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void weaponHit(weapon* weaponry, enemy* attacker, player* target) {
-	if (target->getHealth() <= 0) {
+	if (!weaponry->getNoEvade() && rng(0.f, 1.f) < target->getEvadeChance()) {
+		cout << "Evade!\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 		return;
 	}
-	//Check evasion
-	if (!weaponry->getNoEvade()) {
-		if (rng(0.f, 1.f) < target->getEvadeChance()) {
-			return;
-		}
-	}
-	//Damage
+	cout << "Hit!\n";
 	target->propDamage(weaponry->getPropDamage());
-	short damageBuffer = weaponry->getFlatDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatDamageModifier()) * (1 + attacker->getPropDamageModifier()))), 1);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+	if (weaponry->getPropDamage() > 0) {
+		cout << -100 * weaponry->getPropDamage() << "% health\n";
+	}
+	else if (weaponry->getPropDamage() < 0) {
+		cout << -100 * weaponry->getPropDamage() << "% of health recovered\n";
+	}
+	if (weaponry->getEffectType() / 10 > 1) {
+		short healthSteal = max((short)0, target->getHealth());
+		short p = weaponry->getFlatDamage(), m = weaponry->getFlatMagicDamage(), a = weaponry->getFlatArmourPiercingDamage();
+		attacker->applyDamageModifiers(&p, &m, &a);
+		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage";
+			if (weaponry->getLifelink()) {
+				healthSteal = min(healthSteal, healthLoss);
+				if (healthSteal > 0) {
+					cout << " (attacker is healed for " << healthSteal << " by lifelink)";
+					attacker->modifyHealth(healthSteal);
+				}
+			}
+			cout << '\n';
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
 		}
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	damageBuffer = weaponry->getFlatMagicDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatMagicDamageModifier()) * (1 + attacker->getPropMagicDamageModifier()))), 2);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+	if (weaponry->getPoison() > 0 || weaponry->getBleed() > 0) {
+		cout << showpos;
+		if (weaponry->getPoison() > 0) {
+			if (target->modifyPoison(weaponry->getPoison())) {
+				cout << +weaponry->getPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
 		}
-	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	damageBuffer = weaponry->getFlatArmourPiercingDamage();
-	if (damageBuffer > 0) {
-		damageBuffer = target->flatDamage((static_cast<short>((damageBuffer + attacker->getFlatArmourPiercingDamageModifier()) * (1 + attacker->getPropArmourPiercingDamageModifier()))), 3);
-		if (weaponry->getLifelink()) {
-			attacker->modifyHealth(damageBuffer);
+		if (weaponry->getBleed() > 0) {
+			if (target->modifyBleed(weaponry->getBleed())) {
+				cout << +weaponry->getBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
 		}
+		cout << "\b\b\n" << noshowpos;
 	}
-	else if (damageBuffer < 0) {
-		target->flatDamage(damageBuffer);
-	}
-	//Poison
-	target->modifyPoison(weaponry->getPoison());
-	//Bleed
-	target->modifyBleed(weaponry->getBleed());
+	this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 void weaponDeclare(weapon* weaponry, player* attacker) {
@@ -1376,29 +1975,131 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 		}
 	}
 	//Now may assume that weapon1 hits at least as many times as weapon2
-	//Self damage
-	if (weapon1->getPropSelfDamage() > 0) { //Weapon1 gives prop self healing, do weapon2 first in case it does damage
-		attacker->propDamage(weapon2->getPropSelfDamage());
-		attacker->propDamage(weapon1->getPropSelfDamage());
+	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2 || weapon1->getEffectType() % 10 == 1 || weapon1->getEffectType() % 10 == 2 || weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2 || weapon2->getEffectType() % 10 == 1 || weapon2->getEffectType() % 10 == 2) {
+		cout << "Attacker effects:\n";
+	}
+	if (weapon1->getPropSelfDamage() > 0) {
+		if (weapon2->getPropSelfDamage() > 0) {
+			float totProp = weapon1->getPropSelfDamage() + weapon2->getPropSelfDamage() - (weapon1->getPropSelfDamage() * weapon2->getPropSelfDamage());
+			attacker->propDamage(totProp);
+			cout << -100 * totProp << "% health\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% health, then " << -100 * weapon2->getPropSelfDamage() << "% of health recovered\n";
+		}
+		else {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% health\n";
+		}
+	}
+	else if (weapon1->getPropSelfDamage() < 0) {
+		if (weapon2->getPropSelfDamage() > 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% health, then " << -100 * weapon1->getPropSelfDamage() << "% of health recovered\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			float totProp = max(-1.f, weapon1->getPropSelfDamage() + weapon2->getPropSelfDamage());
+			attacker->propDamage(totProp);
+			cout << -100 * totProp << "% of health recovered\n";
+		}
+		else {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% of health recovered\n";
+		}
 	}
 	else {
-		attacker->propDamage(weapon1->getPropSelfDamage());
-		attacker->propDamage(weapon2->getPropSelfDamage());
+		if (weapon2->getPropSelfDamage() > 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% health\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% of health recovered\n";
+		}
 	}
-	attacker->flatDamage(weapon1->getFlatSelfDamage());
-	attacker->flatDamage(weapon2->getFlatSelfDamage());
-	attacker->flatDamage(weapon1->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weapon2->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weapon1->getFlatSelfArmourPiercingDamage(), 3);
-	attacker->flatDamage(weapon2->getFlatSelfArmourPiercingDamage(), 3);
-	//Poison
-	attacker->modifyPoison(weapon1->getSelfPoison());
-	attacker->modifyPoison(weapon2->getSelfPoison());
-	//Bleed
-	attacker->modifyBleed(weapon1->getSelfBleed());
-	attacker->modifyBleed(weapon2->getSelfBleed());
-	unsigned char hits1; //Number of hits of weapon1, which is always at least the number of hits of weapon2
-	unsigned char hits2; //Number of hits of weapon2
+	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2) {
+		if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
+			if (weapon1->getSelfOverheal()) {
+				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				healthLoss += attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), true);
+				if (healthLoss > 0) {
+					cout << healthLoss << " damage\n";
+				}
+				else if (healthLoss < 0) {
+					cout << -healthLoss << " healing\n";
+				}
+				else {
+					cout << "No damage\n";
+				}
+			}
+			else {
+				long healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage());
+				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				if (healthLoss > 0) {
+					cout << healthLoss << " damage\n";
+				}
+				else if (healthLoss < 0) {
+					cout << -healthLoss << " healing\n";
+				}
+				else {
+					cout << "No damage\n";
+				}
+			}
+		}
+		else {
+			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverheal());
+			if (healthLoss > 0) {
+				cout << healthLoss << " damage\n";
+			}
+			else if (healthLoss < 0) {
+				cout << -healthLoss << " healing\n";
+			}
+			else {
+				cout << "No damage\n";
+			}
+		}
+	}
+	else if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
+		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (weapon1->getSelfPoison() + weapon2->getSelfPoison() > 0 || weapon1->getSelfBleed() + weapon2->getSelfBleed() > 0) {
+		cout << showpos;
+		if (weapon1->getSelfPoison() + weapon2->getSelfPoison() > 0) {
+			if (attacker->modifyPoison(weapon1->getSelfPoison() + weapon2->getSelfPoison())) {
+				cout << weapon1->getSelfPoison() + weapon2->getSelfPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
+		}
+		if (weapon1->getSelfBleed() + weapon2->getSelfBleed() > 0) {
+			if (attacker->modifyBleed(weapon1->getSelfBleed() + weapon2->getSelfBleed())) {
+				cout << weapon1->getSelfBleed() + weapon2->getSelfBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
+		}
+		cout << "\b\b\n" << noshowpos;
+	}
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (weapon1->getEffectType() / 10 < 2 || weapon1->getEffectType() % 10 < 2 || weapon2->getEffectType() / 10 < 2 || weapon2->getEffectType() % 10 < 2) {
+		return;
+	}
+	cout << "Target effects:\n";
+	unsigned char hits1, hits2;
 	if (counter) {
 		hits1 = weapon1->getCounterHits();
 		hits2 = weapon2->getCounterHits();
@@ -1413,43 +2114,148 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 			weaponHit(weapon2, attacker, target);
 		}
 	}
+	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* target, bool counter) {
 	if (counter) { //If weapon2 hits more times, run the function with them swapped
 		if (weapon2->getCounterHits() > weapon1->getCounterHits()) {
-			return weaponAttack(weapon2, weapon1, attacker, target, counter);
+			weaponAttack(weapon2, weapon1, attacker, target, counter);
+			return;
 		}
 	}
 	else {
 		if (weapon2->getHitCount() > weapon1->getHitCount()) {
-			return weaponAttack(weapon2, weapon1, attacker, target, counter);
+			weaponAttack(weapon2, weapon1, attacker, target, counter);
+			return;
 		}
 	}
 	//Now may assume that weapon1 hits at least as many times as weapon2
-	//Self damage
-	if (weapon1->getPropSelfDamage() > 0) { //Weapon1 gives prop self healing, do weapon2 first in case it does damage
-		attacker->propDamage(weapon2->getPropSelfDamage());
-		attacker->propDamage(weapon1->getPropSelfDamage());
+	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2 || weapon1->getEffectType() % 10 == 1 || weapon1->getEffectType() % 10 == 2 || weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2 || weapon2->getEffectType() % 10 == 1 || weapon2->getEffectType() % 10 == 2) {
+		cout << "Attacker effects:\n";
+	}
+	if (weapon1->getPropSelfDamage() > 0) {
+		if (weapon2->getPropSelfDamage() > 0) {
+			float totProp = weapon1->getPropSelfDamage() + weapon2->getPropSelfDamage() - (weapon1->getPropSelfDamage() * weapon2->getPropSelfDamage());
+			attacker->propDamage(totProp);
+			cout << -100 * totProp << "% health\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% health, then " << -100 * weapon2->getPropSelfDamage() << "% of health recovered\n";
+		}
+		else {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% health\n";
+		}
+	}
+	else if (weapon1->getPropSelfDamage() < 0) {
+		if (weapon2->getPropSelfDamage() > 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% health, then " << -100 * weapon1->getPropSelfDamage() << "% of health recovered\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			float totProp = max(-1.f, weapon1->getPropSelfDamage() + weapon2->getPropSelfDamage());
+			attacker->propDamage(totProp);
+			cout << -100 * totProp << "% of health recovered\n";
+		}
+		else {
+			attacker->propDamage(weapon1->getPropSelfDamage());
+			cout << -100 * weapon1->getPropSelfDamage() << "% of health recovered\n";
+		}
 	}
 	else {
-		attacker->propDamage(weapon1->getPropSelfDamage());
-		attacker->propDamage(weapon2->getPropSelfDamage());
+		if (weapon2->getPropSelfDamage() > 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% health\n";
+		}
+		else if (weapon2->getPropSelfDamage() < 0) {
+			attacker->propDamage(weapon2->getPropSelfDamage());
+			cout << -100 * weapon2->getPropSelfDamage() << "% of health recovered\n";
+		}
 	}
-	attacker->flatDamage(weapon1->getFlatSelfDamage());
-	attacker->flatDamage(weapon2->getFlatSelfDamage());
-	attacker->flatDamage(weapon1->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weapon2->getFlatSelfMagicDamage(), 2);
-	attacker->flatDamage(weapon1->getFlatSelfArmourPiercingDamage(), 3);
-	attacker->flatDamage(weapon2->getFlatSelfArmourPiercingDamage(), 3);
-	//Poison
-	attacker->modifyPoison(weapon1->getSelfPoison());
-	attacker->modifyPoison(weapon2->getSelfPoison());
-	//Bleed
-	attacker->modifyBleed(weapon1->getSelfBleed());
-	attacker->modifyBleed(weapon2->getSelfBleed());
-	unsigned char hits1; //Number of hits of weapon1, which is always at least the number of hits of weapon2
-	unsigned char hits2; //Number of hits of weapon2
+	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2) {
+		if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
+			if (weapon1->getSelfOverheal()) {
+				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				healthLoss += attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), true);
+				if (healthLoss > 0) {
+					cout << healthLoss << " damage\n";
+				}
+				else if (healthLoss < 0) {
+					cout << -healthLoss << " healing\n";
+				}
+				else {
+					cout << "No damage\n";
+				}
+			}
+			else {
+				long healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage());
+				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				if (healthLoss > 0) {
+					cout << healthLoss << " damage\n";
+				}
+				else if (healthLoss < 0) {
+					cout << -healthLoss << " healing\n";
+				}
+				else {
+					cout << "No damage\n";
+				}
+			}
+		}
+		else {
+			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverheal());
+			if (healthLoss > 0) {
+				cout << healthLoss << " damage\n";
+			}
+			else if (healthLoss < 0) {
+				cout << -healthLoss << " healing\n";
+			}
+			else {
+				cout << "No damage\n";
+			}
+		}
+	}
+	else if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
+		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+		if (healthLoss > 0) {
+			cout << healthLoss << " damage\n";
+		}
+		else if (healthLoss < 0) {
+			cout << -healthLoss << " healing\n";
+		}
+		else {
+			cout << "No damage\n";
+		}
+	}
+	if (weapon1->getSelfPoison() + weapon2->getSelfPoison() > 0 || weapon1->getSelfBleed() + weapon2->getSelfBleed() > 0) {
+		cout << showpos;
+		if (weapon1->getSelfPoison() + weapon2->getSelfPoison() > 0) {
+			if (attacker->modifyPoison(weapon1->getSelfPoison() + weapon2->getSelfPoison())) {
+				cout << weapon1->getSelfPoison() + weapon2->getSelfPoison() << " poison, ";
+			}
+			else {
+				cout << "Poison resisted, ";
+			}
+		}
+		if (weapon1->getSelfBleed() + weapon2->getSelfBleed() > 0) {
+			if (attacker->modifyBleed(weapon1->getSelfBleed() + weapon2->getSelfBleed())) {
+				cout << weapon1->getSelfBleed() + weapon2->getSelfBleed() << " bleed, ";
+			}
+			else {
+				cout << "Bleed resisted, ";
+			}
+		}
+		cout << "\b\b\n" << noshowpos;
+	}
+	this_thread::sleep_for(chrono::milliseconds(500));
+	if (weapon1->getEffectType() / 10 < 2 || weapon1->getEffectType() % 10 < 2 || weapon2->getEffectType() / 10 < 2 || weapon2->getEffectType() % 10 < 2) {
+		return;
+	}
+	cout << "Target effects:\n";
+	unsigned char hits1, hits2;
 	if (counter) {
 		hits1 = weapon1->getCounterHits();
 		hits2 = weapon2->getCounterHits();
@@ -1464,6 +2270,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 			weaponHit(weapon2, attacker, target);
 		}
 	}
+	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
 void weaponDeclare(weapon* weapon1, weapon* weapon2, player* attacker) {

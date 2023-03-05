@@ -38,7 +38,7 @@ private:
 	unsigned char selfBleed; //Bleed applied to self
 	bool lifelink; //Heals user equal to damage done
 	bool dualWield; //If two weapons with this are equipped, they can both be used in a single attack
-	unsigned char effectType; //0 is has no effect, 1 is only affects attacker, 2 is also affects target, 3 is only affects target
+	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only attacker, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
 	bool selfOverheal; //Can it overheal wielder
 	bool targetOverheal;
 public:
@@ -94,4 +94,6 @@ public:
 	bool checkSelfEffect();
 	bool checkTargetEffect();
 	void setEffectType();
+	bool checkSelfDamage();
+	bool checkTargetDamage();
 };

@@ -100,7 +100,7 @@ private:
 	short healthChange;
 	bool selfOverheal;
 	bool targetOverheal;
-	unsigned char effectType; //Whom it can affect. 0 is does nothing, 1 is affects only caster, 2 is affects caster and target, 3 is affects only target (excludes costs)
+	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only caster, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
 public:
 	//Loads spell from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -211,4 +211,6 @@ public:
 	bool checkTargetEffect();
 	//Sets effectType
 	void setEffectType();
+	bool checkSelfDamage();
+	bool checkTargetDamage();
 };

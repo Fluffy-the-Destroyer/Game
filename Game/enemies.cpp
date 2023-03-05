@@ -192,14 +192,14 @@ void enemy::modifyTurnManaRegen(short m) {
 	}
 }
 
-void enemy::modifyPoison(short p, bool resist) {
+bool enemy::modifyPoison(short p, bool resist) {
 	if (p > 255) {
 		p = 255;
 	}
 	if (p > 0) {
 		if (resist) {
 			if (rng(0.f, 1.f) < poisonResist) {
-				return;
+				return false;
 			}
 		}
 		poison = min(255, poison + p);
@@ -207,16 +207,17 @@ void enemy::modifyPoison(short p, bool resist) {
 	else if (p < 0) {
 		poison = max(0, poison + p);
 	}
+	return true;
 }
 
-void enemy::modifyBleed(short b, bool resist) {
+bool enemy::modifyBleed(short b, bool resist) {
 	if (b > 255) {
 		b = 255;
 	}
 	if (b > 0) {
 		if (resist) {
 			if (rng(0.f, 1.f) < bleedResist) {
-				return;
+				return false;
 			}
 		}
 		bleed = min(255, bleed + b);
@@ -224,6 +225,7 @@ void enemy::modifyBleed(short b, bool resist) {
 	else if (b < 0) {
 		bleed = max(0, bleed + b);
 	}
+	return true;
 }
 
 void enemy::modifyTempRegen(short r) {
@@ -1889,4 +1891,62 @@ bool enemy::checkCounter(unsigned char type, string itemName) {
 		break;
 	}
 	return true;
+}
+
+void enemy::applyDamageModifiers(short* p, short* m, short* a) {
+	float damStorage;
+	if (*p > 0) {
+		if (SHRT_MAX - *p < flatDamageModifier) {
+			*p = SHRT_MAX;
+		}
+		else {
+			*p += flatDamageModifier;
+			if (*p < 0) {
+				*p = 0;
+			}
+		}
+		damStorage = *p * (1 + propDamageModifier);
+		if (damStorage > SHRT_MAX) {
+			*p = SHRT_MAX;
+		}
+		else {
+			*p = static_cast<short>(damStorage);
+		}
+	}
+	if (*m > 0) {
+		if (SHRT_MAX - *m < flatMagicDamageModifier) {
+			*m = SHRT_MAX;
+		}
+		else {
+			*m += flatMagicDamageModifier;
+			if (*m < 0) {
+				*m = 0;
+			}
+		}
+		damStorage = *m * (1 + propMagicDamageModifier);
+		if (damStorage > SHRT_MAX) {
+			*m = SHRT_MAX;
+		}
+		else {
+			*m = static_cast<short>(damStorage);
+		}
+	}
+	if (*a > 0) {
+		if (SHRT_MAX - *a < flatArmourPiercingDamageModifier) {
+			*a = SHRT_MAX;
+		}
+		else {
+			*a += flatArmourPiercingDamageModifier;
+			if (*a < 0) {
+				*a = 0;
+			}
+		}
+		damStorage = *a * (1 + propArmourPiercingDamageModifier);
+		if (damStorage > SHRT_MAX) {
+			*a = SHRT_MAX;
+		}
+		else {
+			*a = static_cast<short>(damStorage);
+		}
+	}
 }

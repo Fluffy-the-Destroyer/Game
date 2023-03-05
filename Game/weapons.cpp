@@ -690,15 +690,6 @@ void weapon::displayName() {
 }
 
 bool weapon::checkSelfEffect() {
-	if (flatSelfDamageMin != 0 || flatSelfDamageMax != 0) {
-		return true;
-	}
-	if (flatSelfMagicDamageMin != 0 || flatSelfMagicDamageMax != 0) {
-		return true;
-	}
-	if (flatSelfArmourPiercingDamageMin != 0 || flatSelfArmourPiercingDamageMax != 0) {
-		return true;
-	}
 	if (propSelfDamage != 0) {
 		return true;
 	}
@@ -709,15 +700,6 @@ bool weapon::checkSelfEffect() {
 }
 
 bool weapon::checkTargetEffect() {
-	if (flatDamageMin != 0 || flatDamageMax != 0) {
-		return true;
-	}
-	if (flatMagicDamageMin != 0 || flatMagicDamageMax != 0) {
-		return true;
-	}
-	if (flatArmourPiercingDamageMin != 0 || flatArmourPiercingDamageMax != 0) {
-		return true;
-	}
 	if (propDamage != 0) {
 		return true;
 	}
@@ -744,4 +726,43 @@ void weapon::setEffectType() {
 			effectType = 0;
 		}
 	}
+	if (checkSelfDamage()) {
+		if (checkTargetDamage()) {
+			effectType += 20;
+		}
+		else {
+			effectType += 10;
+		}
+	}
+	else {
+		if (checkTargetDamage()) {
+			effectType += 30;
+		}
+	}
+}
+
+bool weapon::checkTargetDamage() {
+	if (flatDamageMin != 0 || flatDamageMax != 0) {
+		return true;
+	}
+	if (flatMagicDamageMin != 0 || flatMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatArmourPiercingDamageMin != 0 || flatArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	return false;
+}
+
+bool weapon::checkSelfDamage() {
+	if (flatSelfDamageMin != 0 || flatSelfDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfMagicDamageMin != 0 || flatSelfMagicDamageMax != 0) {
+		return true;
+	}
+	if (flatSelfArmourPiercingDamageMin != 0 || flatSelfArmourPiercingDamageMax != 0) {
+		return true;
+	}
+	return false;
 }

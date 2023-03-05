@@ -99,12 +99,12 @@ public: //Not providing set functions, as these values should not usually be set
 	void modifyBattleManaRegen(short b);
 	//Recalculates battleManaRegen
 	void calculateBattleManaRegen();
-	//Modifies poison level by specified amount, resist=true allows it to be resisted
-	void modifyPoison(short p, bool resist = true);
+	//Modifies poison level by specified amount, resist=true allows it to be resisted. Returns false if it was resisted
+	bool modifyPoison(short p, bool resist = true);
 	//Fully cures poison
 	void curePoison() { poison = 0; }
 	//Modifies bleed, resist=true allows it to be resisted
-	void modifyBleed(short b, bool resist = true);
+	bool modifyBleed(short b, bool resist = true);
 	//Removes bleed
 	void cureBleed() { bleed = 0; }
 	//Modifies tempRegen
@@ -251,4 +251,6 @@ public: //Not providing set functions, as these values should not usually be set
 	friend void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
 	//Gets the player to choose an action. Returns 0 for no action, 1 for a weapon, 2 for a spell, 3 for dual wield. Timing 0 is normal, 1 is responding to weapon, 2 responding to spell, 3 is counter attacking. Timing 4 is responding to dual attack. itemName holds the name(s) of weapon/spell being responded to. Stores slots of selected weapon/spell in slot1 and slot2
 	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, std::string enemyName, const unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "");
+	//Applies modifiers to damage
+	void applyDamageModifiers(short* p, short* m, short* a);
 };
