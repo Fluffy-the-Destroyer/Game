@@ -7,8 +7,8 @@
 #define BLEED_MULTIPLIER 1
 #define REGEN_MULTIPLIER 1
 
-//Handles battle, returns 1 if enemy killed, returns 2 if player killed
-unsigned char battleHandler(player* playerCharacter, enemy* opponent);
+//Handles battle, returns 1 if enemy killed, returns 2 if player killed. firstGo=1 is player goes first, firstGo=-1 is enemy goes first, firstGo=0 is use initiative
+unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed char firstGo = 0);
 //Spell cast by player on enemy, returns 1 if target is dead, 2 if caster is dead
 void spellCast(spell* magic, player* caster, enemy* target, bool counter = false);
 //Individual hit

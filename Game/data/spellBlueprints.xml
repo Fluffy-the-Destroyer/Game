@@ -105,6 +105,7 @@
 	<selfOverheal/><!--Allows the spell to overheal caster, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
 	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
+	<initiative>0</initiative><!--Modifies target's initiative (for determining first turn in battle), only has any effect when spell is cast on player prior to battle in an event-->
 </spellBlueprint>
 
 <spellBlueprint name="HEAL_SPELL_1">

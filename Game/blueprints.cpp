@@ -103,8 +103,7 @@ unsigned char blueprintListSelector(string* blueprint, bool custom) {
 			ignoreLine(&blueprintLists);
 		}
 		buffer = getTag(&blueprintLists);
-		getline(blueprintLists, *blueprint, '<');
-		blueprintLists.seekg(-1, ios_base::cur);
+		*blueprint = stringFromFile(&blueprintLists);
 		if (getTag(&blueprintLists) != '/' + buffer) {
 			throw 1;
 		}

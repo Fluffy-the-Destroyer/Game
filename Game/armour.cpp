@@ -27,7 +27,6 @@ string armour::getName() {
 void armour::loadFromFile(string blueprint, bool custom) {
 	ifstream armourBlueprints;
 	string stringbuffer = "";
-	string valBuffer;
 	string type = "";
 	switch (armourType()) {
 	case 1:
@@ -92,12 +91,11 @@ void armour::loadFromFile(string blueprint, bool custom) {
 				if (getTag(&armourBlueprints) != "name") { //It should be this
 					throw 1;
 				}
-				getline(armourBlueprints, blueprint, '<'); //Get the blueprint name
+				blueprint = stringFromFile(&armourBlueprints);
 				if (blueprint == "EMPTY") { //Selected entry is the empty slot
 					throw 3;
 				}
-				getline(armourBlueprints, stringbuffer, '>'); //Get the closing tag
-				if (stringbuffer != "/name") {
+				if (getTag(&armourBlueprints) != "/name") {
 					throw 1;
 				}
 			}
@@ -107,7 +105,7 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		//Reset attributes to default values
 		real = true;
 		armourName = blueprint;
-		maxHealthModifier = maxManaModifier = turnManaRegenModifier = battleManaRegenModifier = constRegenModifier = battleRegenModifier = flatArmourModifier = flatMagicArmourModifier = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = bonusActionsModifier = 0;
+		maxHealthModifier = maxManaModifier = turnManaRegenModifier = battleManaRegenModifier = constRegenModifier = battleRegenModifier = flatArmourModifier = flatMagicArmourModifier = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = bonusActionsModifier = initiativeModifier = 0;
 		propArmourModifier = propMagicArmourModifier = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = evadeChanceModifier = poisonResistModifier = bleedResistModifier = counterAttackChanceModifier = 0;
 		name = description = "";
 		upgrade = "EMPTY";
@@ -127,129 +125,110 @@ void armour::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
-				getline(armourBlueprints, valBuffer, '<');
-				maxHealthModifier = numFromString(&valBuffer);
+				maxHealthModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "maxManaModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				maxManaModifier = numFromString(&valBuffer);
+				maxManaModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "turnManaRegenModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				turnManaRegenModifier = numFromString(&valBuffer);
+				turnManaRegenModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "battleManaRegenModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				battleManaRegenModifier = numFromString(&valBuffer);
+				battleManaRegenModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "constRegenModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				constRegenModifier = numFromString(&valBuffer);
+				constRegenModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "battleRegenModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				battleRegenModifier = numFromString(&valBuffer);
+				battleRegenModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "flatArmourModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				flatArmourModifier = numFromString(&valBuffer);
+				flatArmourModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "propArmourModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				propArmourModifier = floatFromString(&valBuffer);
+				propArmourModifier = floatFromFile(&armourBlueprints);
 				if (propArmourModifier < -1) {
 					propArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicArmourModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				flatMagicArmourModifier = numFromString(&valBuffer);
+				flatMagicArmourModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "propMagicArmourModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				propMagicArmourModifier = floatFromString(&valBuffer);
+				propMagicArmourModifier = floatFromFile(&armourBlueprints);
 				if (propMagicArmourModifier < -1) {
 					propMagicArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				flatDamageModifier = numFromString(&valBuffer);
+				flatDamageModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "propDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				propDamageModifier = floatFromString(&valBuffer);
+				propDamageModifier = floatFromFile(&armourBlueprints);
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "evadeChanceModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				evadeChanceModifier = floatFromString(&valBuffer);
+				evadeChanceModifier = floatFromFile(&armourBlueprints);
 				if (evadeChanceModifier < -1) {
 					evadeChanceModifier = -1;
 				}
 			}
 			else if (stringbuffer == "poisonResistModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				poisonResistModifier = floatFromString(&valBuffer);
+				poisonResistModifier = floatFromFile(&armourBlueprints);
 				if (poisonResistModifier < -1) {
 					poisonResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "bleedResistModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				bleedResistModifier = floatFromString(&valBuffer);
+				bleedResistModifier = floatFromFile(&armourBlueprints);
 				if (bleedResistModifier < -1) {
 					bleedResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				flatMagicDamageModifier = numFromString(&valBuffer);
+				flatMagicDamageModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "propMagicDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				propMagicDamageModifier = floatFromString(&valBuffer);
+				propMagicDamageModifier = floatFromFile(&armourBlueprints);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageModifier = numFromString(&valBuffer);
+				flatArmourPiercingDamageModifier = numFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				propArmourPiercingDamageModifier = floatFromString(&valBuffer);
+				propArmourPiercingDamageModifier = floatFromFile(&armourBlueprints);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "counterAttackChanceModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				counterAttackChanceModifier = floatFromString(&valBuffer);
+				counterAttackChanceModifier = floatFromFile(&armourBlueprints);
 				if (counterAttackChanceModifier < -1) {
 					counterAttackChanceModifier = -1;
 				}
 			}
 			else if (stringbuffer == "name") {
-				getline(armourBlueprints, name, '<');
+				name = stringFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "description") {
-				getline(armourBlueprints, description, '<');
+				description = stringFromFile(&armourBlueprints);
 			}
 			else if (stringbuffer == "bonusActionsModifier") {
-				getline(armourBlueprints, valBuffer, '<');
-				bonusActionsModifier = numFromString(&valBuffer);
-				}
+				bonusActionsModifier = numFromFile(&armourBlueprints);
+			}
+			else if (stringbuffer == "initiativeModifier") {
+				initiativeModifier = numFromFile(&armourBlueprints);
+			}
 			else if (stringbuffer == "upgrade") {
-				getline(armourBlueprints, upgrade, '<');
+				upgrade = stringFromFile(&armourBlueprints);
 			}
 			else {
 				throw 1;
 			}
-			armourBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&armourBlueprints) != '/' + stringbuffer) { //Closing tag is different from opening tag
 				throw 1;
 			}
@@ -419,6 +398,9 @@ void armour::displayStats() {
 	}
 	else if (bonusActionsModifier != 0) {
 		cout << bonusActionsModifier << " bonus actions\n";
+	}
+	if (initiativeModifier != 0) {
+		cout << initiativeModifier << " speed\n";
 	}
 	cout << noshowpos;
 }

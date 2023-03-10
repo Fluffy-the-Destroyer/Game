@@ -452,7 +452,6 @@ void enemy::modifyBonusActions(short b) {
 void enemy::loadFromFile(string blueprint, bool custom) {
 	ifstream enemyBlueprints;
 	string buffer = "";
-	string valBuffer;
 	short charBuf = 0;
 	try {
 		if (blueprint == "EMPTY") {
@@ -503,9 +502,8 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				if (getTag(&enemyBlueprints) != "name") {
 					throw 1;
 				}
-				getline(enemyBlueprints, blueprint, '<');
-				getline(enemyBlueprints, buffer, '>');
-				if (buffer != "/name") {
+				blueprint = stringFromFile(&enemyBlueprints);
+				if (getTag(&enemyBlueprints) != "/name") {
 					throw 1;
 				}
 				if (blueprint == "EMPTY") {
@@ -526,6 +524,7 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		initialSpell = -1;
 		propArmour = propMagicArmour = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = 0;
 		bonusActions = 1;
+		initiative = 5;
 		blueprintName = "enemyBlueprint name=\"" + blueprint + '\"';
 		while (buffer != blueprintName) {
 			buffer = getTag(&enemyBlueprints);
@@ -540,46 +539,40 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			if (buffer == "name") {
-				getline(enemyBlueprints, name, '<');
+				name = stringFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "introduction") {
-				getline(enemyBlueprints, introduction, '<');
+				introduction = stringFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "maxHealth") {
-				getline(enemyBlueprints, valBuffer, '<');
-				maxHealth = numFromString(&valBuffer);
+				maxHealth = numFromFile(&enemyBlueprints);
 				if (maxHealth < 0) {
 					maxHealth = 0;
 				}
 			}
 			else if (buffer == "maxMana") {
-				getline(enemyBlueprints, valBuffer, '<');
-				maxMana = numFromString(&valBuffer);
+				maxMana = numFromFile(&enemyBlueprints);
 				if (maxMana < 0) {
 					maxMana = 0;
 				}
 			}
 			else if (buffer == "turnManaRegen") {
-				getline(enemyBlueprints, valBuffer, '<');
-				turnManaRegen = numFromString(&valBuffer);
+				turnManaRegen = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "poisonResist") {
-				getline(enemyBlueprints, valBuffer, '<');
-				poisonResist = floatFromString(&valBuffer);
+				poisonResist = floatFromFile(&enemyBlueprints);
 				if (poisonResist < 0) {
 					poisonResist = 0;
 				}
 			}
 			else if (buffer == "bleedResist") {
-				getline(enemyBlueprints, valBuffer, '<');
-				bleedResist = floatFromString(&valBuffer);
+				bleedResist = floatFromFile(&enemyBlueprints);
 				if (bleedResist < 0) {
 					bleedResist = 0;
 				}
 			}
 			else if (buffer == "constRegen") {
-				getline(enemyBlueprints, valBuffer, '<');
-				constRegen = numFromString(&valBuffer);
+				constRegen = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer.substr(0, 21) == "weapons projectiles=\"") {
 				buffer.erase(0, 21);
@@ -594,13 +587,12 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				for (short i = 0; i <= 255; i++) {
 					buffer = getTag(&enemyBlueprints);
 					if (buffer == "weapon") {
-						getline(enemyBlueprints, buffer, '<');
+						buffer = stringFromFile(&enemyBlueprints);
 						if (enemyBlueprints.eof()) {
 							throw 1;
 						}
 						weapons.emplace_back(buffer);
-						getline(enemyBlueprints, buffer, '>');
-						if (buffer != "/weapon") {
+						if (getTag(&enemyBlueprints) != "/weapon") {
 							throw 1;
 						}
 						ignoreLine(&enemyBlueprints);
@@ -632,13 +624,12 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 						if (buffer == " initial=\"true\"") { //Indicates the enemy should use this spell on turn 1
 							initialSpell = i; //If multiple spells have the initial flag, only the last one with it will be the initial spell
 						}
-						getline(enemyBlueprints, buffer, '<');
+						buffer = stringFromFile(&enemyBlueprints);
 						if (enemyBlueprints.eof()) {
 							throw 1;
 						}
 						spells.emplace_back(buffer);
-						getline(enemyBlueprints, buffer, '>');
-						if (buffer != "/spell") {
+						if (getTag(&enemyBlueprints) != "/spell") {
 							throw 1;
 						}
 						ignoreLine(&enemyBlueprints);
@@ -662,10 +653,9 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (buffer == "deathSpell") {
-				getline(enemyBlueprints, buffer, '<');
+				buffer = stringFromFile(&enemyBlueprints);
 				deathSpell.loadFromFile(buffer);
-				getline(enemyBlueprints, buffer, '>');
-				if (buffer != "/deathSpell") {
+				if (getTag(&enemyBlueprints) != "/deathSpell") {
 					throw 1;
 				}
 				ignoreLine(&enemyBlueprints);
@@ -676,77 +666,64 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (buffer == "flatArmour") {
-				getline(enemyBlueprints, valBuffer, '<');
-				flatArmour = numFromString(&valBuffer);
+				flatArmour = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "propArmour") {
-				getline(enemyBlueprints, valBuffer, '<');
-				propArmour = floatFromString(&valBuffer);
+				propArmour = floatFromFile(&enemyBlueprints);
 				if (propArmour < -1) {
 					propArmour = -1;
 				}
 			}
 			else if (buffer == "flatMagicArmour") {
-				getline(enemyBlueprints, valBuffer, '<');
-				flatMagicArmour = numFromString(&valBuffer);
+				flatMagicArmour = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "propMagicArmour") {
-				getline(enemyBlueprints, valBuffer, '<');
-				propMagicArmour = floatFromString(&valBuffer);
+				propMagicArmour = floatFromFile(&enemyBlueprints);
 				if (propMagicArmour < -1) {
 					propMagicArmour = -1;
 				}
 			}
 			else if (buffer == "flatDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				flatDamageModifier = numFromString(&valBuffer);
+				flatDamageModifier = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "propDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				propDamageModifier = floatFromString(&valBuffer);
+				propDamageModifier = floatFromFile(&enemyBlueprints);
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
 			else if (buffer == "flatMagicDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				flatMagicDamageModifier = numFromString(&valBuffer);
+				flatMagicDamageModifier = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "propMagicDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				propMagicDamageModifier = floatFromString(&valBuffer);
+				propMagicDamageModifier = floatFromFile(&enemyBlueprints);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (buffer == "flatArmourPiercingDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageModifier = numFromString(&valBuffer);
+				flatArmourPiercingDamageModifier = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer == "propArmourPiercingDamageModifier") {
-				getline(enemyBlueprints, valBuffer, '<');
-				propArmourPiercingDamageModifier = floatFromString(&valBuffer);
+				propArmourPiercingDamageModifier = floatFromFile(&enemyBlueprints);
 				if (propArmourPiercingDamageModifier < -1) {
 					propArmourPiercingDamageModifier = -1;
 				}
 			}
 			else if (buffer == "evadeChance") {
-				getline(enemyBlueprints, valBuffer, '<');
-				evadeChance = floatFromString(&valBuffer);
+				evadeChance = floatFromFile(&enemyBlueprints);
 				if (evadeChance < 0) {
 					evadeChance = 0;
 				}
 			}
 			else if (buffer == "counterAttackChance") {
-				getline(enemyBlueprints, valBuffer, '<');
-				counterAttackChance = floatFromString(&valBuffer);
+				counterAttackChance = floatFromFile(&enemyBlueprints);
 				if (counterAttackChance < 0) {
 					counterAttackChance = 0;
 				}
 			}
 			else if (buffer == "bonusActions") {
-				getline(enemyBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&enemyBlueprints);
 				if (charBuf > 127) {
 					charBuf = 127;
 				}
@@ -756,17 +733,24 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				bonusActions = static_cast<signed char>(charBuf);
 			}
 			else if (buffer == "AIType") {
-				getline(enemyBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&enemyBlueprints);
 				if (charBuf < 0 || charBuf > AI_TYPES_NO) {
 					charBuf = 2;
 				}
 				AIType = static_cast<unsigned char>(charBuf);
 			}
+			else if (buffer == "initiative") {
+				initiative = numFromFile(&enemyBlueprints);
+				if (initiative < 0) {
+					initiative = 0;
+				}
+			}
+			else if (buffer == "xp") {
+				xp = numFromFile(&enemyBlueprints);
+			}
 			else {
 				throw 1;
 			}
-			enemyBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&enemyBlueprints) != '/' + buffer) {
 				throw 1;
 			}

@@ -27,8 +27,10 @@ private:
 	std::string preBattleText; //Text displayed at start of event
 	std::string preBattleSpell; //Spell to be cast on player on event start, for environmental effects or similar. EMPTY is no spell
 	std::string enemyBlueprint; //Enemy to fight, EMPTY is no fight
+	signed char firstGo; //Who goes first in the battle, -1 is enemy, 1 is player, 0 is use initiative
 	std::string postBattleText; //Text displayed after battle
-	short statChanges[3]; //Changes to health, mana and projectiles
+	short statChanges[18];
+	int xpChange;
 	std::string reward; //Item to be granted as a reward, prefix with a letter to specify what type
 	variables varChanges; //Changes to be made to variables
 	std::vector<choice> choices; //Choices for the player to make

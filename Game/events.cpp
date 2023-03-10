@@ -9,6 +9,7 @@
 #include "blueprints.h"
 #include "armour.h"
 #include "resources.h"
+#include <thread>
 using namespace std;
 
 extern variables g_customVars;
@@ -28,10 +29,11 @@ void Event::loadFromFile(string blueprint, bool custom) {
 	eventName = preBattleSpell = enemyBlueprint = reward = "EMPTY";
 	preBattleText = postBattleText = "";
 	choices.resize(0);
-	for (short i = 0; i < 3; i++) {
+	for (unsigned char i = 0; i < 18; i++) {
 		statChanges[i] = 0;
 	}
 	varChanges.reset();
+	xpChange = 0;
 	ifstream events;
 	string buffer = "", buffer2="";
 	try {
@@ -81,12 +83,11 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				if (getTag(&events) != "name") {
 					throw 1;
 				}
-				getline(events, blueprint, '<');
+				blueprint = stringFromFile(&events);
 				if (blueprint == "EMPTY") {
 					throw 3;
 				}
-				getline(events, buffer, '>');
-				if (buffer != "/name") {
+				if (getTag(&events) != "/name") {
 					throw 1;
 				}
 			}
@@ -109,16 +110,28 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			if (buffer == "preBattleText") {
-				getline(events, preBattleText, '<');
+				preBattleText = stringFromFile(&events);
 			}
 			else if (buffer == "preBattleSpell") {
-				getline(events, preBattleSpell, '<');
+				preBattleSpell = stringFromFile(&events);
 			}
-			else if (buffer == "enemyBlueprint") {
-				getline(events, enemyBlueprint, '<');
+			else if (buffer.substr(0, 14) == "enemyBlueprint") {
+				buffer.erase(0, 14);
+				enemyBlueprint = stringFromFile(&events);
+				if (buffer.empty()) {}
+				else if (buffer == " first=\"player\"") {
+					firstGo = 1;
+				}
+				else if (buffer == " first=\"enemy\"") {
+					firstGo = -1;
+				}
+				else {
+					throw 1;
+				}
+				buffer = "enemyBlueprint";
 			}
 			else if (buffer == "postBattleText") {
-				getline(events, postBattleText, '<');
+				postBattleText = stringFromFile(&events);
 			}
 			else if (buffer == "statChanges") {
 				ignoreLine(&events);
@@ -131,21 +144,71 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						throw 1;
 					}
 					if (buffer == "health") {
-						getline(events, buffer2, '<');
-						statChanges[0] += numFromString(&buffer2);
+						statChanges[0] = numFromFile(&events);
 					}
 					else if (buffer == "mana") {
-						getline(events, buffer2, '<');
-						statChanges[1] += numFromString(&buffer2);
+						statChanges[4] = numFromFile(&events);
 					}
 					else if (buffer == "projectiles") {
-						getline(events, buffer2, '<');
-						statChanges[2] += numFromString(&buffer2);
+						statChanges[8] = numFromFile(&events);
+					}
+					else if (buffer == "maxHealth") {
+						statChanges[1] = numFromFile(&events);
+					}
+					else if (buffer == "maxMana") {
+						statChanges[5] = numFromFile(&events);
+					}
+					else if (buffer == "turnManaRegen") {
+						statChanges[6] = numFromFile(&events);
+					}
+					else if (buffer == "battleManaRegen") {
+						statChanges[7] = numFromFile(&events);
+					}
+					else if (buffer == "constRegen") {
+						statChanges[2] = numFromFile(&events);
+					}
+					else if (buffer == "battleRegen") {
+						statChanges[3] = numFromFile(&events);
+					}
+					else if (buffer == "flatArmour") {
+						statChanges[9] = numFromFile(&events);
+					}
+					else if (buffer == "flatMagicArmour") {
+						statChanges[10] = numFromFile(&events);
+					}
+					else if (buffer == "flatDamageModifier") {
+						statChanges[11] = numFromFile(&events);
+					}
+					else if (buffer == "flatMagicDamageModifier") {
+						statChanges[12] = numFromFile(&events);
+					}
+					else if (buffer == "flatArmourPiercingDamageModifier") {
+						statChanges[13] = numFromFile(&events);
+					}
+					else if (buffer == "bonusActions") {
+						statChanges[14] = numFromFile(&events);
+						if (statChanges[14] > 254) {
+							statChanges[14] = 254;
+						}
+						else if (statChanges[14] < -254) {
+							statChanges[14] = -254;
+						}
+					}
+					else if (buffer == "initiative") {
+						statChanges[15] = numFromFile(&events);
+					}
+					else if (buffer == "statPoints") {
+						statChanges[16] = numFromFile(&events);
+					}
+					else if (buffer == "upgradePoints") {
+						statChanges[17] = numFromFile(&events);
+					}
+					else if (buffer == "xpChange") {
+						xpChange = numFromFile(&events);
 					}
 					else {
 						throw 1;
 					}
-					events.seekg(-1, ios_base::cur);
 					if (getTag(&events) != '/' + buffer) {
 						throw 1;
 					}
@@ -163,7 +226,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (buffer == "reward") {
-				getline(events, reward, '<');
+				reward = stringFromFile(&events);
 			}
 			else if (buffer == "varChanges") {
 				ignoreLine(&events);
@@ -185,9 +248,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 							throw 1;
 						}
 						clearSpace(&events);
-						getline(events, buffer2, '<');
-						events.seekg(-1, ios_base::cur);
-						varBuffer = numFromString(&buffer2);
+						varBuffer = numFromFile(&events);
 						*varChanges.value(buffer) += varBuffer;
 						if (getTag(&events) != "/var") {
 							throw 1;
@@ -220,21 +281,19 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						throw 1;
 					}
 					if (buffer == "text") {
-						getline(events, choices.back().text, '<');
-						events.seekg(-1, ios_base::cur);
+						choices.back().text = stringFromFile(&events);
 					}
 					else if (buffer == "healthChange") {
-						events >> choices.back().healthChange;
+						choices.back().healthChange = numFromFile(&events);
 					}
 					else if (buffer == "manaChange") {
-						events >> choices.back().manaChange;
+						choices.back().manaChange = numFromFile(&events);
 					}
 					else if (buffer == "projectileChange") {
-						events >> choices.back().projectileChange;
+						choices.back().projectileChange = numFromFile(&events);
 					}
 					else if (buffer == "req") {
-						getline(events, choices.back().req, '<');
-						events.seekg(-1, ios_base::cur);
+						choices.back().req = stringFromFile(&events);
 					}
 					else if (buffer == "hidden/") {
 						choices.back().hidden = true;
@@ -246,8 +305,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						continue;
 					}
 					else if (buffer == "eventName") {
-						getline(events, choices.back().eventName, '<');
-						events.seekg(-1, ios_base::cur);
+						choices.back().eventName = stringFromFile(&events);
 					}
 					else {
 						throw 1;
@@ -271,7 +329,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 			else {
 				throw 1;
 			}
-			events.seekg(-1, ios_base::cur);
 			if (getTag(&events) != '/' + buffer) {
 				throw 1;
 			}
@@ -323,53 +380,346 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 	static enemy opponent;
 	if (!preBattleText.empty()) {
 		cout << preBattleText << '\n';
+		this_thread::sleep_for(chrono::milliseconds(500));
 	}
 	g_customVars += varChanges;
 	eventSpell.loadFromFile(preBattleSpell);
 	opponent.loadFromFile(enemyBlueprint);
 	if (eventSpell.getReal()) {
 		if (spellCast(&eventSpell, playerCharacter) == 1) {
+			cout << "You are dead\n";
 			return 2;
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 	}
 	if (opponent.getReal()) { //REVIEW WORDING
 		cout << opponent.getIntroduction() << '\n' << "To start the battle, enter 1.\n";
 		userChoice(1, 1);
-		if (battleHandler(playerCharacter, &opponent) == 2) {
+		if (battleHandler(playerCharacter, &opponent, firstGo) == 2) {
 			return 2;
 		}
 		playerCharacter->reset();
 		if (playerCharacter->getHealth() <= 0) {
+			cout << "You defeat " << opponent.getName() << ", but succumb to your wounds after the battle\n";
 			return 2;
 		}
+		cout << showpos << opponent.getXp() << " experience\n" << noshowpos;
+		playerCharacter->giveXp(opponent.getXp());
 	}
 	if (!postBattleText.empty()) {
 		cout << postBattleText << '\n';
+		this_thread::sleep_for(chrono::milliseconds(500));
 	}
-	if (statChanges[0] != 0 || statChanges[1] != 0 || statChanges[2] != 0) {
-		cout << showpos;
-		if (statChanges[0] != 0) {
-			playerCharacter->modifyHealth(statChanges[0]);
-			cout << statChanges[0] << " health, ";
-		}
-		if (statChanges[1] == 1 || statChanges[1] == -1) {
-			playerCharacter->modifyMana(statChanges[1]);
-			cout << statChanges[1] << ' ' << g_manaName.singular() << ", ";
-		}
-		else if (statChanges[1] != 0) {
-			playerCharacter->modifyMana(statChanges[1]);
-			cout << statChanges[1] << ' ' << g_manaName.plural() << ", ";
-		}
-		if (statChanges[2] == 1 || statChanges[2] == -1) {
-			playerCharacter->modifyProjectiles(statChanges[2]);
-			cout << statChanges[2] << ' ' << g_projName.singular() << ", ";
-		}
-		else if (statChanges[2] != 0) {
-			playerCharacter->modifyProjectiles(statChanges[2]);
-			cout << statChanges[2] << ' ' << g_projName.plural() << ", ";
-		}
-		cout << "\b\b\n" << noshowpos;
+	cout << showpos;
+	if (statChanges[0] != 0) {
+		playerCharacter->modifyHealth(statChanges[0]);
+		cout << statChanges[0] << " health\n";
+		this_thread::sleep_for(chrono::milliseconds(100));
 	}
+	if (statChanges[1] > 0) {
+		cout << statChanges[1] << " maximum health\n";
+		if (playerCharacter->maxHealthBase > SHRT_MAX - statChanges[1]) {
+			playerCharacter->maxHealthBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->maxHealthBase += statChanges[1];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[1] < 0) {
+		cout << statChanges[1] << " maximum health\n";
+		if (playerCharacter->maxHealthBase < SHRT_MIN - statChanges[1]) {
+			playerCharacter->maxHealthBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->maxHealthBase += statChanges[1];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[2] > 0) {
+		cout << statChanges[2] << " health per turn\n";
+		if (playerCharacter->constRegenBase > SHRT_MAX - statChanges[2]) {
+			playerCharacter->constRegenBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->constRegenBase += statChanges[2];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[2] < 0) {
+		cout << statChanges[2] << " health per turn\n";
+		if (playerCharacter->constRegenBase < SHRT_MIN - statChanges[2]) {
+			playerCharacter->constRegenBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->constRegenBase += statChanges[2];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[3] > 0) {
+		cout << statChanges[3] << " health at end of battle\n";
+		if (playerCharacter->battleRegenBase > SHRT_MAX - statChanges[3]) {
+			playerCharacter->battleRegenBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->battleRegenBase += statChanges[3];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[3] < 0) {
+		cout << statChanges[3] << " health at end of battle\n";
+		if (playerCharacter->battleRegenBase < SHRT_MIN - statChanges[3]) {
+			playerCharacter->battleRegenBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->battleRegenBase += statChanges[3];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[4] != 0) {
+		playerCharacter->modifyMana(statChanges[4]);
+		cout << statChanges[1] << ' ';
+		if (statChanges[4] == 1 || statChanges[4] == -1) {
+			cout << g_manaName.singular() << '\n';
+		}
+		else {
+			cout << g_manaName.plural() << '\n';
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[5] > 0) {
+		cout << statChanges[5] << " maximum " << g_manaName.plural() << '\n';
+		if (playerCharacter->maxManaBase > SHRT_MAX - statChanges[5]) {
+			playerCharacter->maxManaBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->maxManaBase += statChanges[5];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[5] < 0) {
+		cout << statChanges[5] << " maximum " << g_manaName.plural() << '\n';
+		if (playerCharacter->maxManaBase < SHRT_MIN - statChanges[5]) {
+			playerCharacter->maxManaBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->maxManaBase += statChanges[5];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[6] > 0) {
+		if (statChanges[6] == 1) {
+			cout << statChanges[6] << ' ' << g_manaName.singular() << " per turn\n";
+		}
+		else {
+			cout << statChanges[6] << ' ' << g_manaName.plural() << " per turn\n";
+		}
+		if (playerCharacter->turnManaRegenBase > SHRT_MAX - statChanges[6]) {
+			playerCharacter->turnManaRegenBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->turnManaRegenBase += statChanges[6];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[6] < 0) {
+		if (statChanges[6] == -1) {
+			cout << statChanges[6] << ' ' << g_manaName.singular() << " per turn\n";
+		}
+		else {
+			cout << statChanges[6] << ' ' << g_manaName.plural() << " per turn\n";
+		}
+		if (playerCharacter->turnManaRegenBase < SHRT_MIN - statChanges[6]) {
+			playerCharacter->turnManaRegenBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->turnManaRegenBase += statChanges[6];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[7] > 0) {
+		if (statChanges[7] == 1) {
+			cout << statChanges[7] << ' ' << g_manaName.singular() << " at end of battle\n";
+		}
+		else {
+			cout << statChanges[7] << ' ' << g_manaName.plural() << " at end of battle\n";
+		}
+		if (playerCharacter->battleManaRegenBase > SHRT_MAX - statChanges[7]) {
+			playerCharacter->battleManaRegenBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->battleManaRegenBase += statChanges[7];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[7] < 0) {
+		if (statChanges[7] == -1) {
+			cout << statChanges[7] << ' ' << g_manaName.singular() << " at end of battle\n";
+		}
+		else {
+			cout << statChanges[7] << ' ' << g_manaName.plural() << " at end of battle\n";
+		}
+		if (playerCharacter->battleManaRegenBase < SHRT_MIN - statChanges[7]) {
+			playerCharacter->battleManaRegenBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->battleManaRegenBase += statChanges[7];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[8] != 0) {
+		playerCharacter->modifyProjectiles(statChanges[8]);
+		cout << statChanges[8] << ' ';
+		if (statChanges[8] == 1 || statChanges[8] == -1) {
+			cout << g_projName.singular() << '\n';
+		}
+		else {
+			cout << g_projName.plural() << '\n';
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[9] > 0) {
+		cout << statChanges[9] << " physical armour\n";
+		if (playerCharacter->flatArmourBase > SHRT_MAX - statChanges[9]) {
+			playerCharacter->flatArmourBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->flatArmourBase += statChanges[9];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[9] < 0) {
+		cout << statChanges[9] << " physical armour\n";
+		if (playerCharacter->flatArmourBase < SHRT_MIN - statChanges[9]) {
+			playerCharacter->flatArmourBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->flatArmourBase += statChanges[9];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[10] > 0) {
+		cout << statChanges[10] << " magic armour\n";
+		if (playerCharacter->flatMagicArmourBase > SHRT_MAX - statChanges[10]) {
+			playerCharacter->flatMagicArmourBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->flatMagicArmourBase += statChanges[10];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[10] < 0) {
+		cout << statChanges[10] << " magic armour\n";
+		if (playerCharacter->flatMagicArmourBase < SHRT_MIN - statChanges[10]) {
+			playerCharacter->flatMagicArmourBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->flatMagicArmourBase += statChanges[10];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[11] > 0) {
+		cout << statChanges[11] << " physical damage dealt\n";
+		if (playerCharacter->flatDamageModifierBase > SHRT_MAX - statChanges[11]) {
+			playerCharacter->flatDamageModifierBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->flatDamageModifierBase += statChanges[11];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[11] < 0) {
+		cout << statChanges[11] << " physical damage dealt\n";
+		if (playerCharacter->flatDamageModifierBase < SHRT_MIN - statChanges[11]) {
+			playerCharacter->flatDamageModifierBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->flatDamageModifierBase += statChanges[11];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[12] > 0) {
+		cout << statChanges[12] << " magic damage dealt\n";
+		if (playerCharacter->flatMagicDamageModifierBase > SHRT_MAX - statChanges[12]) {
+			playerCharacter->flatMagicDamageModifierBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->flatMagicDamageModifierBase += statChanges[12];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[12] < 0) {
+		cout << statChanges[12] << " magic damage dealt\n";
+		if (playerCharacter->flatMagicDamageModifierBase < SHRT_MIN - statChanges[12]) {
+			playerCharacter->flatMagicDamageModifierBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->flatMagicDamageModifierBase += statChanges[12];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[13] > 0) {
+		cout << statChanges[13] << " armour piercing damage dealt\n";
+		if (playerCharacter->flatArmourPiercingDamageModifierBase > SHRT_MAX - statChanges[13]) {
+			playerCharacter->flatArmourPiercingDamageModifierBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->flatArmourPiercingDamageModifierBase += statChanges[13];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[13] < 0) {
+		cout << statChanges[13] << " armour piercing damage dealt\n";
+		if (playerCharacter->flatArmourPiercingDamageModifierBase < SHRT_MIN - statChanges[13]) {
+			playerCharacter->flatArmourPiercingDamageModifierBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->flatArmourPiercingDamageModifierBase += statChanges[13];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[14] != 0) {
+		cout << statChanges[14] << " bonus actions\n";
+		if (playerCharacter->bonusActionsBase + statChanges[14] > 127) {
+			playerCharacter->bonusActionsBase = 127;
+		}
+		else if (playerCharacter->bonusActionsBase + statChanges[14] < -127) {
+			playerCharacter->bonusActionsBase = -127;
+		}
+		else {
+			playerCharacter->bonusActionsBase += statChanges[14];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	if (statChanges[15] > 0) {
+		cout << statChanges[15] << " speed\n";
+		if (playerCharacter->initiativeBase > SHRT_MAX - statChanges[15]) {
+			playerCharacter->initiativeBase = SHRT_MAX;
+		}
+		else {
+			playerCharacter->initiativeBase += statChanges[15];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	else if (statChanges[15] < 0) {
+		cout << statChanges[15] << " speed\n";
+		if (playerCharacter->initiativeBase < SHRT_MIN - statChanges[15]) {
+			playerCharacter->initiativeBase = SHRT_MIN;
+		}
+		else {
+			playerCharacter->initiativeBase += statChanges[15];
+		}
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	cout << noshowpos;
+	playerCharacter->upgradeStats(statChanges[16]);
+	playerCharacter->upgradeItems(statChanges[17]);
+	if (xpChange != 0) {
+		cout << showpos << xpChange << " experience points\n" << noshowpos;
+		playerCharacter->giveXp(xpChange);
+		this_thread::sleep_for(chrono::milliseconds(100));
+	}
+	this_thread::sleep_for(chrono::milliseconds(500));
 	switch (blueprintListSelector(&reward)) { //Find type of equipment and its blueprint name
 	case 1: //Helmet
 	{
@@ -379,6 +729,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&newHelmet);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	case 2: //Chestplate
@@ -389,6 +740,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&newChestplate);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	case 3: //Legs
@@ -399,6 +751,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&newGreaves);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	case 4: //Boots
@@ -409,6 +762,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&newBoots);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	case 5: //Weapon
@@ -419,6 +773,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&newWeapon);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	case 6: //Spell
@@ -428,11 +783,13 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		if (userChoice(1, 2) == 1) {
 			playerCharacter->equip(&eventSpell);
 		}
+		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
 	//Recalculate modifiers, as new equipment may have been equipped, then check player is not dead
 	playerCharacter->calculateModifiers();
 	if (playerCharacter->getHealth() <= 0) {
+		cout << "You are dead\n";
 		return 2;
 	}
 	vector<choice> possibleChoices; //Choices which are allowed

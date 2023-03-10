@@ -27,6 +27,7 @@ protected:
 	float bleedResistModifier;
 	float counterAttackChanceModifier;
 	short bonusActionsModifier;
+	short initiativeModifier;
 	std::string armourName;
 	std::string name; //Armour name
 	std::string description; //Description
@@ -58,6 +59,7 @@ public:
 	float getCounterAttackChanceModifier() { return counterAttackChanceModifier; }
 	short getBonusActionsModifier() { return bonusActionsModifier; }
 	bool getReal() { return real; }
+	short getInitiativeModifier() { return initiativeModifier; }
 	//Displays an armour piece's attributes, intended for use in an inventory or similar
 	void displayStats();
 	//Returns type of armour, 1 is head, 2 is torso, 3 is legs, 4 is feet
@@ -65,8 +67,6 @@ public:
 	//Loads armour from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
 	armour(std::string blueprint = "EMPTY") { loadFromFile(blueprint); }
-	//Upgrades the item, returns false if it wasn't upgraded
-	virtual bool upgradeItem() { return false; }
 };
 
 class armourHead :public armour {

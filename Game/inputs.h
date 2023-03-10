@@ -11,6 +11,10 @@ void ignoreLine();
 void ignoreLine(std::istream* stream, char end = '\n');
 
 std::string getTag(std::istream* stream);
+int numFromFile(std::istream* stream);
+int numFromFile(std::istream* stream, player* playerCharacter);
+float floatFromFile(std::istream* stream);
+std::string stringFromFile(std::istream* stream);
 
 //Moves to end of a comment
 void endComment(std::istream* stream);

@@ -2,6 +2,7 @@
 #include "spells.h"
 #include <vector>
 #include "weapons.h"
+#include "rng.h"
 #define AI_TYPES_NO 7 //Number of AI types (excluding the default random type)
 #define AI_HEALING_THRESHOLD 0.8f //AI will not heal if remaining health proportion is this or more
 #define ENEMY_OVERHEAL_DECAY 10 //Enemy overheal decay rate
@@ -61,6 +62,8 @@ private:
 	unsigned char AIType = 2; //What sort of AI it has. See top of file
 	std::vector<std::string> noCounterWeapons; //Weapons the enemy knows cannot be countered
 	std::vector<std::string> noCounterSpells; //Spells the enemy knows cannot be countered
+	short initiative = 5;
+	int xp = 0; //How much xp is gained by defeating it
 public:
 	void removeAllHealth() { health = 0; }
 	short flatDamage(short p, short m = 0, short a = 0, bool overheal = false);
@@ -128,6 +131,8 @@ public:
 	signed char getCurrentBonusActions() { return currentBonusActions; }
 	std::string getName() { return name; }
 	std::string getIntroduction() { return introduction; }
+	short rollInitiative() { return rng(0, initiative); }
+	int getXp() { return xp; }
 	//Load from file
 	void loadFromFile(std::string blueprint, bool custom = g_useCustomData);
 	//Decides what action the enemy should take. Returns 0 for no action, 1 for a weapon, 2 for a spell. Returns 3 for dual weapon attack. Sets the value of 'slot' to the slot it has chosen. Timing 0 is normal, 1 is in response to weapon attack, 2 is in response to spell cast, 3 is counter attack, 4 is in response to dual weapon attack. itemName is the name of the weapon/spell being responded to

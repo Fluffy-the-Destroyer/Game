@@ -5,6 +5,7 @@
 #include "inputs.h"
 #include "resources.h"
 #include "battle.h"
+#include <thread>
 using namespace std;
 
 //Error codes:
@@ -559,6 +560,7 @@ void player::calculateModifiers() {
 	calculateBleedResist();
 	calculateCounterAttackChance();
 	calculateBonusActions();
+	calculateInitiative();
 }
 
 void player::modifyFlatMagicDamageModifier(short f) {
@@ -789,9 +791,12 @@ void player::calculateBonusActions() {
 void player::loadClass(string playerClass, bool custom) {
 	ifstream classBlueprints;
 	string buffer = "";
-	string valBuffer;
+	short charBuf;
 	//Open blueprint file
 	try {
+		if (playerClass == "EMPTY") {
+			throw 3;
+		}
 		if (custom) {
 			classBlueprints.open("custom\\classBlueprints.xml");
 		}
@@ -838,10 +843,12 @@ void player::loadClass(string playerClass, bool custom) {
 				if (getTag(&classBlueprints) != "name") {
 					throw 1;
 				}
-				getline(classBlueprints, playerClass, '<');
-				getline(classBlueprints, buffer, '>');
-				if (buffer != "/name") {
+				playerClass = stringFromFile(&classBlueprints);
+				if (getTag(&classBlueprints) != "/name") {
 					throw 1;
+				}
+				if (playerClass == "EMPTY") {
+					throw 3;
 				}
 			}
 			classBlueprints.seekg(0);
@@ -862,42 +869,34 @@ void player::loadClass(string playerClass, bool custom) {
 				throw 1;
 			}
 			if (buffer == "maxHealth") {
-				getline(classBlueprints, valBuffer, '<');
-				maxHealthBase = numFromString(&valBuffer);
+				maxHealthBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "maxMana") {
-				getline(classBlueprints, valBuffer, '<');
-				maxManaBase = numFromString(&valBuffer);
+				maxManaBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "turnManaRegen") {
-				getline(classBlueprints, valBuffer, '<');
-				turnManaRegenBase = numFromString(&valBuffer);
+				turnManaRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "battleManaRegen") {
-				getline(classBlueprints, valBuffer, '<');
-				battleManaRegenBase = numFromString(&valBuffer);
+				battleManaRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "poisonResist") {
-				getline(classBlueprints, valBuffer, '<');
-				poisonResistBase = floatFromString(&valBuffer);
+				poisonResistBase = floatFromFile(&classBlueprints);
 				if (poisonResistBase < 0) {
 					poisonResistBase = 0;
 				}
 			}
 			else if (buffer == "bleedResist") {
-				getline(classBlueprints, valBuffer, '<');
-				bleedResistBase = floatFromString(&valBuffer);
+				bleedResistBase = floatFromFile(&classBlueprints);
 				if (bleedResistBase < 0) {
 					bleedResistBase = 0;
 				}
 			}
 			else if (buffer == "constRegen") {
-				getline(classBlueprints, valBuffer, '<');
-				constRegenBase = numFromString(&valBuffer);
+				constRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "battleRegen") {
-				getline(classBlueprints, valBuffer, '<');
-				battleRegenBase = numFromString(&valBuffer);
+				battleRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer.substr(0, 15) == "weapons count=\"") { //It's the weapons tag, count is how many slots there are, which varies, so only checking the beginning of the tag
 				buffer.erase(0, 15); //Get rid of the stuff that has been checked
@@ -914,13 +913,12 @@ void player::loadClass(string playerClass, bool custom) {
 				for (int i = 0; i < weapons.size(); i++) {
 					buffer = getTag(&classBlueprints);
 					if (buffer == "weapon") { //It's a weapon
-						getline(classBlueprints, buffer, '<'); //Get the blueprint of the weapon (which could be a list)
+						buffer = stringFromFile(&classBlueprints); //Get the blueprint of the weapon (which could be a list)
 						if (classBlueprints.eof()) {
 							throw 1;
 						}
 						weapons[i].loadFromFile(buffer); //Load that weapon from files
-						getline(classBlueprints, buffer, '>');
-						if (buffer != "/weapon") {
+						if (getTag(&classBlueprints) != "/weapon") {
 							throw 1;
 						}
 						ignoreLine(&classBlueprints);
@@ -956,13 +954,12 @@ void player::loadClass(string playerClass, bool custom) {
 				for (int i = 0; i < spells.size(); i++) {
 					buffer = getTag(&classBlueprints);
 					if (buffer == "spell") {
-						getline(classBlueprints, buffer, '<');
+						buffer = stringFromFile(&classBlueprints);
 						if (classBlueprints.eof()) {
 							throw 1;
 						}
 						spells[i].loadFromFile(buffer);
-						getline(classBlueprints, buffer, '>');
-						if (buffer != "/spell") {
+						if (getTag(&classBlueprints) != "/spell") {
 							throw 1;
 						}
 						ignoreLine(&classBlueprints);
@@ -989,35 +986,30 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "flatArmour") {
-				getline(classBlueprints, valBuffer, '<');
-				flatArmourBase = numFromString(&valBuffer);
+				flatArmourBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "propArmour") {
-				getline(classBlueprints, valBuffer, '<');
-				propArmourBase = floatFromString(&valBuffer);
+				propArmourBase = floatFromFile(&classBlueprints);
 				if (propArmourBase < -1) {
 					propArmourBase = -1;
 				}
 			}
 			else if (buffer == "flatMagicArmour") {
-				getline(classBlueprints, valBuffer, '<');
-				flatMagicArmourBase = numFromString(&valBuffer);
+				flatMagicArmourBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "propMagicArmour") {
-				getline(classBlueprints, valBuffer, '<');
-				propMagicArmourBase = floatFromString(&valBuffer);
+				propMagicArmourBase = floatFromFile(&classBlueprints);
 				if (propMagicArmourBase < -1) {
 					propMagicArmourBase = -1;
 				}
 			}
 			else if (buffer == "helmet") {
-				getline(classBlueprints, buffer, '<');
+				buffer = stringFromFile(&classBlueprints);
 				if (classBlueprints.eof()) {
 					throw 1;
 				}
 				helmet.loadFromFile(buffer);
-				getline(classBlueprints, buffer, '>');
-				if (buffer != "/helmet") {
+				if (getTag(&classBlueprints) != "/helmet") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
@@ -1025,13 +1017,12 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "chestplate") {
-				getline(classBlueprints, buffer, '<');
+				buffer = stringFromFile(&classBlueprints);
 				if (classBlueprints.eof()) {
 					throw 1;
 				}
 				chestplate.loadFromFile(buffer);
-				getline(classBlueprints, buffer, '>');
-				if (buffer != "/chestplate") {
+				if (getTag(&classBlueprints) != "/chestplate") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
@@ -1039,13 +1030,12 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "greaves") {
-				getline(classBlueprints, buffer, '<');
+				buffer = stringFromFile(&classBlueprints);
 				if (classBlueprints.eof()) {
 					throw 1;
 				}
 				greaves.loadFromFile(buffer);
-				getline(classBlueprints, buffer, '>');
-				if (buffer != "/greaves") {
+				if (getTag(&classBlueprints) != "/greaves") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
@@ -1053,13 +1043,12 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "boots") {
-				getline(classBlueprints, buffer, '<');
+				buffer = stringFromFile(&classBlueprints);
 				if (classBlueprints.eof()) {
 					throw 1;
 				}
 				boots.loadFromFile(buffer);
-				getline(classBlueprints, buffer, '>');
-				if (buffer != "/boots") {
+				if (getTag(&classBlueprints) != "/boots") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
@@ -1067,49 +1056,79 @@ void player::loadClass(string playerClass, bool custom) {
 				continue;
 			}
 			else if (buffer == "flatDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				flatDamageModifierBase = numFromString(&valBuffer);
+				flatDamageModifierBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "propDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				propDamageModifierBase = floatFromString(&valBuffer);
+				propDamageModifierBase = floatFromFile(&classBlueprints);
 				if (propDamageModifierBase < -1) {
 					propDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "flatMagicDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				flatMagicDamageModifierBase = numFromString(&valBuffer);
+				flatMagicDamageModifierBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "propMagicDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				propMagicDamageModifierBase = floatFromString(&valBuffer);
+				propMagicDamageModifierBase = floatFromFile(&classBlueprints);
 				if (propMagicDamageModifierBase < -1) {
 					propMagicDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "flatArmourPiercingDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageModifierBase = numFromString(&valBuffer);
+				flatArmourPiercingDamageModifierBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "propArmourPiercingDamageModifier") {
-				getline(classBlueprints, valBuffer, '<');
-				propArmourPiercingDamageModifierBase = floatFromString(&valBuffer);
+				propArmourPiercingDamageModifierBase = floatFromFile(&classBlueprints);
 				if (propArmourPiercingDamageModifierBase < -1) {
 					propArmourPiercingDamageModifierBase = -1;
 				}
 			}
 			else if (buffer == "evadeChance") {
-				getline(classBlueprints, valBuffer, '<');
-				evadeChanceBase = floatFromString(&valBuffer);
+				evadeChanceBase = floatFromFile(&classBlueprints);
 				if (evadeChanceBase < 0) {
 					evadeChanceBase = 0;
 				}
 			}
+			else if (buffer == "counterAttackChance") {
+				counterAttackChanceBase = floatFromFile(&classBlueprints);
+				if (counterAttackChanceBase < 0) {
+					counterAttackChanceBase = 0;
+				}
+			}
+			else if (buffer == "bonusActions") {
+				charBuf = numFromFile(&classBlueprints);
+				if (charBuf < -127) {
+					charBuf = -127;
+				}
+				else if (charBuf > 127) {
+					charBuf = 127;
+				}
+				bonusActionsBase = static_cast<signed char>(charBuf);
+			}
+			else if (buffer == "className") {
+				className = stringFromFile(&classBlueprints);
+			}
+			else if (buffer == "initiative") {
+				charBuf = numFromFile(&classBlueprints);
+				if (charBuf < 0) {
+					charBuf = 0;
+				}
+				else if (charBuf > 255) {
+					charBuf = 255;
+				}
+				initiative = static_cast<unsigned char>(charBuf);
+			}
+			else if (buffer == "maxXp") {
+				maxXp = numFromFile(&classBlueprints);
+				if (maxXp < 0) {
+					maxXp = 0;
+				}
+			}
+			else if (buffer == "nextLevel") {
+				nextLevel = stringFromFile(&classBlueprints);
+			}
 			else {
 				throw 1;
 			}
-			classBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&classBlueprints) != '/' + buffer) {
 				throw 1;
 			}
@@ -1138,6 +1157,7 @@ void player::loadClass(string playerClass, bool custom) {
 					throw err2;
 				}
 			}
+			throw err;
 		case 4:
 			if (custom) {
 				try {
@@ -1148,6 +1168,7 @@ void player::loadClass(string playerClass, bool custom) {
 					throw err2;
 				}
 			}
+			throw err;
 		default:
 			throw err;
 		}
@@ -1155,6 +1176,13 @@ void player::loadClass(string playerClass, bool custom) {
 }
 
 void player::displayStats() {
+	cout << "Level " << level << ' ' << className << '\n';
+	if (maxXp != 0) {
+		cout << xp << '/' << maxXp << " experience\n";
+	}
+	else {
+		cout << "Max level\n";
+	}
 	//Health
 	cout << "Health: " << health << '/' << maxHealth << '\n';
 	if (constRegen > 0) {
@@ -1232,6 +1260,7 @@ void player::displayStats() {
 	cout << "Counter attack chance: " << 100 * counterAttackChance << "%\n";
 	//Bonus actions
 	cout << "Bonus actions: " << +bonusActions << '\n'; //Might change later to display effective bonus actions
+	cout << "Speed: " << +initiative << '\n';
 	//Damage modifiers
 	if (flatDamageModifier > 0) {
 		cout << "Physical damage increased by " << flatDamageModifier << '\n';
@@ -2162,7 +2191,11 @@ void player::applyDamageModifiers(short* p, short* m, short* a) {
 }
 
 void player::upgradeItems(short upgradeNum) {
-	bool done = false;
+	if (upgradeNum <= 0) {
+		return;
+	}
+	cout << upgradeNum << " equipment upgrade points aquired\n";
+	bool done;
 	for (short i = upgradeNum; i > 0; i--) {
 		done = false;
 		while (!done) {
@@ -2223,4 +2256,883 @@ void player::upgradeItems(short upgradeNum) {
 			}
 		}
 	}
+	this_thread::sleep_for(chrono::milliseconds(100));
+}
+
+void player::giveXp(int xpGain) {
+	if (maxXp == 0) {
+		return;
+	}
+	if (xpGain > 0) {
+		if (xpGain > INT_MAX - xp) { //Overflow protection
+			xp = INT_MAX;
+		}
+		else {
+			xp += xpGain;
+		}
+	}
+	else if (xpGain < 0) {
+		xp = max(0, xp + xpGain);
+		return;
+	}
+	else {
+		return;
+	}
+	while (xp > maxXp && maxXp > 0) {
+		xp -= maxXp;
+		levelUp();
+	}
+}
+
+void player::levelUp() {
+	if (maxXp == 0) {
+		return;
+	}
+	try {
+		playerLevel newLevel(nextLevel);
+		level++;
+		cout << "Level up! You are now level " << level << '\n';
+		if (newLevel.maxXp == 0) {
+			cout << "Maximum level reached!\n";
+			xp = 0;
+		}
+		cout << showpos;
+		this_thread::sleep_for(chrono::milliseconds(100));
+		if (!newLevel.fullHeal && newLevel.heal < 0) {
+			cout << newLevel.heal << " health\n";
+			modifyHealth(newLevel.heal);
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (!newLevel.fullMana && newLevel.mana < 0) {
+			if (newLevel.mana == -1) {
+				cout << "-1 " << g_manaName.singular() << '\n';
+			}
+			else {
+				cout << newLevel.mana << ' ' << g_manaName.plural() << '\n';
+			}
+			modifyMana(newLevel.mana);
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.projectiles == 1 || newLevel.projectiles == -1) {
+			cout << newLevel.projectiles << ' ' << g_projName.singular() << '\n';
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.projectiles != 0) {
+			cout << newLevel.projectiles << ' ' << g_projName.plural() << '\n';
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		modifyProjectiles(newLevel.projectiles);
+		if (newLevel.maxHealth > 0) {
+			cout << newLevel.maxHealth << " max health\n";
+			if (maxHealthBase > SHRT_MAX - newLevel.maxHealth) { //Overflow
+				maxHealthBase = SHRT_MAX;
+			}
+			else {
+				maxHealthBase += newLevel.maxHealth;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.maxHealth < 0) {
+			cout << newLevel.maxHealth << " max health\n";
+			if (maxHealthBase < SHRT_MIN - newLevel.maxHealth) { //Underflow
+				maxHealthBase = SHRT_MIN;
+			}
+			else {
+				maxHealthBase += newLevel.maxHealth;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.maxMana > 0) {
+			cout << newLevel.maxMana << " max " << g_manaName.plural() << '\n';
+			if (maxManaBase > SHRT_MAX - newLevel.maxMana) {
+				maxManaBase = SHRT_MAX;
+			}
+			else {
+				maxManaBase += newLevel.maxMana;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.maxMana < 0) {
+			cout << newLevel.maxMana << " max " << g_manaName.plural() << '\n';
+			if (maxManaBase < SHRT_MIN - newLevel.maxMana) {
+				maxManaBase = SHRT_MIN;
+			}
+			else {
+				maxManaBase += newLevel.maxMana;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.turnManaRegen > 0) {
+			if (newLevel.turnManaRegen == 1) {
+				cout << "+1 " << g_manaName.singular() << " per turn\n";
+			}
+			else {
+				cout << newLevel.turnManaRegen << ' ' << g_manaName.plural() << " per turn\n";
+			}
+			if (turnManaRegenBase > SHRT_MAX - newLevel.turnManaRegen) {
+				turnManaRegenBase = SHRT_MAX;
+			}
+			else {
+				turnManaRegenBase += newLevel.turnManaRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.turnManaRegen < 0) {
+			if (newLevel.turnManaRegen == 1) {
+				cout << "-1 " << g_manaName.singular() << " per turn\n";
+			}
+			else {
+				cout << newLevel.turnManaRegen << ' ' << g_manaName.plural() << " per turn\n";
+			}
+			if (turnManaRegenBase < SHRT_MIN - newLevel.turnManaRegen) {
+				turnManaRegenBase = SHRT_MIN;
+			}
+			else {
+				turnManaRegenBase += newLevel.turnManaRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.battleManaRegen > 0) {
+			if (newLevel.battleManaRegen == 1) {
+				cout << "+1 " << g_manaName.singular() << " at end of battle\n";
+			}
+			else {
+				cout << newLevel.battleManaRegen << ' ' << g_manaName.plural() << " at end of battle\n";
+			}
+			if (battleManaRegenBase > SHRT_MAX - newLevel.battleManaRegen) {
+				battleManaRegenBase = SHRT_MAX;
+			}
+			else {
+				battleManaRegenBase += newLevel.battleManaRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.battleManaRegen < 0) {
+			if (newLevel.battleManaRegen == 1) {
+				cout << "-1 " << g_manaName.singular() << " at end of battle\n";
+			}
+			else {
+				cout << newLevel.battleManaRegen << ' ' << g_manaName.plural() << " at end of battle\n";
+			}
+			if (battleManaRegenBase < SHRT_MIN - newLevel.battleManaRegen) {
+				battleManaRegenBase = SHRT_MIN;
+			}
+			else {
+				battleManaRegenBase += newLevel.battleManaRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.poisonResist != -2) {
+			cout << noshowpos << "Base poison resist chance is now " << 100 * newLevel.poisonResist << "%\n" << showpos;
+			poisonResistBase = newLevel.poisonResist;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.bleedResist != -2) {
+			cout << noshowpos << "Base bleed resist chance is now " << 100 * newLevel.bleedResist << "%\n" << showpos;
+			bleedResistBase = newLevel.bleedResist;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.constRegen > 0) {
+			cout << newLevel.constRegen << " health per turn\n";
+			if (constRegenBase > SHRT_MAX - newLevel.constRegen) {
+				constRegenBase = SHRT_MAX;
+			}
+			else {
+				constRegenBase += newLevel.constRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.constRegen < 0) {
+			cout << newLevel.constRegen << " health per turn\n";
+			if (constRegenBase < SHRT_MIN - newLevel.constRegen) {
+				constRegenBase = SHRT_MIN;
+			}
+			else {
+				constRegenBase += newLevel.constRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.battleRegen > 0) {
+			cout << newLevel.battleRegen << " health at end of battle\n";
+			if (battleRegenBase > SHRT_MAX - newLevel.battleRegen) {
+				battleRegenBase = SHRT_MAX;
+			}
+			else {
+				battleRegenBase += newLevel.battleRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.battleRegen < 0) {
+			cout << newLevel.battleRegen << " health at end of battle\n";
+			if (battleRegenBase < SHRT_MIN - newLevel.battleRegen) {
+				battleRegenBase = SHRT_MIN;
+			}
+			else {
+				battleRegenBase += newLevel.battleRegen;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.flatArmour > 0) {
+			cout << newLevel.flatArmour << " physical armour\n";
+			if (flatArmourBase > SHRT_MAX - newLevel.flatArmour) {
+				flatArmourBase = SHRT_MAX;
+			}
+			else {
+				flatArmourBase += newLevel.flatArmour;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.flatArmour < 0) {
+			cout << newLevel.flatArmour << " physical armour\n";
+			if (flatArmourBase < SHRT_MIN - newLevel.flatArmour) {
+				flatArmourBase = SHRT_MIN;
+			}
+			else {
+				flatArmourBase += newLevel.flatArmour;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.propArmour != -2) {
+			propArmourBase = newLevel.propArmour;
+		}
+		if (newLevel.flatMagicArmour > 0) {
+			cout << newLevel.flatMagicArmour << " magic armour\n";
+			if (flatMagicArmourBase > SHRT_MAX - newLevel.flatMagicArmour) {
+				flatMagicArmourBase = SHRT_MAX;
+			}
+			else {
+				flatMagicArmourBase += newLevel.flatMagicArmour;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.flatMagicArmour < 0) {
+			cout << newLevel.flatMagicArmour << " magic armour\n";
+			if (flatMagicArmourBase < SHRT_MIN - newLevel.flatMagicArmour) {
+				flatMagicArmourBase = SHRT_MIN;
+			}
+			else {
+				flatMagicArmourBase += newLevel.flatMagicArmour;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.propMagicArmour != -2) {
+			propMagicArmourBase = newLevel.propMagicArmour;
+		}
+		if (newLevel.flatDamageModifier > 0) {
+			cout << newLevel.flatDamageModifier << " physical damage\n";
+			if (flatDamageModifierBase > SHRT_MAX - newLevel.flatDamageModifier) {
+				flatDamageModifierBase = SHRT_MAX;
+			}
+			else {
+				flatDamageModifierBase += newLevel.flatDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.flatDamageModifier < 0) {
+			cout << newLevel.flatDamageModifier << " physical damage\n";
+			if (flatDamageModifierBase < SHRT_MIN - newLevel.flatDamageModifier) {
+				flatDamageModifierBase = SHRT_MIN;
+			}
+			else {
+				flatDamageModifierBase += newLevel.flatDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.propDamageModifier != -2) {
+			propDamageModifierBase = newLevel.propDamageModifier;
+		}
+		if (newLevel.flatMagicDamageModifier > 0) {
+			cout << newLevel.flatMagicDamageModifier << " magic damage\n";
+			if (flatMagicDamageModifierBase > SHRT_MAX - newLevel.flatMagicDamageModifier) {
+				flatMagicDamageModifierBase = SHRT_MAX;
+			}
+			else {
+				flatMagicDamageModifierBase += newLevel.flatMagicDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.flatMagicDamageModifier < 0) {
+			cout << newLevel.flatMagicDamageModifier << " magic damage\n";
+			if (flatMagicDamageModifierBase < SHRT_MIN - newLevel.flatMagicDamageModifier) {
+				flatMagicDamageModifierBase = SHRT_MIN;
+			}
+			else {
+				flatMagicDamageModifierBase += newLevel.flatMagicDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.propMagicDamageModifier != -2) {
+			propMagicDamageModifierBase = newLevel.propMagicDamageModifier;
+		}
+		if (newLevel.flatArmourPiercingDamageModifier > 0) {
+			cout << newLevel.flatArmourPiercingDamageModifier << " armour piercing damage\n";
+			if (flatArmourPiercingDamageModifierBase > SHRT_MAX - newLevel.flatArmourPiercingDamageModifier) {
+				flatArmourPiercingDamageModifierBase = SHRT_MAX;
+			}
+			else {
+				flatArmourPiercingDamageModifierBase += newLevel.flatArmourPiercingDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.flatArmourPiercingDamageModifier < 0) {
+			cout << newLevel.flatArmourPiercingDamageModifier << " armour piercing damage\n";
+			if (flatArmourPiercingDamageModifierBase < SHRT_MIN - newLevel.flatArmourPiercingDamageModifier) {
+				flatArmourPiercingDamageModifierBase = SHRT_MIN;
+			}
+			else {
+				flatArmourPiercingDamageModifierBase += newLevel.flatArmourPiercingDamageModifier;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.propArmourPiercingDamageModifier != -2) {
+			propArmourPiercingDamageModifierBase = newLevel.propArmourPiercingDamageModifier;
+		}
+		if (newLevel.evadeChance != -2) {
+			cout << noshowpos << "Base evade chance is now " << 100 * newLevel.evadeChance << "%\n" << showpos;
+			evadeChanceBase = newLevel.evadeChance;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.counterAttackChance != -2) {
+			cout << noshowpos << "Base counter attack chance is now " << 100 * newLevel.counterAttackChance << "%\n" << showpos;
+			counterAttackChanceBase = newLevel.counterAttackChance;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.bonusActions != 0) {
+			cout << newLevel.bonusActions << " bonus actions\n";
+			if (bonusActionsBase + newLevel.bonusActions > 127) {
+				bonusActionsBase = 127;
+			}
+			else if (bonusActionsBase + newLevel.bonusActions < -127) {
+				bonusActionsBase = -127;
+			}
+			else {
+				bonusActionsBase += newLevel.bonusActions;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.initiative > 0) {
+			cout << newLevel.initiative << " speed\n";
+			if (initiativeBase > SHRT_MAX - newLevel.initiative) {
+				initiativeBase = SHRT_MAX;
+			}
+			else {
+				initiativeBase += newLevel.initiative;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.initiative < 0) {
+			cout << newLevel.initiative << " speed\n";
+			if (initiativeBase < SHRT_MIN - newLevel.initiative) {
+				initiativeBase = SHRT_MIN;
+			}
+			else {
+				initiativeBase += newLevel.initiative;
+			}
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		cout << noshowpos;
+		maxXp = newLevel.maxXp;
+		nextLevel = newLevel.nextLevel;
+		upgradeStats(newLevel.statPoints);
+		upgradeItems(newLevel.upgradePoints);
+		calculateModifiers();
+		cout << showpos;
+		if (newLevel.fullHeal) {
+			cout << "Full health\n";
+			health = maxHealth;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.heal > 0) {
+			cout << newLevel.heal << " health\n";
+			modifyHealth(newLevel.heal);
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		if (newLevel.fullMana) {
+			cout << "Full " << g_manaName.plural() << '\n';
+			mana = maxMana;
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.mana == 1) {
+			cout << "+1 " << g_manaName.singular() << '\n';
+			modifyMana(1);
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		else if (newLevel.mana > 0) {
+			cout << newLevel.mana << ' ' << g_manaName.plural() << '\n';
+			this_thread::sleep_for(chrono::milliseconds(100));
+		}
+		cout << noshowpos;
+	}
+	catch (int err) {
+		switch (err) {
+		case 1:
+			cout << "Unable to parse levelup blueprint " << nextLevel << '\n';
+			break;
+		case 2:
+			cout << "Unable to find levelup blueprint " << nextLevel << '\n';
+			break;
+		case 3:
+			cout << "Already at max level\n";
+			break;
+		case 4:
+			cout << "Unable to open classBlueprints.xml\n";
+			break;
+		case 5:
+			cout << "Levelup blueprintList " << nextLevel << " contains no entries\n";
+			break;
+		}
+		maxXp = 0;
+		nextLevel = "";
+	}
+}
+
+void playerLevel::loadFromFile(string blueprint, bool custom) {
+	ifstream classBlueprints;
+	string buffer, valBuffer;
+	try {
+		if (blueprint == "EMPTY") {
+			throw 3;
+		}
+		if (custom) {
+			classBlueprints.open("custom\\classBlueprints.xml");
+		}
+		else {
+			classBlueprints.open("data\\classBlueprints.xml");
+		}
+		if (!classBlueprints.is_open()) {
+			throw 4;
+		}
+		string blueprintName = "levelBlueprintList name=\"" + blueprint + '\"';
+		{
+			bool noList = false;
+			streampos filePos = 0;
+			short listCount = -1;
+			while (buffer != blueprintName) {
+				buffer = getTag(&classBlueprints);
+				ignoreLine(&classBlueprints);
+				if (classBlueprints.eof()) {
+					classBlueprints.clear();
+					noList = true;
+					break;
+				}
+			}
+			if (!noList) {
+				filePos = classBlueprints.tellg();
+				blueprintName = "/levelBlueprintList";
+				do {
+					listCount++;
+					buffer = getTag(&classBlueprints);
+					ignoreLine(&classBlueprints);
+				} while (buffer != blueprintName);
+				classBlueprints.clear();
+				if (listCount == 0) {
+					throw 5;
+				}
+				listCount = rng(1, listCount);
+				classBlueprints.seekg(filePos);
+				for (int i = 1; i < listCount; i++) {
+					ignoreLine(&classBlueprints);
+				}
+				if (getTag(&classBlueprints) != "name") {
+					throw 1;
+				}
+				blueprint = stringFromFile(&classBlueprints);
+				if (blueprint == "EMPTY") {
+					throw 3;
+				}
+				if (getTag(&classBlueprints) != "/name") {
+					throw 1;
+				}
+			}
+			classBlueprints.seekg(0);
+			buffer = "";
+		}
+		blueprintName = "levelBlueprint name=\"" + blueprint + '\"';
+		while (buffer != blueprintName) {
+			ignoreLine(&classBlueprints);
+			if (classBlueprints.eof()) {
+				throw 2;
+			}
+		}
+		blueprintName = "/levelBlueprint";
+		buffer = getTag(&classBlueprints);
+		while (buffer != blueprintName) {
+			if (classBlueprints.eof()) {
+				throw 1;
+			}
+			if (buffer == "heal") {
+				valBuffer = stringFromFile(&classBlueprints);
+				if (valBuffer == "FULL") {
+					fullHeal = true;
+				}
+				else {
+					heal = numFromString(&valBuffer);
+				}
+			}
+			else if (buffer == "mana") {
+				valBuffer = stringFromFile(&classBlueprints);
+				if (valBuffer == "FULL") {
+					fullMana = true;
+				}
+				else {
+					mana = numFromString(&valBuffer);
+				}
+			}
+			else if (buffer == "maxHealth") {
+				maxHealth = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "projectiles") {
+				projectiles = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "maxMana") {
+				maxMana = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "turnManaRegen") {
+				turnManaRegen = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "battleManaRegen") {
+				battleManaRegen = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "poisonResist") {
+				poisonResist = floatFromFile(&classBlueprints);
+				if (poisonResist < 0) {
+					poisonResist = -2;
+				}
+			}
+			else if (buffer == "bleedResist") {
+				bleedResist = floatFromFile(&classBlueprints);
+				if (bleedResist < 0) {
+					bleedResist = -2;
+				}
+			}
+			else if (buffer == "constRegen") {
+				constRegen = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "battleRegen") {
+				battleRegen = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "flatArmour") {
+				flatArmour = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "propArmour") {
+				propArmour = floatFromFile(&classBlueprints);
+				if (propArmour < -1) {
+					propArmour = -2;
+				}
+			}
+			else if (buffer == "flatMagicArmour") {
+				flatMagicArmour = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "propMagicArmour") {
+				propMagicArmour = floatFromFile(&classBlueprints);
+				if (propArmour < -1) {
+					propArmour = -2;
+				}
+			}
+			else if (buffer == "flatDamageModifier") {
+				flatDamageModifier = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "propDamageModifier") {
+				propDamageModifier = floatFromFile(&classBlueprints);
+				if (propDamageModifier < -1) {
+					propDamageModifier = -2;
+				}
+			}
+			else if (buffer == "flatMagicDamageModifier") {
+				flatMagicDamageModifier = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "propMagicDamageModifier") {
+				propMagicDamageModifier = floatFromFile(&classBlueprints);
+				if (propMagicDamageModifier < -1) {
+					propMagicDamageModifier = -2;
+				}
+			}
+			else if (buffer == "flatArmourPiercingDamageModifier") {
+				flatArmourPiercingDamageModifier = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "propArmourPiercingDamageModifeir") {
+				propArmourPiercingDamageModifier = floatFromFile(&classBlueprints);
+				if (propArmourPiercingDamageModifier < -1) {
+					propArmourPiercingDamageModifier = -2;
+				}
+			}
+			else if (buffer == "evadeChance") {
+				evadeChance = floatFromFile(&classBlueprints);
+				if (evadeChance < 0) {
+					evadeChance = -2;
+				}
+			}
+			else if (buffer == "counterAttackChance") {
+				counterAttackChance = floatFromFile(&classBlueprints);
+				if (counterAttackChance < 0) {
+					counterAttackChance = -2;
+				}
+			}
+			else if (buffer == "bonusActions") {
+				bonusActions = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "initiative") {
+				initiative = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "maxXp") {
+				maxXp = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "nextLevel") {
+				nextLevel = stringFromFile(&classBlueprints);
+			}
+			else if (buffer == "statPoints") {
+				statPoints = numFromFile(&classBlueprints);
+			}
+			else if (buffer == "upgradePoints") {
+				upgradePoints = numFromFile(&classBlueprints);
+			}
+			else {
+				throw 1;
+			}
+			if (getTag(&classBlueprints) != '/' + buffer) {
+				throw 1;
+			}
+			ignoreLine(&classBlueprints);
+			if (!classBlueprints) {
+				throw 1;
+			}
+			buffer = getTag(&classBlueprints);
+		}
+		classBlueprints.close();
+		if (maxXp == 0 || nextLevel == "" || nextLevel == "EMPTY") {
+			maxXp = 0;
+			nextLevel = "";
+		}
+	}
+	catch (int err) {
+		classBlueprints.close();
+		switch (err) {
+		case 2:
+		case 4:
+			if (custom) {
+				loadFromFile(blueprint, false);
+				return;
+			}
+		default:
+			throw err;
+		}
+	}
+}
+
+void player::modifyInitiative(short i) {
+	if (i > 0) {
+		if (initiative > SHRT_MAX - i) {
+			initiative = SHRT_MAX;
+		}
+		else {
+			initiative += i;
+		}
+	}
+	else if (i < 0) {
+		if (initiative < SHRT_MIN - i) {
+			initiative = SHRT_MIN;
+		}
+		else {
+			initiative += i;
+		}
+	}
+}
+
+void player::calculateInitiative() {
+	initiative = initiativeBase;
+	modifyInitiative(helmet.getInitiativeModifier());
+	modifyInitiative(chestplate.getInitiativeModifier());
+	modifyInitiative(greaves.getInitiativeModifier());
+	modifyInitiative(boots.getInitiativeModifier());
+}
+
+void player::upgradeStats(short upgradeNum) {
+	if (upgradeNum == 0) {
+		return;
+	}
+	if (upgradeNum > 0) {
+		cout << upgradeNum << " stat upgrade points aquired\n";
+	}
+	else {
+		cout << -upgradeNum << " stat downgrade points aquired\n";
+	}
+	vector<short> upgradeChoices(1, 0);
+	for (short i = upgradeNum; i > 0; i--) {
+		upgradeChoices.resize(1);
+		cout << upgradeNum << " stat points remaining\n";
+		if (maxHealthBase < SHRT_MAX) {
+			cout << "To upgrade maximum health, enter 1. (+10 maximum health)\n";
+			upgradeChoices.push_back(1);
+		}
+		if (maxManaBase < SHRT_MAX) {
+			cout << "To upgrade maximum " << g_manaName.plural() << ", enter 2. (+10 maximum " << g_manaName.plural() << ")\n";
+			upgradeChoices.push_back(2);
+		}
+		if (turnManaRegenBase < SHRT_MAX || battleManaRegenBase < SHRT_MAX) {
+			cout << "To upgrade " << g_manaName.plural() << " regeneration, enter 3. (+5 " << g_manaName.plural() << " per turn and +10 " << g_manaName.plural() << " at end of battle)\n";
+			upgradeChoices.push_back(3);
+		}
+		if (flatArmourBase < SHRT_MAX || flatMagicArmourBase < SHRT_MAX) {
+			cout << "To upgrade armour, enter 4. (+1 physical and magic armour)\n";
+			upgradeChoices.push_back(4);
+		}
+		if (flatDamageModifierBase < SHRT_MAX || flatMagicDamageModifierBase < SHRT_MAX || flatArmourPiercingDamageModifierBase < SHRT_MAX) {
+			cout << "To upgrade damage, enter 5. (+1 physical, magic and armour piercing damage)\n";
+			upgradeChoices.push_back(5);
+		}
+		if (initiativeBase < SHRT_MAX) {
+			cout << "To upgrade speed, enter 6. (+1 speed)\n";
+			upgradeChoices.push_back(6);
+		}
+		if (upgradeChoices.size() == 1) {
+			cout << "All upgradeable stats are already at maximum!\n";
+			return;
+		}
+		cout << "To upgrade nothing, enter 0.\n";
+		switch (userChoice(upgradeChoices)) {
+		case 1: //Max health
+			if (maxHealthBase > SHRT_MAX - 10) {
+				maxHealthBase = SHRT_MAX;
+			}
+			else {
+				maxHealthBase += 10;
+			}
+			break;
+		case 2: //Max mana
+			if (maxManaBase > SHRT_MAX - 10) {
+				maxManaBase = SHRT_MAX;
+			}
+			else {
+				maxManaBase += 10;
+			}
+			break;
+		case 3: //Mana regen
+			if (turnManaRegenBase > SHRT_MAX - 5) {
+				turnManaRegenBase = SHRT_MAX;
+			}
+			else {
+				turnManaRegenBase += 5;
+			}
+			if (battleManaRegenBase > SHRT_MAX - 10) {
+				battleManaRegenBase = SHRT_MAX;
+			}
+			else {
+				battleManaRegenBase += 10;
+			}
+			break;
+		case 4: //Armour
+			if (flatArmourBase < SHRT_MAX) {
+				flatArmourBase++;
+			}
+			if (flatMagicArmourBase < SHRT_MAX) {
+				flatMagicArmourBase++;
+			}
+			break;
+		case 5: //Damage
+			if (flatDamageModifierBase < SHRT_MAX) {
+				flatDamageModifierBase++;
+			}
+			if (flatMagicDamageModifierBase < SHRT_MAX) {
+				flatMagicDamageModifierBase++;
+			}
+			if (flatArmourPiercingDamageModifierBase < SHRT_MAX) {
+				flatArmourPiercingDamageModifierBase++;
+			}
+			break;
+		case 6: //Speed
+			if (initiativeBase < SHRT_MAX) {
+				initiativeBase++;
+			}
+			break;
+		}
+	}
+	for (short i = upgradeNum; i < 0; i++) {
+		upgradeChoices.resize(0);
+		cout << upgradeNum << " stat downgrade points remaining\n";
+		if (maxHealthBase > SHRT_MIN) {
+			cout << "To downgrade maximum health, enter 1. (-10 maximum health)\n";
+			upgradeChoices.push_back(1);
+		}
+		if (maxManaBase > SHRT_MIN) {
+			cout << "To downgrade maximum " << g_manaName.plural() << ", enter 2. (-10 maximum " << g_manaName.plural() << ")\n";
+			upgradeChoices.push_back(2);
+		}
+		if (turnManaRegenBase > SHRT_MIN || battleManaRegenBase > SHRT_MIN) {
+			cout << "To downgrade " << g_manaName.plural() << " regeneration, enter 3. (-5 " << g_manaName.plural() << " per turn and -10 " << g_manaName.plural() << " at end of battle)\n";
+			upgradeChoices.push_back(3);
+		}
+		if (flatArmourBase > SHRT_MIN || flatMagicArmourBase > SHRT_MIN) {
+			cout << "To downgrade armour, enter 4. (-1 physical and magic armour)\n";
+			upgradeChoices.push_back(4);
+		}
+		if (flatDamageModifierBase > SHRT_MIN || flatMagicDamageModifierBase > SHRT_MIN || flatArmourPiercingDamageModifierBase > SHRT_MIN) {
+			cout << "To downgrade damage, enter 5. (-1 physical, magic and armour piercing damage)\n";
+			upgradeChoices.push_back(5);
+		}
+		if (initiativeBase > SHRT_MIN) {
+			cout << "To downgrade speed, enter 6. (-1 speed)\n";
+			upgradeChoices.push_back(6);
+		}
+		if (upgradeChoices.empty()) {
+			cout << "All upgradeable stats are already at minimum!\n";
+			return;
+		}
+		switch (userChoice(upgradeChoices)) {
+		case 1: //Max health
+			if (maxHealthBase < SHRT_MIN + 10) {
+				maxHealthBase = SHRT_MIN;
+			}
+			else {
+				maxHealthBase -= 10;
+			}
+			break;
+		case 2: //Max mana
+			if (maxManaBase < SHRT_MIN + 10) {
+				maxManaBase = SHRT_MIN;
+			}
+			else {
+				maxManaBase -= 10;
+			}
+			break;
+		case 3: //Mana regen
+			if (turnManaRegenBase < SHRT_MIN + 5) {
+				turnManaRegenBase = SHRT_MIN;
+			}
+			else {
+				turnManaRegenBase -= 5;
+			}
+			if (battleManaRegenBase < SHRT_MIN + 10) {
+				battleManaRegenBase = SHRT_MIN;
+			}
+			else {
+				battleManaRegenBase -= 10;
+			}
+			break;
+		case 4: //Armour
+			if (flatArmourBase > SHRT_MIN) {
+				flatArmourBase--;
+			}
+			if (flatMagicArmourBase > SHRT_MIN) {
+				flatMagicArmourBase--;
+			}
+			break;
+		case 5: //Damage
+			if (flatDamageModifierBase > SHRT_MIN) {
+				flatDamageModifierBase--;
+			}
+			if (flatMagicDamageModifierBase > SHRT_MIN) {
+				flatMagicDamageModifierBase--;
+			}
+			if (flatArmourPiercingDamageModifierBase > SHRT_MIN) {
+				flatArmourPiercingDamageModifierBase--;
+			}
+			break;
+		case 6: //Speed
+			if (initiativeBase > SHRT_MIN) {
+				initiativeBase--;
+			}
+			break;
+		}
+	}
+	this_thread::sleep_for(chrono::milliseconds(100));
 }

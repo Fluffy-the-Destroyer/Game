@@ -77,6 +77,123 @@ std::string getTag(std::istream* stream) {
 	return out;
 }
 
+int numFromFile(std::istream* stream) {
+	std::string buffer1, buffer2;
+	while (true) {
+		getline(*stream, buffer2, '<');
+		buffer1 += buffer2;
+		if (stream->peek() == '!') {
+			stream->ignore(1);
+			if (stream->peek() == '-') {
+				stream->ignore(1);
+				if (stream->peek() == '-') {
+					stream->ignore(1);
+					endComment(stream);
+					continue;
+				}
+				else {
+					stream->seekg(-3, std::ios_base::cur);
+				}
+			}
+			else {
+				stream->seekg(-2, std::ios_base::cur);
+			}
+		}
+		else {
+			stream->seekg(-1, std::ios_base::cur);
+		}
+		break;
+	}
+	return numFromString(&buffer1);
+}
+int numFromFile(std::istream* stream, player* playerCharacter) {
+	std::string buffer1, buffer2;
+	while (true) {
+		getline(*stream, buffer2, '<');
+		buffer1 += buffer2;
+		if (stream->peek() == '!') {
+			stream->ignore(1);
+			if (stream->peek() == '-') {
+				stream->ignore(1);
+				if (stream->peek() == '-') {
+					stream->ignore(1);
+					endComment(stream);
+					continue;
+				}
+				else {
+					stream->seekg(-3, std::ios_base::cur);
+				}
+			}
+			else {
+				stream->seekg(-2, std::ios_base::cur);
+			}
+		}
+		else {
+			stream->seekg(-1, std::ios_base::cur);
+		}
+		break;
+	}
+	return numFromString(&buffer1, playerCharacter);
+}
+float floatFromFile(std::istream* stream) {
+	std::string buffer1, buffer2;
+	while (true) {
+		getline(*stream, buffer2, '<');
+		buffer1 += buffer2;
+		if (stream->peek() == '!') {
+			stream->ignore(1);
+			if (stream->peek() == '-') {
+				stream->ignore(1);
+				if (stream->peek() == '-') {
+					stream->ignore(1);
+					endComment(stream);
+					continue;
+				}
+				else {
+					stream->seekg(-3, std::ios_base::cur);
+				}
+			}
+			else {
+				stream->seekg(-2, std::ios_base::cur);
+			}
+		}
+		else {
+			stream->seekg(-1, std::ios_base::cur);
+		}
+		break;
+	}
+	return floatFromString(&buffer1);
+}
+std::string stringFromFile(std::istream* stream) {
+	std::string buffer1, buffer2;
+	while (true) {
+		getline(*stream, buffer2, '<');
+		buffer1 += buffer2;
+		if (stream->peek() == '!') {
+			stream->ignore(1);
+			if (stream->peek() == '-') {
+				stream->ignore(1);
+				if (stream->peek() == '-') {
+					stream->ignore(1);
+					endComment(stream);
+					continue;
+				}
+				else {
+					stream->seekg(-3, std::ios_base::cur);
+				}
+			}
+			else {
+				stream->seekg(-2, std::ios_base::cur);
+			}
+		}
+		else {
+			stream->seekg(-1, std::ios_base::cur);
+		}
+		break;
+	}
+	return buffer1;
+}
+
 void endComment(std::istream* stream) {
 	if (stream->peek() == '-') { //Check for first character being a -
 		stream->ignore(1);
@@ -312,6 +429,22 @@ int numFromString(std::string* in, player* playerCharacter) {
 		else if (in->substr(0, 12) == "bonusActions") {
 			in->erase(0, 12);
 			value = playerCharacter->getBonusActions();
+		}
+		else if (in->substr(0, 10) == "initiative") {
+			in->erase(0, 10);
+			value = playerCharacter->getInitiative();
+		}
+		else if (in->substr(0, 2) == "xp") {
+			in->erase(0, 2);
+			value = playerCharacter->getXp();
+		}
+		else if (in->substr(0, 5) == "maxXp") {
+			in->erase(0, 5);
+			value = playerCharacter->getMaxXp();
+		}
+		else if (in->substr(0, 5) == "level") {
+			in->erase(0, 5);
+			value = playerCharacter->getLevel();
 		}
 		if (minus) {
 			value *= -1;

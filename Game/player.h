@@ -3,6 +3,7 @@
 #include "spells.h"
 #include "armour.h"
 #include <vector>
+#include "rng.h"
 #define PLAYER_OVERHEAL_DECAY 10 //Amount of overheal lost per turn
 #define MANA_DECAY 10 //Excess mana lost per turn
 
@@ -10,6 +11,7 @@ extern bool g_useCustomData;
 
 class player {
 private:
+	std::string className;
 	short health = 100; //Current health
 	short maxHealthBase = 100; //Base max health
 	short maxHealth = 100; //Max health. Must remain non-negative. Value of zero would lead to death
@@ -63,8 +65,14 @@ private:
 	float counterAttackChanceBase = 0.1f; //Chance to counter attack
 	float counterAttackChance = 0;
 	signed char bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
-	signed char currentBonusActions = 0; //How manybonus actions remain this turn
-	signed char bonusActions = 0;
+	signed char currentBonusActions = 1; //How manybonus actions remain this turn
+	signed char bonusActions = 1;
+	short initiativeBase = 5;
+	short initiative = 5;
+	int xp = 0; //Current experience
+	int maxXp = 0; //Experience needed to level
+	std::string nextLevel; //The blueprint name fo the next level
+	short level = 1;
 public: //Not providing set functions, as these values should not usually be set. Providing functions for altering some attributes in certain ways
 	//Sets health to 0
 	void removeAllHealth() { health = 0; }
@@ -176,6 +184,8 @@ public: //Not providing set functions, as these values should not usually be set
 	void calculateBonusActions();
 	//Recalculates all modifiers
 	void calculateModifiers();
+	void modifyInitiative(short i);
+	void calculateInitiative();
 	//Start of turn, decrements cooldowns, applies dot/regen and decrements them
 	void turnStart();
 	//Get Attributes
@@ -234,6 +244,12 @@ public: //Not providing set functions, as these values should not usually be set
 	signed char getBonusActionsBase() { return bonusActionsBase; }
 	signed char getBonusActions() { return bonusActions; }
 	signed char getCurrentBonusActions() { return currentBonusActions; }
+	std::string getClassName() { return className; }
+	short getInitiative() { return initiative; }
+	short rollInitiative() { return rng(0, std::max((short)0, initiative)); }
+	int getXp() { return xp; }
+	int getMaxXp() { return maxXp; }
+	short getLevel() { return level; }
 	//Constructor, loads from file
 	player(std::string playerClass) { loadClass(playerClass); }
 	//Constructor with no class
@@ -253,4 +269,50 @@ public: //Not providing set functions, as these values should not usually be set
 	void applyDamageModifiers(short* p, short* m, short* a);
 	//Lets the player upgrade some items
 	void upgradeItems(short upgradeNum = 1);
+	//Gives the player xp, levels them as appropriate, negatives will drain xp, but it cannot go negative
+	void giveXp(int xpGain);
+	//Levels the player
+	void levelUp();
+	//Allows the player to use stat points, if upgradeNum is negative, player must downgrade that many stats
+	void upgradeStats(short upgradeNum = 1);
+	//Modifies the specified base stat
+	friend class Event;
+};
+
+class playerLevel {
+private:
+	friend class player;
+	bool fullHeal = true;
+	short heal = 0;
+	short maxHealth = 0;
+	short projectiles = 0;
+	bool fullMana = true;
+	short mana = 0;
+	short maxMana = 0;
+	short turnManaRegen = 0;
+	short battleManaRegen = 0;
+	float poisonResist = -2; //Value of -2 is not allowed, so using it to indicate no change
+	float bleedResist = -2;
+	short constRegen = 0;
+	short battleRegen = 0;
+	short flatArmour = 0;
+	float propArmour = -2;
+	short flatMagicArmour = 0;
+	float propMagicArmour = -2;
+	short flatDamageModifier = 0;
+	float propDamageModifier = -2;
+	short flatMagicDamageModifier = 0;
+	float propMagicDamageModifier = -2;
+	short flatArmourPiercingDamageModifier = 0;
+	float propArmourPiercingDamageModifier = -2;
+	float evadeChance = -2;
+	float counterAttackChance = -2;
+	short bonusActions = 0;
+	short initiative = 0;
+	int maxXp = 0;
+	std::string nextLevel;
+	short statPoints = 0;
+	short upgradePoints = 0;
+	playerLevel(std::string blueprint) { loadFromFile(blueprint); }
+	void loadFromFile(std::string blueprint, bool custom = g_useCustomData);
 };

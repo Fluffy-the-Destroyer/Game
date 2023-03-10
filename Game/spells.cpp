@@ -26,7 +26,6 @@ string spell::getName() {
 void spell::loadFromFile(string blueprint, bool custom) {
 	ifstream spellBlueprints;
 	string stringbuffer = "";
-	string valBuffer;
 	short charBuf = 0;
 	try {
 		if (blueprint == "EMPTY") {
@@ -79,12 +78,11 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				if (getTag(&spellBlueprints) != "name") {
 					throw 1;
 				}
-				getline(spellBlueprints, blueprint, '<');
+				blueprint = stringFromFile(&spellBlueprints);
 				if (blueprint == "EMPTY") {
 					throw 3;
 				}
-				getline(spellBlueprints, stringbuffer, '>');
-				if (stringbuffer != "/name") {
+				if (getTag(&spellBlueprints) != "/name") {
 					throw 1;
 				}
 			}
@@ -95,7 +93,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		real = true;
 		spellName = blueprint;
 		name = description = "";
-		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = constRegenModifierEnemy = constRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = battleManaRegenModifierEnemy = battleRegenModifierEnemy = 0;
+		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = constRegenModifierEnemy = constRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = battleManaRegenModifierEnemy = battleRegenModifierEnemy = initiativeModifier = 0;
 		propDamage = propSelfDamage = poisonResistModifierEnemy = poisonResistModifier = bleedResistModifierEnemy = bleedResistModifier = propArmourModifierEnemy = propArmourModifier = propMagicArmourModifierEnemy = propMagicArmourModifier = propDamageModifierEnemy = propDamageModifier = propMagicDamageModifierEnemy = propMagicDamageModifier = propArmourPiercingDamageModifierEnemy = propArmourPiercingDamageModifier = evadeChanceModifierEnemy = evadeChanceModifier = 0;
 		hitCount = cooldown = 1;
 		counterHits = currentCooldown = spellType = timing = counterSpell = 0;
@@ -116,53 +114,43 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			if (stringbuffer == "name") {
-				getline(spellBlueprints, name, '<');
+				name = stringFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "description") {
-				getline(spellBlueprints, description, '<');
+				description = stringFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatDamageMin = numFromString(&valBuffer);
+				flatDamageMin = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatDamageMax = numFromString(&valBuffer);
+				flatDamageMax = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatDamageMax = numFromString(&valBuffer);
+				flatDamageMax = numFromFile(&spellBlueprints);
 				flatDamageMin = flatDamageMax;
 			}
 			else if (stringbuffer == "flatMagicDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicDamageMin = numFromString(&valBuffer);
+				flatMagicDamageMin = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatMagicDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicDamageMax = numFromString(&valBuffer);
+				flatMagicDamageMax = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatMagicDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicDamageMax = numFromString(&valBuffer);
+				flatMagicDamageMax = numFromFile(&spellBlueprints);
 				flatMagicDamageMin = flatMagicDamageMax;
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageMin = numFromString(&valBuffer);
+				flatArmourPiercingDamageMin = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageMax = numFromString(&valBuffer);
+				flatArmourPiercingDamageMax = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatArmourPiercingDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageMax = numFromString(&valBuffer);
+				flatArmourPiercingDamageMax = numFromFile(&spellBlueprints);
 				flatArmourPiercingDamageMin = flatArmourPiercingDamageMax;
 			}
 			else if (stringbuffer == "propDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				propDamage = floatFromString(&valBuffer);
+				propDamage = floatFromFile(&spellBlueprints);
 				if (propDamage > 1) {
 					propDamage = 1;
 				}
@@ -171,47 +159,37 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "flatSelfDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfDamageMin = numFromString(&valBuffer);
+				flatSelfDamageMin = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatSelfDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfDamageMax = numFromString(&valBuffer);
+				flatSelfDamageMax = numFromFile(&spellBlueprints);
 			}
 			else if (stringbuffer == "flatSelfDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfDamageMax = numFromString(&valBuffer);
+				flatSelfDamageMax = numFromFile(&spellBlueprints);
 				flatSelfDamageMin = flatSelfDamageMax;
 			}
 			else if (stringbuffer == "flatSelfMagicDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfMagicDamageMin = numFromString(&valBuffer);
+				flatSelfMagicDamageMin = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatSelfMagicDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfMagicDamageMax = numFromString(&valBuffer);
+				flatSelfMagicDamageMax = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatSelfMagicDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfMagicDamageMax = numFromString(&valBuffer);
+				flatSelfMagicDamageMax = numFromFile(&spellBlueprints);;
 				flatSelfMagicDamageMin = flatSelfMagicDamageMax;
 			}
 			else if (stringbuffer == "flatSelfArmourPiercingDamageMin") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfArmourPiercingDamageMin = numFromString(&valBuffer);
+				flatSelfArmourPiercingDamageMin = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatSelfArmourPiercingDamageMax") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfArmourPiercingDamageMax = numFromString(&valBuffer);
+				flatSelfArmourPiercingDamageMax = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatSelfArmourPiercingDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatSelfArmourPiercingDamageMax = numFromString(&valBuffer);
+				flatSelfArmourPiercingDamageMax = numFromFile(&spellBlueprints);;
 				flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax;
 			}
 			else if (stringbuffer == "propSelfDamage") {
-				getline(spellBlueprints, valBuffer, '<');
-				propSelfDamage = floatFromString(&valBuffer);
+				propSelfDamage = floatFromFile(&spellBlueprints);;
 				if (propSelfDamage < -1) {
 					propSelfDamage = -1;
 				}
@@ -220,8 +198,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "hitCount") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0) {
 					charBuf = 0;
 				}
@@ -240,20 +217,16 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (stringbuffer == "manaChangeEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				manaChangeEnemy = numFromString(&valBuffer);
+				manaChangeEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "manaChange") {
-				getline(spellBlueprints, valBuffer, '<');
-				manaChange = numFromString(&valBuffer);
+				manaChange = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "projectileChange") {
-				getline(spellBlueprints, valBuffer, '<');
-				projectileChange = numFromString(&valBuffer);
+				projectileChange = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "poison") {
-				getline(spellBlueprints, valBuffer, '<');
-				poison = numFromString(&valBuffer);
+				poison = numFromFile(&spellBlueprints);;
 				if (poison < -255) {
 					poison = -255;
 				}
@@ -262,8 +235,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "selfPoison") {
-				getline(spellBlueprints, valBuffer, '<');
-				selfPoison = numFromString(&valBuffer);
+				selfPoison = numFromFile(&spellBlueprints);;
 				if (selfPoison < -255) {
 					selfPoison = -255;
 				}
@@ -272,8 +244,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "bleed") {
-				getline(spellBlueprints, valBuffer, '<');
-				bleed = numFromString(&valBuffer);
+				bleed = numFromFile(&spellBlueprints);;
 				if (bleed < -255) {
 					bleed = -255;
 				}
@@ -282,8 +253,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "selfBleed") {
-				getline(spellBlueprints, valBuffer, '<');
-				selfBleed = numFromString(&valBuffer);
+				selfBleed = numFromFile(&spellBlueprints);;
 				if (selfBleed < -255) {
 					selfBleed = -255;
 				}
@@ -292,64 +262,52 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "maxHealthModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				maxHealthModifierEnemy = numFromString(&valBuffer);
+				maxHealthModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "maxHealthModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				maxHealthModifier = numFromString(&valBuffer);
+				maxHealthModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "maxManaModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				maxManaModifierEnemy = numFromString(&valBuffer);
+				maxManaModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "maxManaModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				maxManaModifier = numFromString(&valBuffer);
+				maxManaModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "turnManaRegenModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				turnManaRegenModifierEnemy = numFromString(&valBuffer);
+				turnManaRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "turnManaRegenModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				turnManaRegenModifier = numFromString(&valBuffer);
+				turnManaRegenModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "battleManaRegenModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				battleManaRegenModifier = numFromString(&valBuffer);
+				battleManaRegenModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "poisonResistModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				poisonResistModifierEnemy = floatFromString(&valBuffer);
+				poisonResistModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (poisonResistModifierEnemy < -1) {
 					poisonResistModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "poisonResistModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				poisonResistModifier = floatFromString(&valBuffer);
+				poisonResistModifier = floatFromFile(&spellBlueprints);;
 				if (poisonResistModifier < -1) {
 					poisonResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "bleedResistModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				bleedResistModifierEnemy = floatFromString(&valBuffer);
+				bleedResistModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (bleedResistModifierEnemy < -1) {
 					bleedResistModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "bleedResistModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				bleedResistModifier = floatFromString(&valBuffer);
+				bleedResistModifier = floatFromFile(&spellBlueprints);;
 				if (bleedResistModifier < -1) {
 					bleedResistModifier = -1;
 				}
 			}
 			else if (stringbuffer == "tempRegen") {
-				getline(spellBlueprints, valBuffer, '<');
-				tempRegen = numFromString(&valBuffer);
+				tempRegen = numFromFile(&spellBlueprints);;
 				if (tempRegen < -255) {
 					tempRegen = -255;
 				}
@@ -358,8 +316,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "tempRegenSelf") {
-				getline(spellBlueprints, valBuffer, '<');
-				tempRegenSelf = numFromString(&valBuffer);
+				tempRegenSelf = numFromFile(&spellBlueprints);;
 				if (tempRegenSelf < -255) {
 					tempRegenSelf = -255;
 				}
@@ -368,144 +325,118 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "constRegenModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				constRegenModifierEnemy = numFromString(&valBuffer);
+				constRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "constRegenModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				constRegenModifier = numFromString(&valBuffer);
+				constRegenModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "battleRegenModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				battleRegenModifier = numFromString(&valBuffer);
+				battleRegenModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatArmourModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourModifierEnemy = numFromString(&valBuffer);
+				flatArmourModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatArmourModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourModifier = numFromString(&valBuffer);
+				flatArmourModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "propArmourModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				propArmourModifierEnemy = floatFromString(&valBuffer);
+				propArmourModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propArmourModifierEnemy < -1) {
 					propArmourModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "propArmourModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				propArmourModifier = floatFromString(&valBuffer);
+				propArmourModifier = floatFromFile(&spellBlueprints);;
 				if (propArmourModifier < -1) {
 					propArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicArmourModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicArmourModifierEnemy = numFromString(&valBuffer);
+				flatMagicArmourModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatMagicArmourModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicArmourModifier = numFromString(&valBuffer);
+				flatMagicArmourModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "propMagicArmourModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				propMagicArmourModifierEnemy = floatFromString(&valBuffer);
+				propMagicArmourModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propMagicArmourModifierEnemy < -1) {
 					propMagicArmourModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "propMagicArmourModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				propMagicArmourModifier = floatFromString(&valBuffer);
+				propMagicArmourModifier = floatFromFile(&spellBlueprints);;
 				if (propMagicArmourModifier < -1) {
 					propMagicArmourModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatDamageModifierEnemy = numFromString(&valBuffer);
+				flatDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatDamageModifier = numFromString(&valBuffer);
+				flatDamageModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "propDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				propDamageModifierEnemy = floatFromString(&valBuffer);
+				propDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propDamageModifierEnemy < -1) {
 					propDamageModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "propDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				propDamageModifier = floatFromString(&valBuffer);
+				propDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatMagicDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicDamageModifierEnemy = numFromString(&valBuffer);
+				flatMagicDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatMagicDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatMagicDamageModifier = numFromString(&valBuffer);
+				flatMagicDamageModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "propMagicDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				propMagicDamageModifierEnemy = floatFromString(&valBuffer);
+				propMagicDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propMagicDamageModifierEnemy < -1) {
 					propMagicDamageModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "propMagicDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				propMagicDamageModifier = floatFromString(&valBuffer);
+				propMagicDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageModifierEnemy = numFromString(&valBuffer);
+				flatArmourPiercingDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				flatArmourPiercingDamageModifier = numFromString(&valBuffer);
+				flatArmourPiercingDamageModifier = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "propArmourPiercingDamageModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				propArmourPiercingDamageModifierEnemy = floatFromString(&valBuffer);
+				propArmourPiercingDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propArmourPiercingDamageModifierEnemy < -1) {
 					propArmourPiercingDamageModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "propArmourPiercingDamageModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				propArmourPiercingDamageModifier = floatFromString(&valBuffer);
+				propArmourPiercingDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propArmourPiercingDamageModifier < -1) {
 					propArmourPiercingDamageModifier = -1;
 				}
 			}
 			else if (stringbuffer == "evadeChanceModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				evadeChanceModifierEnemy = floatFromString(&valBuffer);
+				evadeChanceModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (evadeChanceModifierEnemy < -1) {
 					evadeChanceModifierEnemy = -1;
 				}
 			}
 			else if (stringbuffer == "evadeChanceModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				evadeChanceModifier = floatFromString(&valBuffer);
+				evadeChanceModifier = floatFromFile(&spellBlueprints);;
 				if (evadeChanceModifier < -1) {
 					evadeChanceModifier = -1;
 				}
 			}
 			else if (stringbuffer == "cooldown") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 1) {
 					charBuf = 1;
 				}
@@ -515,16 +446,14 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				cooldown = static_cast<unsigned char>(charBuf);
 			}
 			else if (stringbuffer == "spellType") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 1 || charBuf > SPELL_TYPES_NO) {
 					charBuf = 0;
 				}
 				spellType = static_cast<unsigned char>(charBuf);
 			}
 			else if (stringbuffer == "counterHits") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0) {
 					charBuf = 0;
 				}
@@ -543,24 +472,21 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (stringbuffer == "timing") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0 || charBuf > 2) {
 					charBuf = 0;
 				}
 				timing = static_cast<unsigned char>(charBuf);
 			}
 			else if (stringbuffer == "counterSpell") {
-				getline(spellBlueprints, valBuffer, '<');
-				charBuf = numFromString(&valBuffer);
+				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0 || charBuf > 3) {
 					charBuf = 0;
 				}
 				counterSpell = static_cast<unsigned char>(charBuf);
 			}
 			else if (stringbuffer == "bonusActionsModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				bonusActionsModifierEnemy = numFromString(&valBuffer);
+				bonusActionsModifierEnemy = numFromFile(&spellBlueprints);;
 				if (bonusActionsModifierEnemy < -255) {
 					bonusActionsModifierEnemy = -255;
 				}
@@ -569,8 +495,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				}
 			}
 			else if (stringbuffer == "bonusActionsModifier") {
-				getline(spellBlueprints, valBuffer, '<');
-				bonusActionsModifier = numFromString(&valBuffer);
+				bonusActionsModifier = numFromFile(&spellBlueprints);;
 				if (bonusActionsModifier < -255) {
 					bonusActionsModifier = -255;
 				}
@@ -588,12 +513,10 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (stringbuffer == "battleManaRegenModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				battleManaRegenModifierEnemy = numFromString(&valBuffer);
+				battleManaRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "battleRegenModifierEnemy") {
-				getline(spellBlueprints, valBuffer, '<');
-				battleRegenModifierEnemy = numFromString(&valBuffer);
+				battleRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "lifelink/") {
 				lifelink = true;
@@ -605,8 +528,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (stringbuffer == "healthChange") {
-				getline(spellBlueprints, valBuffer, '<');
-				healthChange = numFromString(&valBuffer);
+				healthChange = numFromFile(&spellBlueprints);;
 			}
 			else if (stringbuffer == "selfOverheal/") {
 				selfOverheal = true;
@@ -627,12 +549,14 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				continue;
 			}
 			else if (stringbuffer == "upgrade") {
-				getline(spellBlueprints, upgrade, '<');
+				upgrade = stringFromFile(&spellBlueprints);
+			}
+			else if (stringbuffer == "initiativeModifier") {
+				initiativeModifier = numFromFile(&spellBlueprints);;
 			}
 			else {
 				throw 1;
 			}
-			spellBlueprints.seekg(-1, ios_base::cur);
 			if (getTag(&spellBlueprints) != '/' + stringbuffer) {
 				throw 1;
 			}

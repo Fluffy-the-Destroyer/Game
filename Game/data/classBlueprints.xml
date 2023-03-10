@@ -1,5 +1,6 @@
 <!-- Template player class, containing default values -->
 <classBlueprint name="EMPTY">
+	<className></className><!--Name of the class as displayed in game-->
 	<maxHealth>100</maxHealth>
 	<maxMana>0</maxMana>
 	<turnManaRegen>0</turnManaRegen>
@@ -31,9 +32,52 @@
 	<evadeChance>0.1</evadeChance>
 	<counterAttackChance>0.1</counterAttackChance>
 	<bonusActions>1</bonusActions>
+	<initiative>5</initiative><!--Used for determining turn order, 0-255-->
+	<maxXp>0</maxXp><!--Amount of experience needed to level up, if it is 0, player is at max level-->
+	<nextLevel></nextLevel><!--Name of the blueprint for the next level-->
 </classBlueprint>
 
+<!--Blueprint for a level up. Some stats overwrite old values, some are added. Any stats which are absent will be unchanged-->
+<levelBlueprint name="EMPTY">
+	<heal>FULL</heal><!--Player will heal by this much on leveling. Will accept numbers, or FULL which is a full heal-->
+	<maxHealth></maxHealth><!--Added-->
+	<projectiles>0</projectiles><!--Player gains this many projectiles-->
+	<mana>FULL</mana><!--Mana recovery on level, accepts numbers, FULL is recover to full. Healing and mana recovery are applied after maxima are updated, but loss is applied before-->
+	<maxMana></maxMana><!--Added-->
+	<turnManaRegen></turnManaRegen><!--Added-->
+	<battleManaRegen></battleManaRegen><!--Added-->
+	<poisonResist></poisonResist><!--Overwritten-->
+	<bleedResist></bleedResist><!--Overwritten-->
+	<constRegen></constRegen><!--Added-->
+	<battleRegen></battleRegen><!--Added-->
+	<flatArmour></flatArmour><!--Added-->
+	<propArmour></propArmour><!--Overwritten-->
+	<flatMagicArmour></flatMagicArmour><!--Added-->
+	<propMagicArmour></propMagicArmour><!--Overwritten-->
+	<flatDamageModifier></flatDamageModifier><!--Added-->
+	<propDamageModifier></propDamageModifier><!--Overwritten-->
+	<flatMagicDamageModifier></flatMagicDamageModifier><!--Added-->
+	<propMagicDamageModifier></propMagicDamageModifier><!--Overwritten-->
+	<flatArmourPiercingDamageModifier></flatArmourPiercingDamageModifier><!--Added-->
+	<propArmourPiercingDamageModifier></propArmourPiercingDamageModifier><!--Overwritten-->
+	<evadeChance></evadeChance><!--Overwritten-->
+	<counterAttackChance></counterAttackChance><!--Overwritten-->
+	<bonusActions></bonusActions><!--Added-->
+	<initiative></initiative><!--Added-->
+	<maxXp>0</maxXp><!--xp needed for next level, overwrites, if 0 or absent, this is max level-->
+	<nextLevel></nextLevel><!--Blueprint for next level, if this is absent, this is max level-->
+	<statPoints>0</statPoints><!--How many extra points can the player put in, each one allows boosting a stat, stat boosting is as follows:
+	Health: increases maxHealth by 10
+	Mana: increases maxMana by 10
+	Mana regeneration: increases turnManaRegen by 5 and battleManaRegen by 10
+	Armour: increases flatArmour and flatMagicArmour by 1 each
+	Damage: increases flatDamage, flatMagicDamage and flatArmourPiercingDamage by 1 each:
+	Speed: increases initiative by 1-->
+	<upgradePoints>0</upgradePoints><!--Gives the player this many upgrade points, which can each be used to upgrade a piece of gear-->
+</levelBlueprint>
+
 <classBlueprint name="WARRIOR">
+	<className>Warrior</className>
 	<maxHealth>200</maxHealth>
 	<maxMana>100</maxMana>
 	<turnManaRegen>5</turnManaRegen>

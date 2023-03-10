@@ -1,12 +1,29 @@
 <event name="EMPTY">
 	<preBattleText></preBattleText> <!--This is the text displayed before the battle-->
 	<preBattleSpell>EMPTY</preBattleSpell><!--This spell will be cast on the player before the battle, its effects will not wear off until after the battle (or the end of the event if there is no battle)-->
-	<enemyBlueprint>EMPTY</enemyBlueprint><!--The enemy to be fought. If EMPTY, there will be no fight-->
+	<enemyBlueprint first="player">EMPTY</enemyBlueprint>
+	<!--The enemy to be fought. If EMPTY, there will be no fight. first="player" guarantees player goes first, first="enemy" guarantees enemy goes first. If the attribute is absent, first turn is determined using initaitive-->
 	<postBattleText></postBattleText><!--Displayed after battle-->
-	<statChanges><!--Changes to health, mana and projectiles. Applied after battle.-->
+	<statChanges><!--Changes to player stats, applied after battle.-->
 		<health>0</health><!--Changes health, cannot overheal-->
+		<maxHealth>0</maxHealth>
+		<constRegen>0</constRegen>
+		<battleRegen>0</battleRegen>
 		<mana>0</mana><!--Cannot overcharge mana-->
+		<maxMana>0</maxMana>
+		<turnManaRagen>0</turnManaRagen>
+		<battleManaRegen>0</battleManaRegen>
 		<projectiles>0</projectiles>
+		<flatArmour>0</flatArmour>
+		<flatMagicArmour>0</flatMagicArmour>
+		<flatDamageModifier>0</flatDamageModifier>
+		<flatMagicDamageModifier>0</flatMagicDamageModifier>
+		<flatArmourPiercingDamageModifier>0</flatArmourPiercingDamageModifier>
+		<bonusActions>0</bonusActions>
+		<initiative>0</initiative>
+		<statPoints>0</statPoints><!--Allows the player to upgrade this many stats, if it is negative, the player must downgrade that many stats-->
+		<upgradePoints>0</upgradePoints>
+		<xp>0</xp><!--Gives player xp, negatives will remove xp, but cannot remove levels-->
 	</statChanges>
 	<reward>EMPTY</reward><!--Item reward. Should have a prefix indicating type, see blueprintLists.xml-->
 	<varChanges><!--Changes to variables-->

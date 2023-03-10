@@ -43,6 +43,8 @@
 	<counterAttackChance>0.1</counterAttackChance>
 	<bonusActions>1</bonusActions>
 	<AIType>2</AIType> <!--See reference at top of file-->
+	<initiative>5</initiative>
+	<xp>0</xp><!--Amount of xp gained for defeating the enemy-->
 </enemyBlueprint>
 
 <enemyBlueprint name="BAD_GUY">

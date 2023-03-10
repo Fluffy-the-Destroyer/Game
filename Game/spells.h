@@ -102,6 +102,7 @@ private:
 	bool targetOverheal;
 	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only caster, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
 	std::string upgrade;
+	short initiativeModifier; //Modifies initiative, only matters when cast on player by an event before battle
 public:
 	//Loads spell from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -198,6 +199,7 @@ public:
 	unsigned char getEffectType() { return effectType; }
 	bool getSelfOverheal() { return selfOverheal; }
 	bool getTargetOverheal() { return targetOverheal; }
+	short getInitiativeModifier() { return initiativeModifier; }
 	//Displays stats
 	void displayStats();
 	//Sets spell type based on stats, pretty rudimentary, ideally the type should be specified in the blueprint. For example, a spell which does nothing would be classified as support, and a support focused enemy would use it

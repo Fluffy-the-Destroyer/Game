@@ -6,7 +6,6 @@
 #include "armour.h"
 #include "blueprints.h"
 #include <thread>
-#include <chrono>
 using namespace std;
 
 extern resource g_manaName, g_projName;
@@ -15,7 +14,7 @@ extern bool g_useCustomData;
 //Error codes:
 // 6: Trying to access slot which is out of range
 
-unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
+unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed char firstGo) {
 	//Check if enemy dies immediately
 	switch (deathCheck(playerCharacter, opponent)) {
 	case 1:
@@ -23,11 +22,30 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 	case 2:
 		return 2;
 	}
-	unsigned char p_action = 0, p_selection1 = 0, p_selection2 = 0, e_action = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
+	unsigned char p_selection1 = 0, p_selection2 = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
 	short health; //For holding combatants' health
 	bool firstTurn = true; //Is it the first turn
+	//Determine who goes first
+	if (firstGo == 1) {
+		goto playerTurn;
+	}
+	else if (firstGo == -1) {
+		goto enemyTurn;
+	}
+	else {
+		short p_initiative = playerCharacter->rollInitiative();
+		short e_initiative = opponent->rollInitiative();
+		if (e_initiative > p_initiative) { //If enemy rolled higher, skip player's first turn
+			goto enemyTurn;
+		}
+		else if (p_initiative == e_initiative) { //If rolled the same, pick randomly
+			if (rng(1, 2) == 1) {
+				goto enemyTurn;
+			}
+		}
+	}
 	while (true) { //Turn cycle loop
-		//Player turn
+	playerTurn:
 		this_thread::sleep_for(chrono::milliseconds(500));
 		playerCharacter->turnStart();
 		switch (deathCheck(playerCharacter, opponent)) {
@@ -418,7 +436,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent) {
 			}
 			break;
 		}
-		//Enemy turn
+	enemyTurn:
 		this_thread::sleep_for(chrono::milliseconds(500));
 		opponent->turnStart();
 		switch (deathCheck(playerCharacter, opponent)) {
@@ -1120,7 +1138,7 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 }
 
 unsigned char spellCast(spell* magic, player* target) {
-	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2) {
+	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2 && magic->getInitiativeModifier() == 0) {
 		return 0;
 	}
 	unsigned char hits = magic->getHitCount();
@@ -1674,6 +1692,9 @@ void spellHit(spell* magic, player* target) {
 			cout << magic->getBonusActionsModifierEnemy() << " bonus actions, ";
 		}
 		cout << "\b\b\n";
+	}
+	if (magic->getInitiativeModifier() != 0) {
+		cout << magic->getInitiativeModifier() << " speed\n";
 	}
 	cout << noshowpos;
 	this_thread::sleep_for(chrono::milliseconds(100));
@@ -2421,6 +2442,8 @@ unsigned char battleMode() {
 				}
 			}
 			else {
+				cout << showpos << opponent.getXp() << " experience\n" << noshowpos;
+				playerCharacter.giveXp(opponent.getXp());
 				cout << "To fight another enemy, enter 1.\nTo choose a new class, enter 2.\nTo exit to the main menu, enter 0.\n";
 				switch (userChoice(0, 2)) {
 				case 0:
