@@ -1108,14 +1108,7 @@ void player::loadClass(string playerClass, bool custom) {
 				className = stringFromFile(&classBlueprints);
 			}
 			else if (buffer == "initiative") {
-				charBuf = numFromFile(&classBlueprints);
-				if (charBuf < 0) {
-					charBuf = 0;
-				}
-				else if (charBuf > 255) {
-					charBuf = 255;
-				}
-				initiative = static_cast<unsigned char>(charBuf);
+				initiative = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "maxXp") {
 				maxXp = numFromFile(&classBlueprints);
@@ -1418,6 +1411,15 @@ void player::decBonusActions() {
 	}
 }
 
+void player::resetBonusActions() {
+	if (bonusActions < 0) {
+		currentBonusActions = 0;
+	}
+	else {
+		currentBonusActions = bonusActions;
+	}
+}
+
 void player::reset() {
 	modifyHealth(battleRegen);
 	modifyMana(battleManaRegen);
@@ -1593,6 +1595,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 						for (short i = 1; i < choices.size(); i++) {
 							cout << choices[i] << ": ";
 							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+							cout << '\n';
 						}
 						*slot2 = static_cast<unsigned char>(userChoice(choices));
 						if (*slot2 == 0) {
@@ -2017,6 +2020,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 						for (short i = 1; i < choices.size(); i++) {
 							cout << choices[i] << ": ";
 							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+							cout << '\n';
 						}
 						*slot2 = static_cast<unsigned char>(userChoice(choices));
 						if (*slot2 == 0) {

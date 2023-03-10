@@ -524,7 +524,9 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		initialSpell = -1;
 		propArmour = propMagicArmour = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = 0;
 		bonusActions = 1;
-		initiative = 5;
+		initiative = 10;
+		noCounterWeapons.resize(0);
+		noCounterSpells.resize(0);
 		blueprintName = "enemyBlueprint name=\"" + blueprint + '\"';
 		while (buffer != blueprintName) {
 			buffer = getTag(&enemyBlueprints);
@@ -1663,7 +1665,7 @@ unsigned char enemy::chooseSuicide(unsigned char* selection1, unsigned char* sel
 	case 1: //Combined types
 	case 2:
 	case 3:
-		choice = chooseAttack(selection1, 0, true); //Look for an attack
+		choice = chooseAttack(selection1, selection2, 0, true); //Look for an attack
 		if (choice != 0) {
 			return choice;
 		}
@@ -1679,7 +1681,7 @@ unsigned char enemy::chooseSuicide(unsigned char* selection1, unsigned char* sel
 			return choice;
 		}
 		//Look for weapon
-		if (chooseWeapon(selection1, 0, true)) {
+		if (chooseWeapon(selection1, selection2, 0, true)) {
 			return 1;
 		}
 		//Look for utility, then healing
@@ -1688,7 +1690,7 @@ unsigned char enemy::chooseSuicide(unsigned char* selection1, unsigned char* sel
 		}
 		return 0;
 	case 7: //Melee beserker
-		if (chooseWeapon(selection1, 0, true)) { //Check for weapon
+		if (chooseWeapon(selection1, selection2, 0, true)) { //Check for weapon
 			return 1;
 		}
 		return 0;
@@ -1932,5 +1934,14 @@ void enemy::applyDamageModifiers(short* p, short* m, short* a) {
 		else {
 			*a = static_cast<short>(damStorage);
 		}
+	}
+}
+
+void enemy::resetBonusActions() {
+	if (bonusActions < 0) {
+		currentBonusActions = 0;
+	}
+	else {
+		currentBonusActions = bonusActions;
 	}
 }

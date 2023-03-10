@@ -27,30 +27,83 @@
 	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
 </armourHeadBlueprint>
 
-<armourHeadBlueprint name="HELMET_1">
-	<name>Helmet</name>
-	<description>A basic helmet</description>
-	<flatArmourModifier>1</flatArmourModifier>
-	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+<armourHeadBlueprint name="IRON_HELMET_1">
+	<name>Iron Helmet</name>
+	<description>A strong iron helmet providing good physical protection, its weight can slow down the wearer.</description>
+	<maxHealthModifier>5</maxHealthModifier>
+	<flatArmourModifier>2</flatArmourModifier>
+	<evadeChanceModifier>-0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>-0.1</counterAttackChanceModifier>
+	<initiativeModifier>-1</initiativeModifier>
 </armourHeadBlueprint>
 
-<armourTorsoBlueprint name="CHESTPLATE_1">
-	<name>Chestplate</name>
-	<description>A basic chestplate</description>
-	<flatArmourModifier>2</flatArmourModifier>
-	<flatMagicArmourModifier>2</flatMagicArmourModifier>
+<armourTorsoBlueprint name="IRON_CHESTPLATE_1">
+	<name>Iron Chestplate</name>
+	<description>A strong iron chestplate providing good physical protection, its weight can slow down the wearer.</description>
+	<maxHealthModifier>10</maxHealthModifier>
+	<flatArmourModifier>4</flatArmourModifier>
+	<evadeChanceModifier>-0.2</evadeChanceModifier>
+	<counterAttackChanceModifier>-0.2</counterAttackChanceModifier>
+	<initiativeModifier>-2</initiativeModifier>
 </armourTorsoBlueprint>
 
-<armourLegsBlueprint name="GREAVES_1">
-	<name>Greaves</name>
-	<description>Basic greaves</description>
-	<flatArmourModifier>1</flatArmourModifier>
-	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+<armourLegsBlueprint name="IRON_GREAVES_1">
+	<name>Iron Greaves</name>
+	<description>Strong iron greaves providing good physical protection, their weight can slow down the wearer.</description>
+	<maxHealthModifier>5</maxHealthModifier>
+	<flatArmourModifier>2</flatArmourModifier>
+	<evadeChanceModifier>-0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>-0.1</counterAttackChanceModifier>
+	<initiativeModifier>-1</initiativeModifier>
 </armourLegsBlueprint>
 
-<armourFeetBlueprint name="BOOTS_1">
-	<name>Boots</name>
-	<description>Basic boots</description>
-	<flatArmourModifier>1</flatArmourModifier>
-	<flatMagicArmourModifier>1</flatMagicArmourModifier>
+<armourFeetBlueprint name="IRON_BOOTS_1">
+	<name>Iron Boots</name>
+	<description>Strong iron boots providing good physical protection, their weight can slow down the wearer.</description>
+	<maxHealthModifier>5</maxHealthModifier>
+	<flatArmourModifier>2</flatArmourModifier>
+	<evadeChanceModifier>-0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>-0.1</counterAttackChanceModifier>
+	<initiativeModifier>-1</initiativeModifier>
 </armourFeetBlueprint>
+
+<armourHeadBlueprint name="LEATHER_HELMET_1">
+	<name>Leather Cap</name>
+	<description>A leather cap, providing moderate physical protection without restricting movement.</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<evadeChanceModifier>0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>0.1</counterAttackChanceModifier>
+</armourHeadBlueprint>
+
+<armourTorsoBlueprint name="LEATHER_CHESTPLATE_1">
+	<name>Leather Cuirass</name>
+	<description>A leather cuirass, providing moderate physical protection without restricting movement.</description>
+	<flatArmourModifier>2</flatArmourModifier>
+	<evadeChanceModifier>0.2</evadeChanceModifier>
+	<counterAttackChanceModifier>0.2</counterAttackChanceModifier>
+</armourTorsoBlueprint>
+
+<armourLegsBlueprint name="LEATHER_GREAVES_1">
+	<name>Leather Leggings</name>
+	<description>Leather leggings, providing moderate physical protection without restricting movement.</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<evadeChanceModifier>0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>0.1</counterAttackChanceModifier>
+</armourLegsBlueprint>
+
+<armourFeetBlueprint name="LEATHER_BOOTS_1">
+	<name>Leather Boots</name>
+	<description>Leather boots, providing moderate physical protection without restricting movement.</description>
+	<flatArmourModifier>1</flatArmourModifier>
+	<evadeChanceModifier>0.1</evadeChanceModifier>
+	<counterAttackChanceModifier>0.1</counterAttackChanceModifier>
+</armourFeetBlueprint>
+
+<armourTorsoBlueprint name="ROBES_1">
+	<name>Robes</name>
+	<description>Basic wizard robes, they offer little physical protection, but improve mana regeneration capabilities.</description>
+	<maxManaModifier>10</maxManaModifier>
+	<turnManaRegenModifier>5</turnManaRegenModifier>
+	<battleManaRegenModifier>10</battleManaRegenModifier>
+	<flatArmourModifier>2</flatArmourModifier>
+</armourTorsoBlueprint>

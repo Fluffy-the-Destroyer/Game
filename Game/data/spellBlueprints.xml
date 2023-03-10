@@ -74,7 +74,7 @@
 	<battleRegenModifierEnemy>0</battleRegenModifierEnemy>
 	<battleRegenModifier>0</battleRegenModifier>
 	<flatArmourModifierEnemy>0</flatArmourModifierEnemy>
-	<flatARmourModifier>0</flatARmourModifier>
+	<flatArmourModifier>0</flatArmourModifier>
 	<propArmourModifierEnemy>0.0</propArmourModifierEnemy>
 	<propArmourModifier>0.0</propArmourModifier>
 	<flatMagicArmourModifierEnemy>0</flatMagicArmourModifierEnemy>
@@ -108,24 +108,57 @@
 	<initiative>0</initiative><!--Modifies target's initiative (for determining first turn in battle), only has any effect when spell is cast on player prior to battle in an event-->
 </spellBlueprint>
 
-<spellBlueprint name="HEAL_SPELL_1">
-	<name>Heal</name>
-	<description>A basic healing spell</description>
-	<flatSelfDamageMin>-30</flatSelfDamageMin>
-	<flatSelfDamageMax>-20</flatSelfDamageMax>
-	<manaChange>-25</manaChange>
-	<selfPoison>-5</selfPoison>
-	<selfBleed>-5</selfBleed>
-	<cooldown>4</cooldown>
-	<spellType>2</spellType>
-</spellBlueprint>
-
 <spellBlueprint name="COUNTERSPELL">
 	<name>Counterspell</name>
 	<description>It counters things</description>
 	<manaChange>-30</manaChange>
-	<cooldown>2</cooldown>
+	<cooldown>5</cooldown>
 	<spellType>5</spellType>
 	<timing>2</timing>
 	<counterSpell>3</counterSpell>
+</spellBlueprint>
+
+<spellBlueprintList name="WIZARD_SPELL_START_LIST">
+	<!--<name>FIRE_SPELL_1</name>-->
+	<!--<name>LIGHTNING_SPELL_1</name>-->
+	<name>POISON_SPELL_1</name>
+</spellBlueprintList>
+
+<spellBlueprint name="POISON_SPELL_1">
+	<name>Poison Gas</name>
+	<description>Launches a cloud of poisonous gas at the target.</description>
+	<flatMagicDamageMin>15</flatMagicDamageMin>
+	<flatMagicDamageMax>20</flatMagicDamageMax>
+	<noEvade/>
+	<manaChange>-20</manaChange>
+	<poison>5</poison>
+	<cooldown>2</cooldown>
+	<spellType>1</spellType>
+</spellBlueprint>
+
+<spellBlueprint name="HEALING_SPELL_1">
+	<name>Heal</name>
+	<description>Heals the caster and removes negative status effects.</description>
+	<flatSelfDamageMin>-50</flatSelfDamageMin>
+	<flatSelfDamageMax>-25</flatSelfDamageMax>
+	<manaChange>-30</manaChange>
+	<selfPoison>-255</selfPoison>
+	<selfBleed>-255</selfBleed>
+	<tempRegenSelf>5</tempRegenSelf>
+	<cooldown>4</cooldown>
+	<spellType>2</spellType>
+	<selfOverheal/>
+</spellBlueprint>
+
+<spellBlueprint name="ARMOUR_SPELL">
+	<name>Magical Armour</name>
+	<description>Gives the caster magical armour.</description>
+	<manaChange>-30</manaChange>
+	<maxHealthModifier>20</maxHealthModifier>
+	<flatArmourModifier>rng(10,15)</flatArmourModifier>
+	<flatMagicArmourModifier>rng(10,15)</flatMagicArmourModifier>
+	<poisonResistModifier>1</poisonResistModifier>
+	<bleedResistModifier>1</bleedResistModifier>
+	<spellType>3</spellType>
+	<cooldown>10</cooldown>
 </spellBlueprint>

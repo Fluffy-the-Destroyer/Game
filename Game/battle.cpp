@@ -22,30 +22,38 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed cha
 	case 2:
 		return 2;
 	}
+	playerCharacter->resetBonusActions();
+	opponent->resetBonusActions();
 	unsigned char p_selection1 = 0, p_selection2 = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
 	short health; //For holding combatants' health
 	bool firstTurn = true; //Is it the first turn
 	//Determine who goes first
-	if (firstGo == 1) {
-		goto playerTurn;
-	}
+	if (firstGo == 1) {}
 	else if (firstGo == -1) {
+		cout << opponent->getName() << " goes first\n";
+		this_thread::sleep_for(chrono::milliseconds(500));
 		goto enemyTurn;
 	}
 	else {
 		short p_initiative = playerCharacter->rollInitiative();
 		short e_initiative = opponent->rollInitiative();
 		if (e_initiative > p_initiative) { //If enemy rolled higher, skip player's first turn
+			cout << opponent->getName() << " goes first\n";
+			this_thread::sleep_for(chrono::milliseconds(500));
 			goto enemyTurn;
 		}
 		else if (p_initiative == e_initiative) { //If rolled the same, pick randomly
 			if (rng(1, 2) == 1) {
+				cout << opponent->getName() << " goes first\n";
+				this_thread::sleep_for(chrono::milliseconds(500));
 				goto enemyTurn;
 			}
 		}
 	}
+	cout << "You go first\n";
+	this_thread::sleep_for(chrono::milliseconds(500));
 	while (true) { //Turn cycle loop
-	playerTurn:
+	//playerTurn:
 		this_thread::sleep_for(chrono::milliseconds(500));
 		playerCharacter->turnStart();
 		switch (deathCheck(playerCharacter, opponent)) {
@@ -2116,7 +2124,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 		cout << "\b\b\n" << noshowpos;
 	}
 	this_thread::sleep_for(chrono::milliseconds(500));
-	if (weapon1->getEffectType() / 10 < 2 || weapon1->getEffectType() % 10 < 2 || weapon2->getEffectType() / 10 < 2 || weapon2->getEffectType() % 10 < 2) {
+	if (weapon1->getEffectType() / 10 < 2 && weapon1->getEffectType() % 10 < 2 && weapon2->getEffectType() / 10 < 2 && weapon2->getEffectType() % 10 < 2) {
 		return;
 	}
 	cout << "Target effects:\n";
@@ -2272,7 +2280,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 		cout << "\b\b\n" << noshowpos;
 	}
 	this_thread::sleep_for(chrono::milliseconds(500));
-	if (weapon1->getEffectType() / 10 < 2 || weapon1->getEffectType() % 10 < 2 || weapon2->getEffectType() / 10 < 2 || weapon2->getEffectType() % 10 < 2) {
+	if (weapon1->getEffectType() / 10 < 2 && weapon1->getEffectType() % 10 < 2 && weapon2->getEffectType() / 10 < 2 && weapon2->getEffectType() % 10 < 2) {
 		return;
 	}
 	cout << "Target effects:\n";

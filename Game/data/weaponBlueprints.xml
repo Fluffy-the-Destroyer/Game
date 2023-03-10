@@ -42,30 +42,52 @@
 	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
 </weaponBlueprint>
 
-<weaponBlueprint name="SWORD">
-	<name>Sword</name>
-	<description>A basic sword</description>
-	<flatDamageMin>5</flatDamageMin>
-	<flatDamageMax>10</flatDamageMax>
-	<hitCount>2</hitCount>
-	<counterHits>1</counterHits>
-	<noCounter/>
-</weaponBlueprint>
+<weaponBlueprintList name="HEAVY_MELEE_WEAPON_START_LIST">
+	<name>LONGSWORD_1</name>
+</weaponBlueprintList>
 
-<weaponBlueprint name="BOW">
-	<name>Bow</name>
-	<description>A basic bow</description>
-	<flatDamageMin>15</flatDamageMin>
-	<flatDamageMax>25</flatDamageMax>
-	<projectileChange>-1</projectileChange>
+<weaponBlueprint name="LONGSWORD_1">
+	<name>Longsword</name>
+	<description>A sturdy longsword, it is slow to swing but devastating when it hits.</description>
+	<flatDamageMin>25</flatDamageMin>
+	<flatDamageMax>35</flatDamageMax>
+	<noCounter/>
 	<noCounterAttack/>
 </weaponBlueprint>
 
 <weaponBlueprint name="SWORD_ENEMY">
 	<name>Sword</name>
 	<flatDamageMin>5</flatDamageMin>
-	<flatDamageMax>10</flatDamageMax>
+	<flatDamageMax>20</flatDamageMax>
 	<hitCount>2</hitCount>
 	<counterHits>1</counterHits>
+	<noCounter/>
+</weaponBlueprint>
+
+<weaponBlueprint name="DUAL_DAGGER">
+	<name>Dagger</name>
+	<description>A small dagger, quick to attack and can be used with one hand.</description>
+	<flatDamageMin>10</flatDamageMin>
+	<flatDamageMax>15</flatDamageMax>
+	<hitCount>2</hitCount>
+	<counterHits>2</counterHits>
+	<noCounter/>
+	<dualWield/>
+</weaponBlueprint>
+
+<weaponBlueprint name="DUAL_CROSSBOW">
+	<name>Small Crossbow</name>
+	<description>A small crossbow which can be fired with one hand, its bolts are designed to penetrate armour.</description>
+	<flatArmourPiercingDamageMin>15</flatArmourPiercingDamageMin>
+	<flatArmourPiercingDamageMax>25</flatArmourPiercingDamageMax>
+	<projectileChange>-1</projectileChange>
+	<dualWield/>
+</weaponBlueprint>
+
+<weaponBlueprint name="STAFF_1">
+	<name>Wooden Staff</name>
+	<description>A magical staff, doubles as a walking stick.</description>
+	<flatDamageMin>5</flatDamageMin>
+	<flatDamageMax>10</flatDamageMax>
 	<noCounter/>
 </weaponBlueprint>

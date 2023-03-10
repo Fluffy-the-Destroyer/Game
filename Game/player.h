@@ -4,8 +4,8 @@
 #include "armour.h"
 #include <vector>
 #include "rng.h"
-#define PLAYER_OVERHEAL_DECAY 10 //Amount of overheal lost per turn
-#define MANA_DECAY 10 //Excess mana lost per turn
+#define PLAYER_OVERHEAL_DECAY 5 //Amount of overheal lost per turn
+#define MANA_DECAY 5 //Excess mana lost per turn
 
 extern bool g_useCustomData;
 
@@ -67,8 +67,8 @@ private:
 	signed char bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
 	signed char currentBonusActions = 1; //How manybonus actions remain this turn
 	signed char bonusActions = 1;
-	short initiativeBase = 5;
-	short initiative = 5;
+	short initiativeBase = 10;
+	short initiative = 10;
 	int xp = 0; //Current experience
 	int maxXp = 0; //Experience needed to level
 	std::string nextLevel; //The blueprint name fo the next level
@@ -179,6 +179,7 @@ public: //Not providing set functions, as these values should not usually be set
 	void calculateCounterAttackChance();
 	//Modifies bonus actions
 	void modifyBonusActions(short b);
+	void resetBonusActions();
 	void decBonusActions();
 	//Recalculate bonus actions
 	void calculateBonusActions();

@@ -5,8 +5,8 @@
 #include "rng.h"
 #define AI_TYPES_NO 7 //Number of AI types (excluding the default random type)
 #define AI_HEALING_THRESHOLD 0.8f //AI will not heal if remaining health proportion is this or more
-#define ENEMY_OVERHEAL_DECAY 10 //Enemy overheal decay rate
-#define ENEMY_MANA_DECAY 10 //Enemy excess mana decay rate
+#define ENEMY_OVERHEAL_DECAY 5 //Enemy overheal decay rate
+#define ENEMY_MANA_DECAY 5 //Enemy excess mana decay rate
 
 //Enemy AI types:
 // All weapons are considered attacking, also enemies will always use specified initial spell (as long as they can afford it, and even if it kills them)
@@ -62,7 +62,7 @@ private:
 	unsigned char AIType = 2; //What sort of AI it has. See top of file
 	std::vector<std::string> noCounterWeapons; //Weapons the enemy knows cannot be countered
 	std::vector<std::string> noCounterSpells; //Spells the enemy knows cannot be countered
-	short initiative = 5;
+	short initiative = 10;
 	int xp = 0; //How much xp is gained by defeating it
 public:
 	void removeAllHealth() { health = 0; }
@@ -93,6 +93,7 @@ public:
 	void modifyBleedResist(float b);
 	void modifyCounterAttackChance(float c);
 	void modifyBonusActions(short b);
+	void resetBonusActions();
 	//Start of turn, decrements cooldowns, applies dot/regen and decrements them
 	void turnStart();
 	//Get attributes

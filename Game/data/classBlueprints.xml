@@ -32,7 +32,7 @@
 	<evadeChance>0.1</evadeChance>
 	<counterAttackChance>0.1</counterAttackChance>
 	<bonusActions>1</bonusActions>
-	<initiative>5</initiative><!--Used for determining turn order, 0-255-->
+	<initiative>10</initiative><!--Used for determining turn order, values below 0 are tracked, but 0 is used when determining turn order-->
 	<maxXp>0</maxXp><!--Amount of experience needed to level up, if it is 0, player is at max level-->
 	<nextLevel></nextLevel><!--Name of the blueprint for the next level-->
 </classBlueprint>
@@ -78,19 +78,66 @@
 
 <classBlueprint name="WARRIOR">
 	<className>Warrior</className>
-	<maxHealth>200</maxHealth>
-	<maxMana>100</maxMana>
+	<maxHealth>150</maxHealth>
+	<maxMana>75</maxMana>
 	<turnManaRegen>5</turnManaRegen>
-	<battleRegen>10</battleRegen>
-	<weapons count="3" projectiles="10">
-		<weapon>SWORD</weapon>
-		<weapon>BOW</weapon>
+	<battleManaRegen>10</battleManaRegen>
+	<poisonResist>0.2</poisonResist>
+	<battleRegen>15</battleRegen>
+	<weapons count="4" projectiles="0">
+		<weapon>HEAVY_MELEE_WEAPON_START_LIST</weapon> <!--List of starting weapons, so you don't always start with the same one-->
 	</weapons>
 	<spells count="2">
-		<spell>HEAL_SPELL_1</spell>
 	</spells>
-	<helmet>HELMET_1</helmet>
-	<chestplate>CHESTPLATE_1</chestplate>
-	<greaves>GREAVES_1</greaves>
-	<boots>BOOTS_1</boots>
+	<helmet>IRON_HELMET_1</helmet>
+	<chestplate>IRON_CHESTPLATE_1</chestplate>
+	<greaves>IRON_GREAVES_1</greaves>
+	<boots>IRON_BOOTS_1</boots>
+	<flatDamageModifier>3</flatDamageModifier>
+	<flatMagicDamageModifier>-3</flatMagicDamageModifier>
+</classBlueprint>
+
+<classBlueprint name="ROGUE">
+	<className>Rogue</className>
+	<maxHealth>125</maxHealth>
+	<maxMana>100</maxMana>
+	<turnManaRegen>10</turnManaRegen>
+	<battleManaRegen>20</battleManaRegen>
+	<battleRegen>10</battleRegen>
+	<weapons count="3" projectiles="15">
+		<weapon>DUAL_DAGGER</weapon>
+		<weapon>DUAL_DAGGER</weapon>
+		<weapon>DUAL_CROSSBOW</weapon>
+	</weapons>
+	<spells count="3">
+	</spells>
+	<helmet>LEATHER_HELMET_1</helmet>
+	<chestplate>LEATHER_CHESTPLATE_1</chestplate>
+	<greaves>LEATHER_GREAVES_1</greaves>
+	<boots>LEATHER_BOOTS_1</boots>
+	<flatDamageModifier>1</flatDamageModifier>
+	<evadeChance>0.2</evadeChance>
+	<counterAttackChance>0.2</counterAttackChance>
+	<bonusActions>2</bonusActions>
+	<initiative>15</initiative>
+</classBlueprint>
+
+<classBlueprint name="WIZARD">
+	<className>Wizard</className>
+	<maxHealth>150</maxHealth>
+	<maxMana>200</maxMana>
+	<turnManaRegen>15</turnManaRegen>
+	<battleManaRegen>30</battleManaRegen>
+	<battleRegen>10</battleRegen>
+	<weapons count="2" projectiles="0">
+		<weapon>STAFF_1</weapon>
+	</weapons>
+	<spells count="4">
+		<spell>WIZARD_SPELL_START_LIST</spell>
+		<spell>HEALING_SPELL_1</spell>
+		<spell>ARMOUR_SPELL</spell>
+	</spells>
+	<chestplate>ROBES_1</chestplate>
+	<flatMagicDamageModifier>3</flatMagicDamageModifier>
+	<bonusActions>2</bonusActions>
 </classBlueprint>
