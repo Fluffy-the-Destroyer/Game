@@ -10,7 +10,7 @@
 // 5: Balanced
 // 6: Defensive
 //
-// 7: Beserker, never casts spells-->
+// 7: Berserker, never casts spells-->
 
 <enemyBlueprint name="EMPTY">
 	<name></name> <!--In game name of the enemy-->

@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="adventures.cpp" />
     <ClCompile Include="armour.cpp" />
     <ClCompile Include="battle.cpp" />
     <ClCompile Include="blueprints.cpp" />
@@ -142,6 +143,7 @@
     <ClCompile Include="weapons.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="adventures.h" />
     <ClInclude Include="armour.h" />
     <ClInclude Include="battle.h" />
     <ClInclude Include="blueprints.h" />
@@ -156,6 +158,7 @@
     <ClInclude Include="weapons.h" />
   </ItemGroup>
   <ItemGroup>
+    <Xml Include="data\adventures.xml" />
     <Xml Include="data\armourBlueprints.xml" />
     <Xml Include="data\blueprintLists.xml" />
     <Xml Include="data\classBlueprints.xml" />

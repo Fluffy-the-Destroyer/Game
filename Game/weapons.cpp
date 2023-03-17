@@ -41,68 +41,123 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		if (!weaponBlueprints.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&weaponBlueprints, '<');
+		if (custom && weaponBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = "weaponBlueprintList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		//Check for list
 		{
 			bool noList = false; //Set if we do not find a list
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //For tracking number of entries in a list and then which one we have chosen
-			while (stringbuffer != blueprintName) { //Haven't found a list
-				stringbuffer = getTag(&weaponBlueprints);
-				ignoreLine(&weaponBlueprints);
-				if (weaponBlueprints.eof()) { //Reached end of file without finding list
-					weaponBlueprints.clear();
-					noList = true;
-					break;
-				}
-			}
-			if (!noList) {
-				filePos = weaponBlueprints.tellg();
-				do {
-					listCount++;
+			while (true) {
+				while (stringbuffer != blueprintName) { //Haven't found a list
 					stringbuffer = getTag(&weaponBlueprints);
 					ignoreLine(&weaponBlueprints);
-				} while (stringbuffer != "/weaponBlueprintList");
-				weaponBlueprints.clear();
-				if (listCount == 0) {
-					throw 5;
+					if (weaponBlueprints.eof()) { //Reached end of file without finding list
+						weaponBlueprints.clear();
+						noList = true;
+						break;
+					}
 				}
-				listCount = rng(1, listCount);
-				weaponBlueprints.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&weaponBlueprints);
+				if (!noList) {
+					filePos = weaponBlueprints.tellg();
+					do {
+						listCount++;
+						stringbuffer = getTag(&weaponBlueprints);
+						ignoreLine(&weaponBlueprints);
+					} while (stringbuffer != "/weaponBlueprintList");
+					weaponBlueprints.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					weaponBlueprints.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&weaponBlueprints);
+					}
+					if (getTag(&weaponBlueprints) != "name") {
+						throw 1;
+					}
+					blueprint = stringFromFile(&weaponBlueprints);
+					if (blueprint == "EMPTY") {
+						throw 3;
+					}
+					if (getTag(&weaponBlueprints) != "/name") {
+						throw 1;
+					}
 				}
-				if (getTag(&weaponBlueprints) != "name") {
-					throw 1;
+				else if (customFile) {
+					weaponBlueprints.close();
+					weaponBlueprints.open("data\\weaponBlueprints.xml");
+					if (!weaponBlueprints.is_open()) {
+						weaponBlueprints.open("custom\\weaponBlueprints.xml");
+						if (!weaponBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = false;
+					noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
 				}
-				blueprint = stringFromFile(&weaponBlueprints);
-				if (blueprint == "EMPTY") {
-					throw 3;
-				}
-				if (getTag(&weaponBlueprints) != "/name") {
-					throw 1;
+				break;
+			}
+		}
+		if (customFile != custom) {
+			weaponBlueprints.close();
+			weaponBlueprints.open("custom\\weaponBlueprints.xml");
+			if (!weaponBlueprints.is_open()) {
+				weaponBlueprints.open("data\\weaponBlueprints.xml");
+				if (!weaponBlueprints.is_open()) {
+					custom = false;
+					throw 4;
 				}
 			}
-			weaponBlueprints.seekg(0);
-			stringbuffer = "";
+			else {
+				customFile = true;
+			}
 		}
+		weaponBlueprints.seekg(0);
+		stringbuffer = "";
 		//Reset attributes to default values
 		real = true;
 		name = description = "";
 		weaponName = blueprint;
-		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChange = projectileChange = healthChange = 0;
+		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChange = projectileChange = healthChange = flatMagicDamageModifier = 0;
 		propDamage = propSelfDamage = 0;
 		hitCount = 1;
 		counterHits = poison = bleed = selfPoison = selfBleed = 0;
 		noEvade = noCounter = noCounterAttack = lifelink = dualWield = selfOverheal = targetOverheal = false;
 		upgrade = "EMPTY";
 		blueprintName = "weaponBlueprint name=\"" + blueprint + '\"';
-		while (stringbuffer != blueprintName) {
-			stringbuffer = getTag(&weaponBlueprints);
-			ignoreLine(&weaponBlueprints);
+		while (true) {
+			while (stringbuffer != blueprintName) {
+				stringbuffer = getTag(&weaponBlueprints);
+				ignoreLine(&weaponBlueprints);
+				if (weaponBlueprints.eof()) {
+					break;
+				}
+			}
 			if (weaponBlueprints.eof()) {
+				if (customFile) {
+					weaponBlueprints.close();
+					weaponBlueprints.open("data\\weaponBlueprints.xml");
+					if (!weaponBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		{
 			short charBuf = 0; //Using chars to store integers, so I can't extract them directly as they would extract as characters. Using this to buffer them
@@ -329,6 +384,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 				else if (stringbuffer == "upgrade") {
 					upgrade = stringFromFile(&weaponBlueprints);
 				}
+				else if (stringbuffer == "flatMagicDamageModifier") {
+					flatMagicDamageModifier = numFromFile(&weaponBlueprints);
+				}
 				else {
 					throw 1;
 				}
@@ -360,10 +418,6 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 			cout << "Unable to parse blueprint or blueprintList " << blueprint << ". Using default weapon.\n";
 			break;
 		case 2:
-			if (custom) {
-				loadFromFile(blueprint, false);
-				return;
-			}
 			cout << "No blueprint or blueprintList found with name " << blueprint << ". Using default weapon.\n";
 			break;
 		case 4:
@@ -631,6 +685,10 @@ void weapon::displayStats() {
 	//Self bleed
 	if (selfBleed > 0) {
 		cout << "Applies " << +selfBleed << " bleed to user on attack\n";
+	}
+	//Magic damage modifier
+	if (flatMagicDamageModifier != 0) {
+		cout << showpos << flatMagicDamageModifier << " magic damage dealt (passive effect)\n" << noshowpos;
 	}
 }
 

@@ -44,6 +44,10 @@ void resource::loadFromFile(std::string resource, bool custom) {
 		if (!misc.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&misc, '<');
+		if (custom && misc.eof()) {
+			throw 4;
+		}
 		std::string resourceName = "resourceBlueprint name=\"" + resource + '\"';
 		while (buffer != resourceName) {
 			buffer = getTag(&misc);

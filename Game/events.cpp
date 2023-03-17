@@ -49,58 +49,112 @@ void Event::loadFromFile(string blueprint, bool custom) {
 		if (!events.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&events, '<');
+		if (custom && events.eof()) {
+			throw 4;
+		}
 		string blueprintName = "eventList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		{
 			bool noList = false;
 			streampos filePos = 0;
 			short listCount = -1;
+			while (true) {
+				while (buffer != blueprintName) {
+					buffer = getTag(&events);
+					ignoreLine(&events);
+					if (events.eof()) {
+						events.clear();
+						noList = true;
+						break;
+					}
+				}
+				if (!noList) {
+					filePos = events.tellg();
+					blueprintName = "/eventList";
+					do {
+						listCount++;
+						buffer = getTag(&events);
+						ignoreLine(&events);
+					} while (buffer != blueprintName);
+					events.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					events.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&events);
+					}
+					if (getTag(&events) != "name") {
+						throw 1;
+					}
+					blueprint = stringFromFile(&events);
+					if (blueprint == "EMPTY") {
+						throw 3;
+					}
+					if (getTag(&events) != "/name") {
+						throw 1;
+					}
+				}
+				else if (customFile) {
+					events.close();
+					events.open("data\\events.xml");
+					if (!events.is_open()) {
+						events.open("custom\\events.xml");
+						if (!events.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
+				}
+				break;
+			}
+		}
+		if (customFile != custom) {
+			events.close();
+			events.open("custom\\events.xml");
+			if (!events.is_open()) {
+				events.open("data\\events.xml");
+				if (!events.is_open()) {
+					custom = false;
+					throw 4;
+				}
+			}
+			else {
+				customFile = true;
+			}
+		}
+		events.seekg(0);
+		buffer = "";
+		blueprintName = "event name=\"" + blueprint + '\"';
+		while (true) {
 			while (buffer != blueprintName) {
 				buffer = getTag(&events);
 				ignoreLine(&events);
 				if (events.eof()) {
-					events.clear();
-					noList = true;
 					break;
 				}
 			}
-			if (!noList) {
-				filePos = events.tellg();
-				blueprintName = "/eventList";
-				do {
-					listCount++;
-					buffer = getTag(&events);
-					ignoreLine(&events);
-				} while (buffer != blueprintName);
-				events.clear();
-				if (listCount == 0) {
-					throw 5;
-				}
-				listCount = rng(1, listCount);
-				events.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&events);
-				}
-				if (getTag(&events) != "name") {
-					throw 1;
-				}
-				blueprint = stringFromFile(&events);
-				if (blueprint == "EMPTY") {
-					throw 3;
-				}
-				if (getTag(&events) != "/name") {
-					throw 1;
-				}
-			}
-			events.seekg(0);
-			buffer = "";
-		}
-		blueprintName = "event name=\"" + blueprint + '\"';
-		while (buffer != blueprintName) {
-			buffer = getTag(&events);
-			ignoreLine(&events);
 			if (events.eof()) {
+				if (customFile) {
+					events.close();
+					events.open("data\\events.xml");
+					if (!events.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		blueprintName = "/event";
 		buffer = getTag(&events);
@@ -352,10 +406,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 			cout << "Unable to parse event or eventList " << blueprint << '\n';
 			break;
 		case 2:
-			if (custom) {
-				loadFromFile(blueprint, false);
-				return;
-			}
 			cout << "No event or eventList found with name " << blueprint << '\n';
 			break;
 		case 4:

@@ -56,52 +56,90 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		if (!armourBlueprints.is_open()) { //Could not open file
 			throw 4;
 		}
+		ignoreLine(&armourBlueprints, '<');
+		if (custom && armourBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = type + "BlueprintList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		//Check for a blueprint list
 		{
 			bool noList = false; //Set when end of file is reached without finding a list
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //Number of items in a list, initialising to -1 to streamline later code, also using to store which entry we have chosen
-			while (stringbuffer != blueprintName) { //Haven't found a list
-				stringbuffer = getTag(&armourBlueprints);
-				ignoreLine(&armourBlueprints);
-				if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
-					armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
-					noList = true;
-					break;
-				}
-			}
-			if (!noList) { //Found a list, position in the file is start of line containing first item in list
-				filePos = armourBlueprints.tellg(); //Store file position
-				blueprintName = '/' + type + "BlueprintList";
-				do {
-					listCount++;
+			while (true) {
+				while (stringbuffer != blueprintName) { //Haven't found a list
 					stringbuffer = getTag(&armourBlueprints);
 					ignoreLine(&armourBlueprints);
-				} while (stringbuffer != blueprintName);
-				armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
-				if (listCount == 0) { //Empty list
-					throw 5;
+					if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
+						armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
+						noList = true;
+						break;
+					}
 				}
-				listCount = rng(1, listCount); //Pick a random entry in the list
-				armourBlueprints.seekg(filePos); //Go back to start of first entry
-				for (int i = 1; i < listCount; i++) { //Ignore lines up to the one we picked
-					ignoreLine(&armourBlueprints);
+				if (!noList) { //Found a list, position in the file is start of line containing first item in list
+					filePos = armourBlueprints.tellg(); //Store file position
+					blueprintName = '/' + type + "BlueprintList";
+					do {
+						listCount++;
+						stringbuffer = getTag(&armourBlueprints);
+						ignoreLine(&armourBlueprints);
+					} while (stringbuffer != blueprintName);
+					armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
+					if (listCount == 0) { //Empty list
+						throw 5;
+					}
+					listCount = rng(1, listCount); //Pick a random entry in the list
+					armourBlueprints.seekg(filePos); //Go back to start of first entry
+					for (int i = 1; i < listCount; i++) { //Ignore lines up to the one we picked
+						ignoreLine(&armourBlueprints);
+					}
+					if (getTag(&armourBlueprints) != "name") { //It should be this
+						throw 1;
+					}
+					blueprint = stringFromFile(&armourBlueprints);
+					if (blueprint == "EMPTY") { //Selected entry is the empty slot
+						throw 3;
+					}
+					if (getTag(&armourBlueprints) != "/name") {
+						throw 1;
+					}
 				}
-				if (getTag(&armourBlueprints) != "name") { //It should be this
-					throw 1;
+				else if (customFile) {
+					armourBlueprints.close();
+					armourBlueprints.open("data\\armourBlueprints.xml");
+					if (!armourBlueprints.is_open()) {
+						armourBlueprints.open("custom\\armourBlueprints.xml");
+						if (!armourBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
 				}
-				blueprint = stringFromFile(&armourBlueprints);
-				if (blueprint == "EMPTY") { //Selected entry is the empty slot
-					throw 3;
-				}
-				if (getTag(&armourBlueprints) != "/name") {
-					throw 1;
+				break;
+			}
+		}
+		if (customFile != custom) {
+			armourBlueprints.close();
+			armourBlueprints.open("custom\\armourBlueprints.xml");
+			if (!armourBlueprints.is_open()) {
+				armourBlueprints.open("data\\armourBlueprints.xml");
+				if (!armourBlueprints.is_open()) {
+					custom = false;
+					throw 4;
 				}
 			}
-			armourBlueprints.seekg(0); //Go back to beginning of file
-			stringbuffer = "";
+			else {
+				customFile = true;
+			}
 		}
+		armourBlueprints.seekg(0); //Go back to beginning of file
+		stringbuffer = "";
 		//Reset attributes to default values
 		real = true;
 		armourName = blueprint;
@@ -111,12 +149,28 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		upgrade = "EMPTY";
 		//Find and read actual blueprint
 		blueprintName = type + "Blueprint name=\"" + blueprint + '\"';
-		while (stringbuffer != blueprintName) { //Haven't found a blueprint
-			stringbuffer = getTag(&armourBlueprints);
-			ignoreLine(&armourBlueprints);
-			if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
+		while (true) {
+			while (stringbuffer != blueprintName) { //Haven't found a blueprint
+				stringbuffer = getTag(&armourBlueprints);
+				ignoreLine(&armourBlueprints);
+				if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
+					break;
+				}
+			}
+			if (armourBlueprints.eof()) {
+				if (customFile) {
+					armourBlueprints.close();
+					armourBlueprints.open("data\\armourBlueprints.xml");
+					if (!armourBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		blueprintName = '/' + type + "Blueprint";
 		stringbuffer = getTag(&armourBlueprints); //Get the tag
@@ -251,10 +305,6 @@ void armour::loadFromFile(string blueprint, bool custom) {
 			cout << "Unable to parse blueprint or blueprintList " << blueprint << ". Using default armour.\n";
 			break;
 		case 2:
-			if (custom) {
-				loadFromFile(blueprint, false);
-				return;
-			}
 			cout << "No blueprint or blueprintList found with name " << blueprint << ". Using default armour.\n";
 			break;
 		case 4:

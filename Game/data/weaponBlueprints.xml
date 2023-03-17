@@ -40,6 +40,7 @@
 	<selfOverheal/><!--Allows it to overheal attacker, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
 	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->
+	<flatMagicDamageModifier>0</flatMagicDamageModifier><!--Modifies the wielder's flat magic damage. Only applies to player. Passive effect for having the weapon equipped-->
 </weaponBlueprint>
 
 <weaponBlueprintList name="HEAVY_MELEE_WEAPON_START_LIST">
@@ -90,4 +91,5 @@
 	<flatDamageMin>5</flatDamageMin>
 	<flatDamageMax>10</flatDamageMax>
 	<noCounter/>
+	<flatMagicDamageModifier>5</flatMagicDamageModifier>
 </weaponBlueprint>

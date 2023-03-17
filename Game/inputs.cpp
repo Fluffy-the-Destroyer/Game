@@ -26,13 +26,10 @@ void ignoreLine() {
 	std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 void ignoreLine(std::istream* stream, char end) {
+	char nextChar;
 	while (!stream->eof()) {
-		switch (stream->peek()) {
-		case '\n': //Reached end of line, not in a comment
-			stream->ignore(1);
-			return;
-		case '<': //Might be in a comment, check and if so, skip to end
-			stream->ignore(1);
+		nextChar = stream->get();
+		if (nextChar == '<') {
 			if (stream->peek() == '!') {
 				stream->ignore(1);
 				if (stream->peek() == '-') {
@@ -40,12 +37,19 @@ void ignoreLine(std::istream* stream, char end) {
 					if (stream->peek() == '-') {
 						stream->ignore(1);
 						endComment(stream);
+						continue;
+					}
+					else {
+						stream->seekg(-2, std::ios_base::cur);
 					}
 				}
+				else {
+					stream->seekg(-1, std::ios_base::cur);
+				}
 			}
-			break;
-		default:
-			stream->ignore(1);
+		}
+		if (nextChar == end) {
+			return;
 		}
 	}
 }
@@ -164,34 +168,114 @@ float floatFromFile(std::istream* stream) {
 	}
 	return floatFromString(&buffer1);
 }
-std::string stringFromFile(std::istream* stream) {
-	std::string buffer1, buffer2;
+std::string stringFromFile(std::istream* stream, char end) {
+	std::string buffer1;
+	char charBuffer;
+	bool esc = false;
 	while (true) {
-		getline(*stream, buffer2, '<');
-		buffer1 += buffer2;
-		if (stream->peek() == '!') {
+		charBuffer = stream->get();
+		if (stream->eof()) {
+			throw 1;
+		}
+		if (charBuffer == '&') { //Escape character
+			esc = true;
+			charBuffer = stream->get();
+			switch (charBuffer) {
+			case 'a': //&: &amp or ': &apos
+				if (stream->peek() == 'm') { //&amp
+					stream->ignore(1);
+					if (stream->peek() == 'p') {
+						stream->ignore(1);
+						charBuffer = '&';
+						break;
+					}
+				}
+				else if (stream->peek() == 'p') { //&apos
+					stream->ignore(1);
+					if (stream->peek() == 'o') {
+						stream->ignore(1);
+						if (stream->peek() == 's') {
+							stream->ignore(1);
+							charBuffer = '\'';
+							break;
+						}
+					}
+				}
+				throw 1;
+			case 'g': //>: &gt
+				if (stream->peek() == 't') {
+					stream->ignore();
+					charBuffer = '>';
+					break;
+				}
+				throw 1;
+			case 'l': //<: &lt
+				if (stream->peek() == 't') {
+					stream->ignore(1);
+					charBuffer = '<';
+					break;
+				}
+				throw 1;
+			case 'n': //\n: &nl, not a standard xml escape character, adding it specifically for this
+				if (stream->peek() == 'l') {
+					stream->ignore(1);
+					charBuffer = '\n';
+					break;
+				}
+				throw 1;
+			case 'q': //": &quot
+				if (stream->peek() == 'u') {
+					stream->ignore(1);
+					if (stream->peek() == 'o') {
+						stream->ignore(1);
+						if (stream->peek() == 't') {
+							stream->ignore(1);
+							charBuffer = '\"';
+							break;
+						}
+					}
+				}
+				throw 1;
+			default:
+				throw 1;
+			}
+			if (stream->peek() != ';') {
+				throw 1;
+			}
 			stream->ignore(1);
-			if (stream->peek() == '-') {
+		}
+		else if (charBuffer == '<') { //Check for comment, if it is one, skip to the end, if not, go to before it and return
+			if (stream->peek() == '!') {
 				stream->ignore(1);
 				if (stream->peek() == '-') {
 					stream->ignore(1);
-					endComment(stream);
-					continue;
+					if (stream->peek() == '-') {
+						stream->ignore(1);
+						endComment(stream);
+						continue;
+					}
+					else {
+						stream->seekg(-3, std::ios_base::cur);
+					}
 				}
 				else {
-					stream->seekg(-3, std::ios_base::cur);
+					stream->seekg(-2, std::ios_base::cur);
 				}
 			}
 			else {
-				stream->seekg(-2, std::ios_base::cur);
+				stream->seekg(-1, std::ios_base::cur);
 			}
+			return buffer1;
 		}
-		else {
-			stream->seekg(-1, std::ios_base::cur);
+		if (charBuffer == end) {
+			if (!esc) {
+				stream->seekg(-1, std::ios_base::cur);
+			}
+			return buffer1;
 		}
-		break;
+		buffer1 += charBuffer;
+		esc = false;
 	}
-	return buffer1;
 }
 
 void endComment(std::istream* stream) {
@@ -414,7 +498,7 @@ int numFromString(std::string* in, player* playerCharacter) {
 			in->erase(0, 32);
 			value = playerCharacter->getFlatArmourPiercingDamageModifier();
 		}
-		else if (in->substr(0, 32) == "propArmourPiercingDamageModifer") {
+		else if (in->substr(0, 32) == "propArmourPiercingDamageModifier") {
 			in->erase(0, 32);
 			value = static_cast<int>(100 * playerCharacter->getPropArmourPiercingDamageModifier());
 		}
@@ -562,4 +646,42 @@ short userChoice(std::vector<short> choices) {
 		ignoreLine();
 		std::cout << "Please enter one of the specified values:\n";
 	}
+}
+
+std::string removeEscapes(std::string in) {
+	std::string out;
+	while (!in.empty()) {
+		if (in.substr(0, 5) == "&amp;") {
+			out += '&';
+			in.erase(0, 5);
+		}
+		else if (in.substr(0, 6) == "&apos;") {
+			out += '\'';
+			in.erase(0, 6);
+		}
+		else if (in.substr(0, 4) == "&gt;") {
+			out += '>';
+			in.erase(0, 4);
+		}
+		else if (in.substr(0, 4) == "&lt;") {
+			out += '<';
+			in.erase(0, 4);
+		}
+		else if (in.substr(0, 4) == "&nl;") {
+			out += '\n';
+			in.erase(0, 4);
+		}
+		else if (in.substr(0, 6) == "&quot;") {
+			out += '\"';
+			in.erase(0, 6);
+		}
+		else if (in[0] == '&') {
+			throw 1;
+		}
+		else {
+			out += in[0];
+			in.erase(0, 1);
+		}
+	}
+	return out;
 }

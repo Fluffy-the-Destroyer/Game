@@ -20,7 +20,7 @@
 // 5: Balanced
 // 6: Defensive
 // 
-// 7: Beserker, never casts spells
+// 7: Berserker, never casts spells
 
 extern bool g_useCustomData;
 

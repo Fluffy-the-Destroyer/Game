@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include "player.h"
+#include "adventures.h"
 
 class variable {
 private:
@@ -11,7 +12,7 @@ private:
 	friend class variables;
 public:
 	variable(std::string n = "", short v = 0) :name(n), value(v) {}
-	friend void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
+	friend void adventure::save();
 };
 
 class variables {
@@ -27,11 +28,13 @@ public:
 	void operator+=(const variables& varChanges);
 	//Deletes all the variables
 	void reset();
-	friend void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
+	friend void adventure::save();
 };
 
 //Interprets cond as a condition
 bool evalCond(std::string cond, player* playerCharacter);
+//Moves to end of brackets, returns what it skipped
+std::string endBracket(std::string* cond);
 //Reads and executes a line of code. Returns 1 if victory, 2 if defeat, 3 if break, 4 if continue, 0 if going to next line. 5 if saving, not allowed inside a while loop
 unsigned char doLine(std::ifstream* file, player* playerCharacter);
 //Moves to end of if statement, or to an else (if) statement
@@ -40,5 +43,7 @@ void endIf(std::ifstream* file, player* playerCharacter, bool newCond = false);
 void endWhile(std::ifstream* file);
 //Modifies var according to operation
 void modifyVar(std::string var, std::string operation, player* playerCharacter);
-//Saves the game
-void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
+//Modifies variable according to operation, has no reference to player
+void modifyVar(std::string var, std::string operation);
+//Checks if there is a save in specified slot
+bool checkSaveSlot(unsigned char slot);

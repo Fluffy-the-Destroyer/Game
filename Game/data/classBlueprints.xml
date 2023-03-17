@@ -76,6 +76,14 @@
 	<upgradePoints>0</upgradePoints><!--Gives the player this many upgrade points, which can each be used to upgrade a piece of gear-->
 </levelBlueprint>
 
+<!--List of playable classes when an adventure doesn't specify options.-->
+<classList name="GLOBAL">
+	<!--<class name="Name of class as displayed in game" blueprint="BLUEPRINT_NAME">A short description of the class</class>-->
+	<class name="Warrior" blueprint="WARRIOR">A proud warrior. Starts with full plate armour and a two handed weapon.</class>
+	<class name="Rogue" blueprint="ROGUE">An agile rogue. They favour lighter weapons and armour.</class>
+	<class name="Mage" blueprint="MAGE">A mage skilled in the magical arts. They have a variety of spells at their disposal.</class>
+</classList>
+
 <classBlueprint name="WARRIOR">
 	<className>Warrior</className>
 	<maxHealth>150</maxHealth>
@@ -122,8 +130,8 @@
 	<initiative>15</initiative>
 </classBlueprint>
 
-<classBlueprint name="WIZARD">
-	<className>Wizard</className>
+<classBlueprint name="MAGE">
+	<className>Mage</className>
 	<maxHealth>150</maxHealth>
 	<maxMana>200</maxMana>
 	<turnManaRegen>15</turnManaRegen>

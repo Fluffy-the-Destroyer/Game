@@ -9,7 +9,7 @@ using namespace std;
 // 1: Bad XML
 // 2: Specified blueprint or list not found
 // 3: Loading empty slot
-// 4: Unable to oopen blueprint file
+// 4: Unable to open blueprint file
 // 5: Empty blueprint list
 
 extern resource g_projName, g_manaName;
@@ -41,54 +41,92 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		if (!spellBlueprints.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&spellBlueprints, '<');
+		if (custom && spellBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = "spellBlueprintList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		//Check for a list
 		{
 			bool noList = false; //Set if we do not find a list
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //Number of items in list, also holding which one we have picked
-			while (stringbuffer != blueprintName) {
-				stringbuffer = getTag(&spellBlueprints);
-				ignoreLine(&spellBlueprints);
-				if (spellBlueprints.eof()) {
-					spellBlueprints.clear();
-					noList = true;
-					break;
-				}
-			}
-			if (!noList) {
-				filePos = spellBlueprints.tellg();
-				do {
-					if (spellBlueprints.eof()) {
-						throw 1;
-					}
-					listCount++;
+			while (true) {
+				while (stringbuffer != blueprintName) {
 					stringbuffer = getTag(&spellBlueprints);
 					ignoreLine(&spellBlueprints);
-				} while (stringbuffer != "/spellBlueprintList");
-				spellBlueprints.clear();
-				if (listCount == 0) {
-					throw 5;
+					if (spellBlueprints.eof()) {
+						spellBlueprints.clear();
+						noList = true;
+						break;
+					}
 				}
-				listCount = rng(1, listCount);
-				spellBlueprints.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&spellBlueprints);
+				if (!noList) {
+					filePos = spellBlueprints.tellg();
+					do {
+						if (spellBlueprints.eof()) {
+							throw 1;
+						}
+						listCount++;
+						stringbuffer = getTag(&spellBlueprints);
+						ignoreLine(&spellBlueprints);
+					} while (stringbuffer != "/spellBlueprintList");
+					spellBlueprints.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					spellBlueprints.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&spellBlueprints);
+					}
+					if (getTag(&spellBlueprints) != "name") {
+						throw 1;
+					}
+					blueprint = stringFromFile(&spellBlueprints);
+					if (blueprint == "EMPTY") {
+						throw 3;
+					}
+					if (getTag(&spellBlueprints) != "/name") {
+						throw 1;
+					}
 				}
-				if (getTag(&spellBlueprints) != "name") {
-					throw 1;
+				else if (customFile) {
+					spellBlueprints.close();
+					spellBlueprints.open("data\\spellBlueprints.xml");
+					if (!spellBlueprints.is_open()) {
+						spellBlueprints.open("custom\\spellBlueprints.xml");
+						if (!spellBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
 				}
-				blueprint = stringFromFile(&spellBlueprints);
-				if (blueprint == "EMPTY") {
-					throw 3;
-				}
-				if (getTag(&spellBlueprints) != "/name") {
-					throw 1;
+				break;
+			}
+		}
+		if (customFile != custom) {
+			spellBlueprints.close();
+			spellBlueprints.open("custom\\spellBlueprints.xml");
+			if (!spellBlueprints.is_open()) {
+				spellBlueprints.open("data\\spellBlueprints.xml");
+				if (!spellBlueprints.is_open()) {
+					custom = false;
+					throw 4;
 				}
 			}
-			spellBlueprints.seekg(0);
-			stringbuffer = "";
+			else {
+				customFile = true;
+			}
 		}
+		spellBlueprints.seekg(0);
+		stringbuffer = "";
 		//Reset attributes to default values
 		real = true;
 		spellName = blueprint;
@@ -101,12 +139,28 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		upgrade = "EMPTY";
 		blueprintName = "spellBlueprint name=\"" + blueprint + '\"';
 		//Read blueprint
-		while (stringbuffer != blueprintName) {
-			stringbuffer = getTag(&spellBlueprints);
-			ignoreLine(&spellBlueprints);
+		while (true) {
+			while (stringbuffer != blueprintName) {
+				stringbuffer = getTag(&spellBlueprints);
+				ignoreLine(&spellBlueprints);
+				if (spellBlueprints.eof()) {
+					break;
+				}
+			}
 			if (spellBlueprints.eof()) {
+				if (customFile) {
+					spellBlueprints.close();
+					spellBlueprints.open("data\\spellBlueprints.xml");
+					if (!spellBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		stringbuffer = getTag(&spellBlueprints);
 		while (stringbuffer != "/spellBlueprint") {
@@ -586,10 +640,6 @@ void spell::loadFromFile(string blueprint, bool custom) {
 			cout << "Unable to parse blueprint or blueprintList " << blueprint << "\n";
 			break;
 		case 2:
-			if (custom) {
-				loadFromFile(blueprint, false);
-				return;
-			}
 			cout << "No blueprint or blueprintList found with name " << blueprint << '\n';
 			break;
 		case 4:
@@ -1002,7 +1052,7 @@ void spell::displayStats() {
 		cout << "Target gets +" << constRegenModifierEnemy << " health per turn, (applied on hit)\n";
 	}
 	else if (constRegenModifierEnemy < 0) {
-		cout << "Target gets " << constRegenModifierEnemy << " health per turn, (applpied on hit)\n";
+		cout << "Target gets " << constRegenModifierEnemy << " health per turn, (applied on hit)\n";
 	}
 	//Regen
 	if (constRegenModifier > 0) {

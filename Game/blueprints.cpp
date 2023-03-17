@@ -77,6 +77,10 @@ unsigned char blueprintListSelector(string* blueprint, bool custom) {
 		if (!blueprintLists.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&blueprintLists, '<');
+		if (custom && blueprintLists.eof()) {
+			throw 4;
+		}
 		string blueprintName = "blueprintList name=\"" + *blueprint + '\"';
 		streampos filePos = 0;
 		short listCount = -1;

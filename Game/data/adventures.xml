@@ -1,0 +1,16 @@
+<!--List of available adventures-->
+
+<adventureList>
+	<!--<adventure name="Adventure name displayed during selection" blueprint="BLUEPRINT_NAME">A brief description of the adventure, displayed during selection</adventure>-->
+	<adventure name="Adventure 1" blueprint="ADVENTURE_1">An adventure I have yet to create</adventure>
+</adventureList>
+
+<adventureBlueprint name="EMPTY">
+	<name></name><!--The name of the adventure-->
+	<description></description><!--A short description of the adventure, displayed during selection-->
+	<forceCustom/><!--If present, the adventure requires custom data to be enabled, otherwise player may choose-->
+	<file></file><!--The name of the file containing the adventure, this should be placed in data/adventures-->
+	<classes><!--What classes the player may choose, if this is absent, there is no restriction on the player's choice-->
+		<class name="Name of class as displayed in game" blueprint="BLUEPRINT_NAME">A short description of the class</class>
+	</classes>
+</adventureBlueprint>

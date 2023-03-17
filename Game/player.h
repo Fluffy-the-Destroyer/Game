@@ -49,7 +49,7 @@ private:
 	armourLegs greaves; //Currently equipped legwear
 	armourFeet boots; //Currently equipped footwear
 	short flatDamageModifierBase = 0; //Base value
-	short flatDamageModifier = 0; //Flat damage modifer, only modifies flat damage. Apllies to damage dealt by player
+	short flatDamageModifier = 0; //Flat damage modifier, only modifies flat damage. Applies to damage dealt by player
 	float propDamageModifierBase = 0;
 	float propDamageModifier = 0; //Proportional damage modifier. This is the increase. Must be at least -1, which would be no damage dealt
 	short flatMagicDamageModifierBase = 0;
@@ -65,7 +65,7 @@ private:
 	float counterAttackChanceBase = 0.1f; //Chance to counter attack
 	float counterAttackChance = 0;
 	signed char bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
-	signed char currentBonusActions = 1; //How manybonus actions remain this turn
+	signed char currentBonusActions = 1; //How many bonus actions remain this turn
 	signed char bonusActions = 1;
 	short initiativeBase = 10;
 	short initiative = 10;
@@ -252,7 +252,7 @@ public: //Not providing set functions, as these values should not usually be set
 	int getMaxXp() { return maxXp; }
 	short getLevel() { return level; }
 	//Constructor, loads from file
-	player(std::string playerClass) { loadClass(playerClass); }
+	//player(std::string playerClass) { loadClass(playerClass); }
 	//Constructor with no class
 	player(){}
 	//Initialises the player from file as a specific class
@@ -263,7 +263,6 @@ public: //Not providing set functions, as these values should not usually be set
 	void showInventory();
 	//For end of battle, applies battle regens, removes status effects and recalculates modifiers
 	void reset();
-	friend void save(std::ifstream* file, player* playerCharacter, std::string filePath, unsigned char slot);
 	//Gets the player to choose an action. Returns 0 for no action, 1 for a weapon, 2 for a spell, 3 for dual wield. Timing 0 is normal, 1 is responding to weapon, 2 responding to spell, 3 is counter attacking. Timing 4 is responding to dual attack. itemName holds the name(s) of weapon/spell being responded to. Stores slots of selected weapon/spell in slot1 and slot2
 	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, std::string enemyName, const unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "");
 	//Applies modifiers to damage
@@ -276,7 +275,7 @@ public: //Not providing set functions, as these values should not usually be set
 	void levelUp();
 	//Allows the player to use stat points, if upgradeNum is negative, player must downgrade that many stats
 	void upgradeStats(short upgradeNum = 1);
-	//Modifies the specified base stat
+	//To allow events to modify base stats
 	friend class Event;
 };
 

@@ -42,6 +42,7 @@ private:
 	bool selfOverheal; //Can it overheal wielder
 	bool targetOverheal;
 	std::string upgrade; //The blueprint name of the upgraded version
+	short flatMagicDamageModifier; //Modifies wielder's flatMagicDamageModifier, intended for magic staffs
 public:
 	//Loads weapon from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
@@ -88,6 +89,7 @@ public:
 	unsigned char getEffectType() { return effectType; }
 	bool getSelfOverheal() { return selfOverheal; }
 	bool getTargetOverheal() { return targetOverheal; }
+	short getFlatMagicDamageModifier() { return flatMagicDamageModifier; }
 	//Displays weapon stats
 	void displayStats();
 	//Displays name and cost, for use in battle

@@ -12,7 +12,7 @@ private:
 	short healthChange = 0; //Damage dealt to player when picking the choice, can be picked even if it would kill the player
 	short manaChange = 0; //Change in mana when picking the choice, if negative, usually cannot be chosen if the player does not have enough
 	short projectileChange = 0; //The change in projectiles when picking, if negative, usually cannot be chosen if the player does not have enough
-	std::string req = ""; //Requirement on variables for the choice to appear
+	std::string req = "true"; //Requirement on variables for the choice to appear
 	bool hidden = false; //If true, player cannot see any costs/benefits from picking it. Also, can be chosen when unaffordable, and will simply take all of the resource
 	std::string eventName = "EMPTY"; //The event which the choice loads, if it's EMPTY, the choice does not load an event
 	friend class Event;

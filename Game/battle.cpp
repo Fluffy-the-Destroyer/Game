@@ -1273,7 +1273,7 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
 		if (magic->getFlatArmourModifierEnemy() != 0) {
 			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+			cout << magic->getFlatArmourModifierEnemy() << " physical armour, ";
 		}
 		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
 			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
@@ -1462,7 +1462,7 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
 		if (magic->getFlatArmourModifierEnemy() != 0) {
 			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+			cout << magic->getFlatArmourModifierEnemy() << " physical armour, ";
 		}
 		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
 			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());
@@ -1641,7 +1641,7 @@ void spellHit(spell* magic, player* target) {
 	if (magic->getFlatArmourModifierEnemy() != 0 || magic->getFlatMagicArmourModifierEnemy() != 0) {
 		if (magic->getFlatArmourModifierEnemy() != 0) {
 			target->modifyFlatArmour(magic->getFlatArmourModifierEnemy());
-			cout << magic->getFlatArmourModifierEnemy() << " physicla armour, ";
+			cout << magic->getFlatArmourModifierEnemy() << " physical armour, ";
 		}
 		if (magic->getFlatMagicArmourModifierEnemy() != 0) {
 			target->modifyFlatMagicArmour(magic->getFlatMagicArmourModifierEnemy());

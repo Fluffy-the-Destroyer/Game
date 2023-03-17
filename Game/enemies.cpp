@@ -10,7 +10,7 @@ using namespace std;
 // 3: Loading empty enemy
 // 4: Unable to open file
 // 5: Empty list
-// 6: Ateempting to access slot out of range
+// 6: Attempting to access slot out of range
 
 short enemy::flatDamage(short p, short m, short a, bool overheal) {
 	if (p > 0) { //Apply physical armour
@@ -466,53 +466,91 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		if (!enemyBlueprints.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&enemyBlueprints, '<');
+		if (custom && enemyBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = "enemyBlueprintList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		{
 			bool noList = false;
 			streampos filePos = 0;
 			short listCount = -1;
-			while (buffer != blueprintName) {
-				buffer = getTag(&enemyBlueprints);
-				ignoreLine(&enemyBlueprints);
-				if (enemyBlueprints.eof()) {
-					enemyBlueprints.clear();
-					noList = true;
-					break;
-				}
-			}
-			if (!noList) {
-				filePos = enemyBlueprints.tellg();
-				do {
-					if (enemyBlueprints.eof()) {
-						throw 1;
-					}
-					listCount++;
+			while (true) {
+				while (buffer != blueprintName) {
 					buffer = getTag(&enemyBlueprints);
 					ignoreLine(&enemyBlueprints);
-				} while (buffer != "/enemyBlueprintList");
-				enemyBlueprints.clear();
-				if (listCount == 0) {
-					throw 5;
+					if (enemyBlueprints.eof()) {
+						enemyBlueprints.clear();
+						noList = true;
+						break;
+					}
 				}
-				listCount = rng(1, listCount);
-				enemyBlueprints.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&enemyBlueprints);
+				if (!noList) {
+					filePos = enemyBlueprints.tellg();
+					do {
+						if (enemyBlueprints.eof()) {
+							throw 1;
+						}
+						listCount++;
+						buffer = getTag(&enemyBlueprints);
+						ignoreLine(&enemyBlueprints);
+					} while (buffer != "/enemyBlueprintList");
+					enemyBlueprints.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					enemyBlueprints.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&enemyBlueprints);
+					}
+					if (getTag(&enemyBlueprints) != "name") {
+						throw 1;
+					}
+					blueprint = stringFromFile(&enemyBlueprints);
+					if (getTag(&enemyBlueprints) != "/name") {
+						throw 1;
+					}
+					if (blueprint == "EMPTY") {
+						throw 3;
+					}
 				}
-				if (getTag(&enemyBlueprints) != "name") {
-					throw 1;
+				else if (customFile) {
+					enemyBlueprints.close();
+					enemyBlueprints.open("data\\enemyBlueprints.xml");
+					if (!enemyBlueprints.is_open()) {
+						enemyBlueprints.open("custom\\enemyBlueprints.xml");
+						if (!enemyBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
 				}
-				blueprint = stringFromFile(&enemyBlueprints);
-				if (getTag(&enemyBlueprints) != "/name") {
-					throw 1;
-				}
-				if (blueprint == "EMPTY") {
-					throw 3;
+				break;
+			}
+		}
+		if (customFile != custom) {
+			enemyBlueprints.close();
+			enemyBlueprints.open("custom\\enemyBlueprints.xml");
+			if (!enemyBlueprints.is_open()) {
+				enemyBlueprints.open("data\\enemyBlueprints.xml");
+				if (!enemyBlueprints.is_open()) {
+					custom = false;
+					throw 4;
 				}
 			}
-			enemyBlueprints.seekg(0);
-			buffer = "";
+			else {
+				customFile = true;
+			}
 		}
+		enemyBlueprints.seekg(0);
+		buffer = "";
 		real = true;
 		name = introduction = "";
 		maxHealth = projectiles = maxMana = turnManaRegen = constRegen = flatArmour = flatMagicArmour = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = 0;
@@ -528,12 +566,28 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		noCounterWeapons.resize(0);
 		noCounterSpells.resize(0);
 		blueprintName = "enemyBlueprint name=\"" + blueprint + '\"';
-		while (buffer != blueprintName) {
-			buffer = getTag(&enemyBlueprints);
-			ignoreLine(&enemyBlueprints);
+		while (true) {
+			while (buffer != blueprintName) {
+				buffer = getTag(&enemyBlueprints);
+				ignoreLine(&enemyBlueprints);
+				if (enemyBlueprints.eof()) {
+					break;
+				}
+			}
 			if (enemyBlueprints.eof()) {
+				if (customFile) {
+					enemyBlueprints.close();
+					enemyBlueprints.open("data\\enemyBlueprints.xml");
+					if (!enemyBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		buffer = getTag(&enemyBlueprints);
 		while (buffer != "/enemyBlueprint") {
@@ -776,10 +830,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 			cout << "Unable to parse enemy or list " << blueprint << '\n';
 			break;
 		case 2:
-			if (custom) {
-				loadFromFile(blueprint, false);
-				return;
-			}
 			cout << "Unable to find blueprint or list " << blueprint << '\n';
 			break;
 		case 4:
@@ -1285,7 +1335,7 @@ unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, un
 			return 0;
 		}
 		break;
-	case 7: //Melee beserker
+	case 7: //Melee berserker
 		switch (timing) {
 		case 0:
 			switch (chooseWeapon(slot1, slot2)) {
@@ -1689,7 +1739,7 @@ unsigned char enemy::chooseSuicide(unsigned char* selection1, unsigned char* sel
 			return 2;
 		}
 		return 0;
-	case 7: //Melee beserker
+	case 7: //Melee berserker
 		if (chooseWeapon(selection1, selection2, 0, true)) { //Check for weapon
 			return 1;
 		}

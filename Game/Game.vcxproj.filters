@@ -54,6 +54,9 @@
     <ClCompile Include="battle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="adventures.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="weapons.h">
@@ -92,6 +95,9 @@
     <ClInclude Include="player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="adventures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="data\armourBlueprints.xml" />
@@ -102,5 +108,6 @@
     <Xml Include="data\misc.xml" />
     <Xml Include="data\spellBlueprints.xml" />
     <Xml Include="data\weaponBlueprints.xml" />
+    <Xml Include="data\adventures.xml" />
   </ItemGroup>
 </Project>

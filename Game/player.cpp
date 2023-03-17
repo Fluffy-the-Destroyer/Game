@@ -481,6 +481,11 @@ void player::calculateDamageModifiers() {
 	modifyFlatMagicDamageModifier(chestplate.getFlatMagicDamageModifier());
 	modifyFlatMagicDamageModifier(greaves.getFlatMagicDamageModifier());
 	modifyFlatMagicDamageModifier(boots.getFlatMagicDamageModifier());
+	for (unsigned char i = 0; i < weapons.size(); i++) {
+		if (weapons[i].getReal()) {
+			modifyFlatMagicDamageModifier(weapons[i].getFlatMagicDamageModifier());
+		}
+	}
 	//Prop magic
 	propMagicDamageModifier = propMagicDamageModifierBase;
 	modifyPropMagicDamageModifier(helmet.getPropMagicDamageModifier());
@@ -806,62 +811,116 @@ void player::loadClass(string playerClass, bool custom) {
 		if (!classBlueprints.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&classBlueprints, '<');
+		if (custom && classBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = "classBlueprintList name=\"" + playerClass + '\"';
+		bool customFile = custom;
 		//Check for a list
 		{
 			bool noList = false; //Tracking if we found a list
 			streampos filePos = 0; //Position in file
 			short listCount = 0; //NUmber of items in a list, also tracking which item we have chosen
+			while (true) {
+				while (buffer != blueprintName) {
+					buffer = getTag(&classBlueprints);
+					ignoreLine(&classBlueprints);
+					if (classBlueprints.eof()) {
+						classBlueprints.clear();
+						noList = true;
+						break;
+					}
+				}
+				if (!noList) {
+					filePos = classBlueprints.tellg();
+					do {
+						if (classBlueprints.eof()) {
+							throw 1;
+						}
+						listCount++;
+						buffer = getTag(&classBlueprints);
+						ignoreLine(&classBlueprints);
+					} while (buffer != "/classBlueprintList");
+					classBlueprints.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					classBlueprints.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&classBlueprints);
+					}
+					if (getTag(&classBlueprints) != "name") {
+						throw 1;
+					}
+					playerClass = stringFromFile(&classBlueprints);
+					if (getTag(&classBlueprints) != "/name") {
+						throw 1;
+					}
+					if (playerClass == "EMPTY") {
+						throw 3;
+					}
+				}
+				else if (customFile) {
+					classBlueprints.close();
+					classBlueprints.open("data\\classBlueprints.xml");
+					if (!classBlueprints.is_open()) {
+						classBlueprints.open("custom\\classBlueprints.xml");
+						if (!classBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
+				}
+				break;
+			}
+		}
+		if (customFile != custom) {
+			classBlueprints.close();
+			classBlueprints.open("custom\\classBlueprints.xml");
+			if (!classBlueprints.is_open()) {
+				classBlueprints.open("data\\classBlueprints.xml");
+				if (!classBlueprints.is_open()) {
+					custom = false;
+					throw 4;
+				}
+			}
+			else {
+				customFile = true;
+			}
+		}
+		classBlueprints.seekg(0);
+		buffer = "";
+		blueprintName = "classBlueprint name=\"" + playerClass + '\"';
+		//Find and read blueprint
+		while (true) {
 			while (buffer != blueprintName) {
 				buffer = getTag(&classBlueprints);
 				ignoreLine(&classBlueprints);
 				if (classBlueprints.eof()) {
-					classBlueprints.clear();
-					noList = true;
 					break;
 				}
 			}
-			if (!noList) {
-				filePos = classBlueprints.tellg();
-				do {
-					if (classBlueprints.eof()) {
-						throw 1;
-					}
-					listCount++;
-					buffer = getTag(&classBlueprints);
-					ignoreLine(&classBlueprints);
-				} while (buffer != "/classBlueprintList");
-				classBlueprints.clear();
-				if (listCount == 0) {
-					throw 5;
-				}
-				listCount = rng(1, listCount);
-				classBlueprints.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&classBlueprints);
-				}
-				if (getTag(&classBlueprints) != "name") {
-					throw 1;
-				}
-				playerClass = stringFromFile(&classBlueprints);
-				if (getTag(&classBlueprints) != "/name") {
-					throw 1;
-				}
-				if (playerClass == "EMPTY") {
-					throw 3;
-				}
-			}
-			classBlueprints.seekg(0);
-			buffer = "";
-		}
-		blueprintName = "classBlueprint name=\"" + playerClass + '\"';
-		//Find and read blueprint
-		while (buffer != blueprintName) {
-			buffer = getTag(&classBlueprints);
-			ignoreLine(&classBlueprints);
 			if (classBlueprints.eof()) {
+				if (customFile) {
+					classBlueprints.close();
+					classBlueprints.open("data\\classBlueprints.xml");
+					if (!classBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		buffer = getTag(&classBlueprints);
 		while (buffer != "/classBlueprint") {
@@ -1139,32 +1198,13 @@ void player::loadClass(string playerClass, bool custom) {
 	}
 	catch (int err) {
 		classBlueprints.close();
-		switch (err) {
-		case 2:
+		if (err == 4) {
 			if (custom) {
-				try {
-					loadClass(playerClass, false);
-					return;
-				}
-				catch (int err2) {
-					throw err2;
-				}
+				loadClass(playerClass, false);
+				return;
 			}
-			throw err;
-		case 4:
-			if (custom) {
-				try {
-					loadClass(playerClass, false);
-					return;
-				}
-				catch (int err2) {
-					throw err2;
-				}
-			}
-			throw err;
-		default:
-			throw err;
 		}
+		throw err;
 	}
 }
 
@@ -1607,7 +1647,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 							break;
 						}
 						if (weapons[*slot2].getHitCount() == 0) {
-							cout << "Selected weapon cnnot be used at this time!\n";
+							cout << "Selected weapon cannot be used at this time!\n";
 							break;
 						}
 						if (weapons[*slot2].getHealthChange() < -health) { //Check can afford
@@ -2032,7 +2072,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 							break;
 						}
 						if (weapons[*slot2].getCounterHits() == 0) {
-							cout << "Selected weapon cnnot be used at this time!\n";
+							cout << "Selected weapon cannot be used at this time!\n";
 							break;
 						}
 						if (weapons[*slot2].getHealthChange() < -health) { //Check can afford
@@ -2198,7 +2238,7 @@ void player::upgradeItems(short upgradeNum) {
 	if (upgradeNum <= 0) {
 		return;
 	}
-	cout << upgradeNum << " equipment upgrade points aquired\n";
+	cout << upgradeNum << " equipment upgrade points acquired\n";
 	bool done;
 	for (short i = upgradeNum; i > 0; i--) {
 		done = false;
@@ -2670,10 +2710,10 @@ void player::levelUp() {
 	catch (int err) {
 		switch (err) {
 		case 1:
-			cout << "Unable to parse levelup blueprint " << nextLevel << '\n';
+			cout << "Unable to parse levelUp blueprint " << nextLevel << '\n';
 			break;
 		case 2:
-			cout << "Unable to find levelup blueprint " << nextLevel << '\n';
+			cout << "Unable to find levelUp blueprint " << nextLevel << '\n';
 			break;
 		case 3:
 			cout << "Already at max level\n";
@@ -2682,7 +2722,7 @@ void player::levelUp() {
 			cout << "Unable to open classBlueprints.xml\n";
 			break;
 		case 5:
-			cout << "Levelup blueprintList " << nextLevel << " contains no entries\n";
+			cout << "LevelUp blueprintList " << nextLevel << " contains no entries\n";
 			break;
 		}
 		maxXp = 0;
@@ -2706,57 +2746,110 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 		if (!classBlueprints.is_open()) {
 			throw 4;
 		}
+		ignoreLine(&classBlueprints, '<');
+		if (custom && classBlueprints.eof()) {
+			throw 4;
+		}
 		string blueprintName = "levelBlueprintList name=\"" + blueprint + '\"';
+		bool customFile = custom;
 		{
 			bool noList = false;
 			streampos filePos = 0;
 			short listCount = -1;
+			while (true) {
+				while (buffer != blueprintName) {
+					buffer = getTag(&classBlueprints);
+					ignoreLine(&classBlueprints);
+					if (classBlueprints.eof()) {
+						classBlueprints.clear();
+						noList = true;
+						break;
+					}
+				}
+				if (!noList) {
+					filePos = classBlueprints.tellg();
+					blueprintName = "/levelBlueprintList";
+					do {
+						listCount++;
+						buffer = getTag(&classBlueprints);
+						ignoreLine(&classBlueprints);
+					} while (buffer != blueprintName);
+					classBlueprints.clear();
+					if (listCount == 0) {
+						throw 5;
+					}
+					listCount = rng(1, listCount);
+					classBlueprints.seekg(filePos);
+					for (int i = 1; i < listCount; i++) {
+						ignoreLine(&classBlueprints);
+					}
+					if (getTag(&classBlueprints) != "name") {
+						throw 1;
+					}
+					blueprint = stringFromFile(&classBlueprints);
+					if (blueprint == "EMPTY") {
+						throw 3;
+					}
+					if (getTag(&classBlueprints) != "/name") {
+						throw 1;
+					}
+				}
+				else if (customFile) {
+					classBlueprints.close();
+					classBlueprints.open("data\\classBlueprints.xml");
+					if (!classBlueprints.is_open()) {
+						classBlueprints.open("custom\\classBlueprints.xml");
+						if (!classBlueprints.is_open()) {
+							custom = false;
+							throw 4;
+						}
+						break;
+					}
+					customFile = noList = false;
+					filePos = 0;
+					listCount = -1;
+					continue;
+				}
+			}
+		}
+		if (customFile != custom) {
+			classBlueprints.close();
+			classBlueprints.open("custom\\classBlueprints.xml");
+			if (!classBlueprints.is_open()) {
+				classBlueprints.open("data\\classBlueprints.xml");
+				if (!classBlueprints.is_open()) {
+					custom = false;
+					throw 4;
+				}
+			}
+			else {
+				customFile = true;
+			}
+		}
+		classBlueprints.seekg(0);
+		buffer = "";
+		blueprintName = "levelBlueprint name=\"" + blueprint + '\"';
+		while (true) {
 			while (buffer != blueprintName) {
-				buffer = getTag(&classBlueprints);
 				ignoreLine(&classBlueprints);
 				if (classBlueprints.eof()) {
-					classBlueprints.clear();
-					noList = true;
 					break;
 				}
 			}
-			if (!noList) {
-				filePos = classBlueprints.tellg();
-				blueprintName = "/levelBlueprintList";
-				do {
-					listCount++;
-					buffer = getTag(&classBlueprints);
-					ignoreLine(&classBlueprints);
-				} while (buffer != blueprintName);
-				classBlueprints.clear();
-				if (listCount == 0) {
-					throw 5;
-				}
-				listCount = rng(1, listCount);
-				classBlueprints.seekg(filePos);
-				for (int i = 1; i < listCount; i++) {
-					ignoreLine(&classBlueprints);
-				}
-				if (getTag(&classBlueprints) != "name") {
-					throw 1;
-				}
-				blueprint = stringFromFile(&classBlueprints);
-				if (blueprint == "EMPTY") {
-					throw 3;
-				}
-				if (getTag(&classBlueprints) != "/name") {
-					throw 1;
-				}
-			}
-			classBlueprints.seekg(0);
-			buffer = "";
-		}
-		blueprintName = "levelBlueprint name=\"" + blueprint + '\"';
-		while (buffer != blueprintName) {
-			ignoreLine(&classBlueprints);
 			if (classBlueprints.eof()) {
+				if (customFile) {
+					classBlueprints.close();
+					classBlueprints.open("data\\classBlueprints.xml");
+					if (!classBlueprints.is_open()) {
+						custom = false;
+						throw 4;
+					}
+					customFile = false;
+					continue;
+				}
 				throw 2;
 			}
+			break;
 		}
 		blueprintName = "/levelBlueprint";
 		buffer = getTag(&classBlueprints);
@@ -2854,7 +2947,7 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 			else if (buffer == "flatArmourPiercingDamageModifier") {
 				flatArmourPiercingDamageModifier = numFromFile(&classBlueprints);
 			}
-			else if (buffer == "propArmourPiercingDamageModifeir") {
+			else if (buffer == "propArmourPiercingDamageModifier") {
 				propArmourPiercingDamageModifier = floatFromFile(&classBlueprints);
 				if (propArmourPiercingDamageModifier < -1) {
 					propArmourPiercingDamageModifier = -2;
@@ -2911,7 +3004,6 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 	catch (int err) {
 		classBlueprints.close();
 		switch (err) {
-		case 2:
 		case 4:
 			if (custom) {
 				loadFromFile(blueprint, false);
@@ -2955,10 +3047,10 @@ void player::upgradeStats(short upgradeNum) {
 		return;
 	}
 	if (upgradeNum > 0) {
-		cout << upgradeNum << " stat upgrade points aquired\n";
+		cout << upgradeNum << " stat upgrade points acquired\n";
 	}
 	else {
-		cout << -upgradeNum << " stat downgrade points aquired\n";
+		cout << -upgradeNum << " stat downgrade points acquired\n";
 	}
 	vector<short> upgradeChoices(1, 0);
 	for (short i = upgradeNum; i > 0; i--) {

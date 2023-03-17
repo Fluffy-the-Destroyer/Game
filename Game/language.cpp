@@ -3,6 +3,7 @@
 #include <iostream>
 #include "events.h"
 #include "resources.h"
+#include <thread>
 using namespace std;
 
 extern variables g_customVars;
@@ -59,104 +60,107 @@ void variables::reset() {
 }
 
 bool evalCond(string cond, player* playerCharacter) {
-	short var1 = 0, var2 = 0;
-	char op = '='; //= is ==, < is <, > is >, ! is !=, l is <=, g is >=
-	clearSpace(&cond);
+	clearSpace(&cond); //Get rid of spaces from beginning and end
+	while (!cond.empty() && cond.back() == ' ') {
+		cond.pop_back();
+	}
 	if (cond.empty()) {
+		throw 1;
+	}
+	string cond1, cond2 = cond;
+	short var1 = 0, var2 = 0;
+	char op = '='; //= is ==, < is <, > is >, ! is !=, l is <=, g is >=, & is &&, | is ||
+	//Check for whole thing surrounded in brackets
+	if (cond2[0] == '(') {
+		cond1 = endBracket(&cond2);
+		if (cond2.empty()) {
+			cond1.erase(0, 1);
+			cond1.pop_back();
+			return evalCond(cond1, playerCharacter);
+		}
+		cond1 = "";
+		cond2 = cond;
+	}
+	//Look for ||
+	while (true) {
+		switch (cond2[0]) {
+		case '(':
+			cond1 += endBracket(&cond2);
+			break;
+		case '|':
+			if (cond2.substr(0, 2) != "||") {
+				throw 1;
+			}
+			cond2.erase(0, 2);
+			return evalCond(cond1, playerCharacter) || evalCond(cond2, playerCharacter);
+		default:
+			cond1 += cond2[0];
+			cond2.erase(0, 1);
+		}
+		if (cond2.empty()) {
+			break;
+		}
+	}
+	cond1 = "";
+	cond2 = cond;
+	//Look for &&
+	while (true) {
+		switch (cond2[0]) {
+		case '(':
+			cond1 += endBracket(&cond2);
+			break;
+		case '&':
+			if (cond2.substr(0, 2) != "&&") {
+				throw 1;
+			}
+			cond2.erase(0, 2);
+			return evalCond(cond1, playerCharacter) && evalCond(cond2, playerCharacter);
+		default:
+			cond1 += cond2[0];
+			cond2.erase(0, 1);
+		}
+		if (cond2.empty()) {
+			break;
+		}
+	}
+	cond2 = cond;
+	//Check for !
+	if (cond2[0] == '!') {
+		cond2.erase(0, 1);
+		return !evalCond(cond2, playerCharacter);
+	}
+	if (cond == "true") {
 		return true;
 	}
-	if (cond.substr(0, 4) == "true") {
-		cond.erase(0, 4);
-		clearSpace(&cond);
-		if (cond.empty()) {
-			return true;
+	if (cond == "false") {
+		return false;
+	}
+	var1 = numFromString(&cond, playerCharacter);
+
+	return false;
+}
+
+string endBracket(string* cond) {
+	string cond1 = "(";
+	cond->erase(0, 1);
+	if (cond->empty()) {
+		throw 1;
+	}
+	while ((*cond)[0] != ')') {
+		if ((*cond)[0] == '(') {
+			cond1 += endBracket(cond);
 		}
 		else {
-			return false;
+			cond1 += (*cond)[0];
+			cond->erase(0, 1);
+		}
+		if (cond->empty()) {
+			throw 1;
 		}
 	}
-	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(" || cond.substr(0, 2) == "p_") {
-		var1 = numFromString(&cond, playerCharacter);
-	}
-	else {
-		return false;
-	}
-	clearSpace(&cond);
-	if (cond.empty()) {
-		return false;
-	}
-	switch (cond[0]) {
-	case '=':
-		if (cond.substr(0, 2) != "==") {
-			return false;
-		}
-		cond.erase(0, 2);
-		op = '=';
-		break;
-	case '!':
-		if (cond.substr(0, 2) != "!=") {
-			return false;
-		}
-		cond.erase(0, 2);
-		op = '!';
-		break;
-	case '&':
-		if (cond.substr(0, 5) == "&lt =") {
-			op = 'l';
-			cond.erase(0, 5);
-		}
-		else if (cond.substr(0, 5) == "&gt =") {
-			op = 'g';
-			cond.erase(0, 5);
-		}
-		else if (cond.substr(0, 3) == "&lt") {
-			op = '<';
-			cond.erase(0, 3);
-		}
-		else if (cond.substr(0, 3) == "&gt") {
-			op = '>';
-			cond.erase(0, 3);
-		}
-		else {
-			return false;
-		}
-		break;
-	default:
-		return false;
-	}
-	if (cond.empty() || cond[0] != ' ') {
-		return false;
-	}
-	clearSpace(&cond);
-	if (cond.empty()) {
-		return false;
-	}
-	if ((cond[0] > 47 && cond[0] < 58) || cond[0] == '-' || cond.substr(0, 2) == "v_" || cond.substr(0, 4) == "rng(" || cond.substr(0, 2) == "p_") {
-		var2 = numFromString(&cond, playerCharacter);
-	}
-	else {
-		return false;
-	}
-	clearSpace(&cond);
-	if (!cond.empty()) {
-		return false;
-	}
-	switch (op) {
-	case '=':
-		return (var1 == var2);
-	case '!':
-		return (var1 != var2);
-	case '<':
-		return (var1 < var2);
-	case '>':
-		return (var1 > var2);
-	case 'l':
-		return (var1 <= var2);
-	case 'g':
-		return (var1 >= var2);
-	default:
-		return false;
-	}
+	cond1 += ')';
+	cond->erase(0, 1);
+	return cond1;
 }
 
 unsigned char doLine(ifstream* file, player* playerCharacter) {
@@ -168,8 +172,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		return 2;
 	}
 	else if (buffer1 == "text") {
-		getline(*file, buffer1, '<');
-		file->seekg(-1, ios_base::cur);
+		buffer1 = stringFromFile(file);
 		if (getTag(file) != "/text") {
 			throw 1;
 		}
@@ -208,8 +211,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		}
 		buffer1.pop_back();
 		string buffer2;
-		getline(*file, buffer2, '<');
-		file->seekg(-1, ios_base::cur);
+		buffer2 = stringFromFile(file);
 		if (getTag(file) != "/var") {
 			throw 1;
 		}
@@ -224,6 +226,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		}
 		buffer1.pop_back();
 		ignoreLine(file);
+		buffer1 = removeEscapes(buffer1);
 		if (evalCond(buffer1, playerCharacter)) {
 			return 0;
 		}
@@ -249,6 +252,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		streampos startPos = file->tellg();
 		endWhile(file);
 		streampos endPos = file->tellg();
+		buffer1 = removeEscapes(buffer1);
 		while (evalCond(buffer1, playerCharacter)) {
 			file->seekg(startPos);
 			unsigned char i = 0;
@@ -278,6 +282,14 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		ignoreLine(file);
 		return 5;
 	}
+	else if (buffer1 == "sleep") {
+		this_thread::sleep_for(chrono::milliseconds(numFromFile(file, playerCharacter)));
+		if (getTag(file) != "/sleep") {
+			throw 1;
+		}
+		ignoreLine(file);
+		return 0;
+	}
 	else {
 		throw 1;
 	}
@@ -302,6 +314,7 @@ void endIf(ifstream* file, player* playerCharacter, bool newCond) {
 				throw 1;
 			}
 			buffer.pop_back();
+			buffer = removeEscapes(buffer);
 			if (evalCond(buffer, playerCharacter)) {
 				ignoreLine(file);
 				return;
@@ -480,87 +493,166 @@ void modifyVar(string var, string operation, player* playerCharacter) { //= num 
 	}
 }
 
-void save(ifstream* file, player* playerCharacter, string filePath, unsigned char slot) {
-	if (slot < 48 || slot>57) {
+void modifyVar(string var, string operation) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --
+	short value;
+	signed char op;
+	clearSpace(&operation);
+	if (operation.empty()) {
 		return;
 	}
-	string savePath = "saves\\sav";
-	savePath += slot;
-	savePath += ".xml";
+	switch (operation[0]) {
+	case '=':
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != ' ') {
+			throw 1;
+		}
+		op = '=';
+		break;
+	case '+':
+		operation.erase(0, 1);
+		if (operation.empty()) {
+			throw 1;
+		}
+		switch (operation[0]) {
+		case '=':
+			operation.erase(0, 1);
+			if (operation.empty() || operation[0] != ' ') {
+				throw 1;
+			}
+			op = '+';
+			break;
+		case '+':
+			operation.erase(0, 1);
+			while (!operation.empty() && operation[0] == ' ') {
+				operation.erase(0, 1);
+			}
+			if (!operation.empty()) {
+				throw 1;
+			}
+			*g_customVars.value(var) += 1;
+			return;
+		default:
+			throw 1;
+		}
+		break;
+	case '-':
+		operation.erase(0, 1);
+		if (operation.empty()) {
+			throw 1;
+		}
+		switch (operation[0]) {
+		case '=':
+			operation.erase(0, 1);
+			if (operation.empty() || operation[0] != ' ') {
+				throw 1;
+			}
+			op = '-';
+			break;
+		case '-':
+			operation.erase(0, 1);
+			while (!operation.empty() && operation[0] == ' ') {
+				operation.erase(0, 1);
+			}
+			if (!operation.empty()) {
+				throw 1;
+			}
+			*g_customVars.value(var) -= 1;
+			return;
+		default:
+			throw 1;
+		}
+		break;
+	case '*':
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != '=') {
+			throw 1;
+		}
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != ' ') {
+			throw 1;
+		}
+		op = '*';
+		break;
+	case '/':
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != '=') {
+			throw 1;
+		}
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != ' ') {
+			throw 1;
+		}
+		op = '/';
+		break;
+	case '%':
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != '=') {
+			throw 1;
+		}
+		operation.erase(0, 1);
+		if (operation.empty() || operation[0] != ' ') {
+			throw 1;
+		}
+		op = '%';
+		break;
+	default:
+		throw 1;
+	}
+	clearSpace(&operation);
+	if (operation.empty()) {
+		throw 1;
+	}
+	if ((operation[0] > 47 && operation[0] < 58) || operation[0] == '-' || operation.substr(0, 2) == "v_" || operation.substr(0, 4) == "rng(") {
+		value = numFromString(&operation);
+	}
+	else {
+		throw 1;
+	}
+	while (!operation.empty() && operation[0] == ' ') {
+		operation.erase(0, 1);
+	}
+	if (!operation.empty()) {
+		throw 1;
+	}
+	switch (op) {
+	case '=':
+		g_customVars.assign(var, value);
+		return;
+	case '+':
+		*g_customVars.value(var) += value;
+		return;
+	case '-':
+		*g_customVars.value(var) -= value;
+		return;
+	case '*':
+		*g_customVars.value(var) *= value;
+		return;
+	case '/':
+		*g_customVars.value(var) /= value;
+		return;
+	case '%':
+		*g_customVars.value(var) %= value;
+		return;
+	default:
+		throw 1;
+	}
+}
+
+bool checkSaveSlot(unsigned char slot) {
+	if (slot < 48 || slot > 57) {
+		return false;
+	}
+	ifstream saveFile("saves\\sav" + slot);
+	if (!saveFile.is_open()) { //No save file present
+		return false;
+	}
 	try {
-		ofstream saveFile(savePath, ofstream::trunc);
-		if (!saveFile.is_open()) {
-			throw 4;
+		if (getTag(&saveFile) == "saveGame/") { //Indicates save data
+			saveFile.close();
+			return true;
 		}
-		//Adventure file
-		saveFile << "<filePath pos=\"" << file->tellg() << "\">" << filePath << "</filePath>\n";
-		//Resources
-		saveFile << "<resource type=\"PROJECTILE\">\n";
-			saveFile << "\t<singular>" << g_projName.singular() << "</singular>\n";
-			saveFile << "\t<plural>" << g_projName.plural() << "</plural>\n";
-		saveFile << "</resource>\n";
-		saveFile << "<resource type=\"MANA\">\n";
-			saveFile << "\t<singular>" << g_manaName.singular() << "</singular>\n";
-			saveFile << "\t<plural>" << g_manaName.plural() << "</plural>\n";
-		saveFile << "</resource>\n\n";
-		//Variables
-		saveFile << "<variables>\n";
-		for (short i = 0; i < g_customVars.vars.size(); i++) {
-				saveFile << "\t<var name=\"" << g_customVars.vars[i].name << "\">" << g_customVars.vars[i].value << "</var>\n";
-		}
-		saveFile << "</variables>\n\n";
-		//Custom data
-		saveFile << "<customData>" << g_useCustomData << "</customData>\n\n";
-		//Player
-		saveFile << "<player>\n";
-			saveFile << "\t<health>" << playerCharacter->health << "</health>\n";
-			saveFile << "\t<maxHealthBase>" << playerCharacter->maxHealthBase << "</maxHealthBase>\n";
-			saveFile << "\t<projectiles>" << playerCharacter->projectiles << "</projectiles>\n";
-			saveFile << "\t<mana>" << playerCharacter->mana << "</mana>\n";
-			saveFile << "\t<maxManaBase>" << playerCharacter->maxManaBase << "</maxManaBase>\n";
-			saveFile << "\t<turnManaRegenBase>" << playerCharacter->turnManaRegenBase << "</turnManaRegenBase>\n";
-			saveFile << "\t<battleManaRegenBase>" << playerCharacter->battleManaRegenBase << "</battleManaRegenBase>\n";
-			saveFile << "\t<poison>" << +playerCharacter->poison << "</poison>\n";
-			saveFile << "\t<poisonResistBase>" << playerCharacter->poisonResistBase << "</poisonResistBase>\n";
-			saveFile << "\t<bleed>" << +playerCharacter->bleed << "</bleed>\n";
-			saveFile << "\t<bleedResistBase>" << playerCharacter->bleedResistBase << "</bleedResistBase>\n";
-			saveFile << "\t<tempRegen>" << +playerCharacter->tempRegen << "</tempRegen>\n";
-			saveFile << "\t<constRegenBase>" << playerCharacter->constRegenBase << "</constRegenBase>\n";
-			saveFile << "\t<battleRegenBase>" << playerCharacter->battleRegenBase << "</battleRegenBase>\n";
-			saveFile << "\t<weaponSlots>" << +playerCharacter->weapons.size() << "</weaponSlots>\n";
-			saveFile << "\t<weapons>\n";
-			for (unsigned char i = 0; i < playerCharacter->weapons.size(); i++) {
-					saveFile << "\t\t<weapon>" << playerCharacter->weapons[i].getWeaponName() << "</weapon>\n";
-			}
-			saveFile << "\t</weapons>\n";
-			saveFile << "\t<spellSlots>" << +playerCharacter->spells.size() << "</spellSlots>\n";
-			saveFile << "\t<spells>\n";
-			for (unsigned char i = 0; i < playerCharacter->spells.size(); i++) {
-					saveFile << "\t\t<spell>" << playerCharacter->spells[i].getSpellName() << "</spell>\n";
-			}
-			saveFile << "\t</spells>\n";
-			saveFile << "\t<flatArmourBase>" << playerCharacter->flatArmourBase << "</flatArmourBase>\n";
-			saveFile << "\t<propArmourBase>" << playerCharacter->propArmourBase << "</propArmourBase>\n";
-			saveFile << "\t<flatMagicArmourBase>" << playerCharacter->flatMagicArmourBase << "</flatMagicArmourBase>\n";
-			saveFile << "\t<propMagicArmourBase>" << playerCharacter->propMagicArmourBase << "</propMagicArmourBase>\n";
-			saveFile << "\t<armourHead>" << playerCharacter->helmet.getArmourName() << "</armourHead>\n";
-			saveFile << "\t<armourTorso>" << playerCharacter->chestplate.getArmourName() << "</armourTorso>\n";
-			saveFile << "\t<armourLegs>" << playerCharacter->greaves.getArmourName() << "</armourLegs>\n";
-			saveFile << "\t<armourFeet>" << playerCharacter->boots.getArmourName() << "</armourFeet>\n";
-			saveFile << "\t<flatDamageModifierBase>" << playerCharacter->flatDamageModifierBase << "</flatDamageModifierBase>\n";
-			saveFile << "\t<propDamageModifierBase>" << playerCharacter->propDamageModifierBase << "</propDamageModifierBase>\n";
-			saveFile << "\t<flatMagicDamageModifierBase>" << playerCharacter->flatMagicDamageModifierBase << "</flatMagicDamageModifierBase>\n";
-			saveFile << "\t<propMagicDamageModifierBase>" << playerCharacter->propMagicDamageModifierBase << "</propMagicDamageModifierBase>\n";
-			saveFile << "\t<flatArmourPiercingDamageModifierBase>" << playerCharacter->flatArmourPiercingDamageModifierBase << "</flatArmourPiercingDamageModifierBase>\n";
-			saveFile << "\t<propArmourPiercingDamageModifierBase>" << playerCharacter->propArmourPiercingDamageModifierBase << "</propArmourPiercingDamageModifierBase>\n";
-			saveFile << "\t<evadeChanceBase>" << playerCharacter->evadeChanceBase << "</evadeChanceBase>\n";
-			saveFile << "\t<counterAttackChanceBase>" << playerCharacter->counterAttackChanceBase << "</counterAttackChanceBase>\n";
-			saveFile << "\t<bonusActionsBase>" << playerCharacter->bonusActionsBase << "</bonusActionsBase>\n";
-		saveFile << "</player>";
-		saveFile.close();
-		cout << "Game saved\n";
 	}
-	catch (int) {
-		cout << "Save failed, could not open save file\n";
-	}
+	catch (int) {}
+	saveFile.close();
+	return false;
 }
