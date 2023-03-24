@@ -1,0 +1,12 @@
+<victoryText>Victory!</victoryText>
+<defeatText>Defeat!</defeatText>
+
+<text>This is a test adventure</text>
+<var name="playerMaxHealthHalf">= p_maxHealth</var>
+<var name="playerMaxHealthHalf">/= 2</var>
+<event load="TEST_1"/>
+<save/>
+<var name="playerMaxHealthHalf">= p_maxHealth</var>
+<var name="playerMaxHealthHalf">/= 2</var>
+<event load="TEST_1"/>
+<victory/>

@@ -26,7 +26,7 @@ string weapon::getName() {
 
 void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as the functions to load armour from files
 	ifstream weaponBlueprints;
-	string stringbuffer = "";
+	string buffer = "";
 	try { //Throws exception if cannot find properly formed blueprint
 		if (blueprint == "EMPTY") {
 			throw 3;
@@ -45,6 +45,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		if (custom && weaponBlueprints.eof()) {
 			throw 4;
 		}
+		weaponBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = "weaponBlueprintList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		//Check for list
@@ -53,8 +54,8 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //For tracking number of entries in a list and then which one we have chosen
 			while (true) {
-				while (stringbuffer != blueprintName) { //Haven't found a list
-					stringbuffer = getTag(&weaponBlueprints);
+				while (buffer != blueprintName) { //Haven't found a list
+					buffer = getTag(&weaponBlueprints);
 					ignoreLine(&weaponBlueprints);
 					if (weaponBlueprints.eof()) { //Reached end of file without finding list
 						weaponBlueprints.clear();
@@ -66,9 +67,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					filePos = weaponBlueprints.tellg();
 					do {
 						listCount++;
-						stringbuffer = getTag(&weaponBlueprints);
+						buffer = getTag(&weaponBlueprints);
 						ignoreLine(&weaponBlueprints);
-					} while (stringbuffer != "/weaponBlueprintList");
+					} while (buffer != "/weaponBlueprintList");
 					weaponBlueprints.clear();
 					if (listCount == 0) {
 						throw 5;
@@ -124,21 +125,21 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 			}
 		}
 		weaponBlueprints.seekg(0);
-		stringbuffer = "";
+		buffer = "";
 		//Reset attributes to default values
 		real = true;
 		name = description = "";
-		weaponName = blueprint;
+		//weaponName = blueprint;
 		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChange = projectileChange = healthChange = flatMagicDamageModifier = 0;
 		propDamage = propSelfDamage = 0;
 		hitCount = 1;
 		counterHits = poison = bleed = selfPoison = selfBleed = 0;
-		noEvade = noCounter = noCounterAttack = lifelink = dualWield = selfOverheal = targetOverheal = false;
+		noEvade = noCounter = noCounterAttack = lifeLink = dualWield = selfOverHeal = targetOverHeal = false;
 		upgrade = "EMPTY";
 		blueprintName = "weaponBlueprint name=\"" + blueprint + '\"';
 		while (true) {
-			while (stringbuffer != blueprintName) {
-				stringbuffer = getTag(&weaponBlueprints);
+			while (buffer != blueprintName) {
+				buffer = getTag(&weaponBlueprints);
 				ignoreLine(&weaponBlueprints);
 				if (weaponBlueprints.eof()) {
 					break;
@@ -161,48 +162,45 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 		}
 		{
 			short charBuf = 0; //Using chars to store integers, so I can't extract them directly as they would extract as characters. Using this to buffer them
-			stringbuffer = getTag(&weaponBlueprints);
-			while (stringbuffer != "/weaponBlueprint") {
-				if (weaponBlueprints.eof()) {
-					throw 1;
-				}
-				if (stringbuffer == "name") {
+			buffer = getTag(&weaponBlueprints);
+			while (buffer != "/weaponBlueprint") {
+				if (buffer == "name") {
 					name = stringFromFile(&weaponBlueprints);
 				}
-				else if (stringbuffer == "description") {
+				else if (buffer == "description") {
 					description = stringFromFile(&weaponBlueprints);
 				}
-				else if (stringbuffer == "flatDamageMin") {
+				else if (buffer == "flatDamageMin") {
 					flatDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatDamageMax") {
+				else if (buffer == "flatDamageMax") {
 					flatDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatDamage") { //For setting a fixed damage
+				else if (buffer == "flatDamage") { //For setting a fixed damage
 					flatDamageMin = numFromFile(&weaponBlueprints);;
 					flatDamageMax = flatDamageMin;
 				}
-				else if (stringbuffer == "flatMagicDamageMin") {
+				else if (buffer == "flatMagicDamageMin") {
 					flatMagicDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatMagicDamageMax") {
+				else if (buffer == "flatMagicDamageMax") {
 					flatMagicDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatMagicDamage") {
+				else if (buffer == "flatMagicDamage") {
 					flatMagicDamageMin = numFromFile(&weaponBlueprints);;
 					flatMagicDamageMax = flatMagicDamageMin;
 				}
-				else if (stringbuffer == "flatArmourPiercingDamageMin") {
+				else if (buffer == "flatArmourPiercingDamageMin") {
 					flatArmourPiercingDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatArmourPiercingDamageMax") {
+				else if (buffer == "flatArmourPiercingDamageMax") {
 					flatArmourPiercingDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatArmourPiercingDamage") {
+				else if (buffer == "flatArmourPiercingDamage") {
 					flatArmourPiercingDamageMin = numFromFile(&weaponBlueprints);;
 					flatArmourPiercingDamageMax = flatArmourPiercingDamageMin;
 				}
-				else if (stringbuffer == "propDamage") {
+				else if (buffer == "propDamage") {
 					propDamage = floatFromFile(&weaponBlueprints);;
 					if (propDamage < -1) {
 						propDamage = -1;
@@ -211,37 +209,37 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 						propDamage = 1;
 					}
 				}
-				else if (stringbuffer == "flatSelfDamageMin") {
+				else if (buffer == "flatSelfDamageMin") {
 					flatSelfDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfDamageMax") {
+				else if (buffer == "flatSelfDamageMax") {
 					flatSelfDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfDamage") {
+				else if (buffer == "flatSelfDamage") {
 					flatSelfDamageMin = numFromFile(&weaponBlueprints);;
 					flatSelfDamageMax = flatSelfDamageMin;
 				}
-				else if (stringbuffer == "flatSelfMagicDamageMin") {
+				else if (buffer == "flatSelfMagicDamageMin") {
 					flatSelfMagicDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfMagicDamageMax") {
+				else if (buffer == "flatSelfMagicDamageMax") {
 					flatSelfMagicDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfMagicDamage") {
+				else if (buffer == "flatSelfMagicDamage") {
 					flatSelfMagicDamageMin = numFromFile(&weaponBlueprints);;
 					flatSelfMagicDamageMax = flatSelfMagicDamageMin;
 				}
-				else if (stringbuffer == "flatSelfArmourPiercingDamageMin") {
+				else if (buffer == "flatSelfArmourPiercingDamageMin") {
 					flatSelfArmourPiercingDamageMin = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfArmourPiercingDamageMax") {
+				else if (buffer == "flatSelfArmourPiercingDamageMax") {
 					flatSelfArmourPiercingDamageMax = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "flatSelfArmourPiercingDamage") {
+				else if (buffer == "flatSelfArmourPiercingDamage") {
 					flatSelfArmourPiercingDamageMin = numFromFile(&weaponBlueprints);;
 					flatSelfArmourPiercingDamageMax = flatArmourPiercingDamageMin;
 				}
-				else if (stringbuffer == "propSelfDamage") {
+				else if (buffer == "propSelfDamage") {
 					propSelfDamage = floatFromFile(&weaponBlueprints);;
 					if (propSelfDamage < -1) {
 						propSelfDamage = -1;
@@ -250,7 +248,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 						propSelfDamage = 1;
 					}
 				}
-				else if (stringbuffer == "hitCount") {
+				else if (buffer == "hitCount") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -258,24 +256,21 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					hitCount = static_cast<unsigned char>(charBuf);
+					hitCount = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "noEvade/") { //Self closing tag, indicates it should be true
+				else if (buffer == "noEvade/") { //Self closing tag, indicates it should be true
 					noEvade = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "manaChange") {
+				else if (buffer == "manaChange") {
 					manaChange = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "projectileChange") {
+				else if (buffer == "projectileChange") {
 					projectileChange = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "poison") {
+				else if (buffer == "poison") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -283,9 +278,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					poison = static_cast<unsigned char>(charBuf);
+					poison = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "selfPoison") {
+				else if (buffer == "selfPoison") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -293,9 +288,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					selfPoison = static_cast<unsigned char>(charBuf);
+					selfPoison = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "bleed") {
+				else if (buffer == "bleed") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -303,9 +298,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					bleed = static_cast<unsigned char>(charBuf);
+					bleed = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "selfBleed") {
+				else if (buffer == "selfBleed") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -313,9 +308,9 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					selfBleed = static_cast<unsigned char>(charBuf);
+					selfBleed = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "counterHits") {
+				else if (buffer == "counterHits") {
 					charBuf = numFromFile(&weaponBlueprints);;
 					if (charBuf < 0) {
 						charBuf = 0;
@@ -323,81 +318,61 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 					else if (charBuf > 255) {
 						charBuf = 255;
 					}
-					counterHits = static_cast<unsigned char>(charBuf);
+					counterHits = static_cast<uint8_t>(charBuf);
 				}
-				else if (stringbuffer == "noCounter/") {
+				else if (buffer == "noCounter/") {
 					noCounter = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "noCounterAttack/") {
+				else if (buffer == "noCounterAttack/") {
 					noCounterAttack = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "lifelink/") {
-					lifelink = true;
+				else if (buffer == "lifeLink/") {
+					lifeLink = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "healthChange") {
+				else if (buffer == "healthChange") {
 					healthChange = numFromFile(&weaponBlueprints);;
 				}
-				else if (stringbuffer == "dualWield/") {
+				else if (buffer == "dualWield/") {
 					dualWield = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "selfOverheal/") {
-					selfOverheal = true;
+				else if (buffer == "selfOverHeal/") {
+					selfOverHeal = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
-					stringbuffer = getTag(&weaponBlueprints);
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "targetOverheal/") {
-					targetOverheal = true;
+				else if (buffer == "targetOverHeal/") {
+					targetOverHeal = true;
 					ignoreLine(&weaponBlueprints);
-					if (!weaponBlueprints) {
-						throw 1;
-					}
+					buffer = getTag(&weaponBlueprints);
 					continue;
 				}
-				else if (stringbuffer == "upgrade") {
+				else if (buffer == "upgrade") {
 					upgrade = stringFromFile(&weaponBlueprints);
 				}
-				else if (stringbuffer == "flatMagicDamageModifier") {
+				else if (buffer == "flatMagicDamageModifier") {
 					flatMagicDamageModifier = numFromFile(&weaponBlueprints);
 				}
 				else {
 					throw 1;
 				}
-				if (getTag(&weaponBlueprints) != '/' + stringbuffer) {
+				if (getTag(&weaponBlueprints) != '/' + buffer) {
 					throw 1;
 				}
 				ignoreLine(&weaponBlueprints);
-				if (!weaponBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&weaponBlueprints);
+				buffer = getTag(&weaponBlueprints);
 			}
 		}
 		//Check all max damages are at least their corresponding min
@@ -409,7 +384,7 @@ void weapon::loadFromFile(string blueprint, bool custom) { //Mostly the same as 
 	}
 	catch (int err) {
 		weaponBlueprints.close();
-		weaponName = upgrade = "EMPTY";
+		//weaponName = upgrade = "EMPTY";
 		name = "";
 		description = "";
 		real = false;
@@ -513,8 +488,8 @@ void weapon::displayStats() {
 			cout << '\n';
 		}
 	}
-	if (targetOverheal) {
-		cout << "Attacks may overheal the target\n";
+	if (targetOverHeal) {
+		cout << "Attacks may over heal the target\n";
 	}
 	//Proportional damage
 	if (propDamage > 0) {
@@ -593,8 +568,8 @@ void weapon::displayStats() {
 			cout << " on attack\n";
 		}
 	}
-	if (selfOverheal) {
-		cout << "May overheal user\n";
+	if (selfOverHeal) {
+		cout << "May over heal user\n";
 	}
 	//Prop self damage
 	if (propSelfDamage > 0) {
@@ -610,8 +585,8 @@ void weapon::displayStats() {
 	else if (healthChange < 0) {
 		cout << "Costs " << -healthChange << " health to attack (even if countered)\n";
 	}
-	//Lifelink
-	if (lifelink) {
+	//LifeLink
+	if (lifeLink) {
 		cout << "On dealing damage to target, heals the user by that much\n";
 	}
 	//Hit count
@@ -817,4 +792,498 @@ bool weapon::upgradeItem() {
 	}
 	*this = newItem;
 	return true;
+}
+
+void weapon::save(ofstream* saveFile) {
+	if (real) { //Save weapon data
+		*saveFile << "\t\t<weapon>\n";
+			*saveFile << "\t\t\t<name>" << addEscapes(name) << "</name>\n";
+			*saveFile << "\t\t\t<description>" << addEscapes(description) << "</description>\n";
+			if (flatDamageMin != 0) {
+				*saveFile << "\t\t\t<flatDamageMin>" << flatDamageMin << "</flatDamageMin>\n";
+			}
+			if (flatDamageMax != 0) {
+				*saveFile << "\t\t\t<flatDamageMax>" << flatDamageMax << "</flatDamageMax>\n";
+			}
+			if (flatMagicDamageMin != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageMin>" << flatMagicDamageMin << "</flatMagicDamageMin>\n";
+			}
+			if (flatMagicDamageMax != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageMax>" << flatMagicDamageMax << "</flatMagicDamageMax>\n";
+			}
+			if (flatArmourPiercingDamageMin != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageMin>" << flatArmourPiercingDamageMin << "</flatArmourPiercingDamageMin>\n";
+			}
+			if (flatArmourPiercingDamageMax != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageMax>" << flatArmourPiercingDamageMax << "</flatArmourPiercingDamageMax>\n";
+			}
+			if (propDamage != 0) {
+				*saveFile << "\t\t\t<propDamage>" << propDamage << "</propDamage>\n";
+			}
+			if (flatSelfDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfDamageMin>" << flatSelfDamageMin << "</flatSelfDamageMin>\n";
+			}
+			if (flatSelfDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfDamageMax>" << flatSelfDamageMax << "</flatSelfDamageMax>\n";
+			}
+			if (flatSelfMagicDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfMagicDamageMin>" << flatSelfMagicDamageMin << "</flatSelfMagicDamageMin>\n";
+			}
+			if (flatSelfMagicDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfMagicDamageMax>" << flatSelfMagicDamageMax << "</flatSelfMagicDamageMax>\n";
+			}
+			if (flatSelfArmourPiercingDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfArmourPiercingDamageMin>" << flatSelfArmourPiercingDamageMin << "</flatSelfArmourPiercingDamageMin>\n";
+			}
+			if (flatSelfArmourPiercingDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfArmourPiercingDamageMax>" << flatSelfArmourPiercingDamageMax << "</flatSelfArmourPiercingDamageMax>\n";
+			}
+			if (propSelfDamage != 0) {
+				*saveFile << "\t\t\t<propSelfDamage>" << propSelfDamage << "</propSelfDamage>\n";
+			}
+			if (healthChange != 0) {
+				*saveFile << "\t\t\t<healthChange>" << healthChange << "</healthChange>\n";
+			}
+			if (manaChange != 0) {
+				*saveFile << "\t\t\t<manaChange>" << manaChange << "</manaChange>\n";
+			}
+			if (projectileChange != 0) {
+				*saveFile << "\t\t\t<projectileChange>" << projectileChange << "</projectileChange>\n";
+			}
+			if (hitCount != 1) {
+				*saveFile << "\t\t\t<hitCount>" << +hitCount << "</hitCount>\n";
+			}
+			if (counterHits != 0) {
+				*saveFile << "\t\t\t<counterHits>" << +counterHits << "</counterHits>\n";
+			}
+			if (noEvade) {
+				*saveFile << "\t\t\t<noEvade/>\n";
+			}
+			if (noCounter) {
+				*saveFile << "\t\t\t<noCounter/>\n";
+			}
+			if (noCounterAttack) {
+				*saveFile << "\t\t\t<noCounterAttack/>\n";
+			}
+			if (poison != 0) {
+				*saveFile << "\t\t\t<poison>" << +poison << "</poison>\n";
+			}
+			if (selfPoison != 0) {
+				*saveFile << "\t\t\t<selfPoison>" << +selfPoison << "</selfPoison>\n";
+			}
+			if (bleed != 0) {
+				*saveFile << "\t\t\t<bleed>" << +bleed << "</bleed>\n";
+			}
+			if (selfBleed != 0) {
+				*saveFile << "\t\t\t<selfBleed>" << +selfBleed << "</selfBleed>\n";
+			}
+			if (lifeLink) {
+				*saveFile << "\t\t\t<lifeLink/>\n";
+			}
+			if (dualWield) {
+				*saveFile << "\t\t\t<dualWield/>\n";
+			}
+			if (selfOverHeal) {
+				*saveFile << "\t\t\t<selfOverHeal/>\n";
+			}
+			if (targetOverHeal) {
+				*saveFile << "\t\t\t<targetOverHeal/>\n";
+			}
+			if (upgrade != "EMPTY") {
+				*saveFile << "\t\t\t<upgrade>" << addEscapes(upgrade) << "</upgrade>\n";
+			}
+			if (flatMagicDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageModifier>" << flatMagicDamageModifier << "</flatMagicDamageModifier>\n";
+			}
+			*saveFile << "\t\t\t<effectType>" << +effectType << "</effectType>\n";
+		*saveFile << "\t\t</weapon>\n";
+	}
+	else { //Empty slot
+		*saveFile << "\t\t<weapon/>\n";
+	}
+}
+
+void weapon::loadSave(ifstream* saveFile) {
+	string buffer = getTag(saveFile);
+	short charBuf;
+	if (buffer == "weapon/") {
+		real = false;
+		return;
+	}
+	else if (buffer == "weapon") {
+		real = true;
+	}
+	else {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "name") {
+		throw 1;
+	}
+	name = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "description") {
+		throw 1;
+	}
+	description = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "flatDamageMin") {
+		*saveFile >> flatDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageMin = 0;
+	}
+	if (buffer == "flatDamageMax") {
+		*saveFile >> flatDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageMax = 0;
+	}
+	if (buffer == "flatMagicDamageMin") {
+		*saveFile >> flatMagicDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageMin = 0;
+	}
+	if (buffer == "flatMagicDamageMax") {
+		*saveFile >> flatMagicDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageMax = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageMin") {
+		*saveFile >> flatArmourPiercingDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageMin = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageMax") {
+		*saveFile >> flatArmourPiercingDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageMax = 0;
+	}
+	if (buffer == "propDamage") {
+		*saveFile >> propDamage;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamage = 0;
+	}
+	if (buffer == "flatSelfDamageMin") {
+		*saveFile >> flatSelfDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfDamageMin = 0;
+	}
+	if (buffer == "flatSelfDamageMax") {
+		*saveFile >> flatSelfDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfDamageMax = 0;
+	}
+	if (buffer == "flatSelfMagicDamageMin") {
+		*saveFile >> flatSelfMagicDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfMagicDamageMin = 0;
+	}
+	if (buffer == "flatSelfMagicDamageMax") {
+		*saveFile >> flatSelfMagicDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfMagicDamageMax = 0;
+	}
+	if (buffer == "flatSelfArmourPiercingDamageMin") {
+		*saveFile >> flatSelfArmourPiercingDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfArmourPiercingDamageMin = 0;
+	}
+	if (buffer == "flatSelfArmourPiercingDamageMax") {
+		*saveFile >> flatSelfArmourPiercingDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfArmourPiercingDamageMax = 0;
+	}
+	if (buffer == "propSelfDamage") {
+		*saveFile >> propSelfDamage;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propSelfDamage = 0;
+	}
+	if (buffer == "healthChange") {
+		*saveFile >> healthChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		healthChange = 0;
+	}
+	if (buffer == "manaChange") {
+		*saveFile >> manaChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		manaChange = 0;
+	}
+	if (buffer == "projectileChange") {
+		*saveFile >> projectileChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		projectileChange = 0;
+	}
+	if (buffer == "hitCount") {
+		*saveFile >> charBuf;
+		hitCount = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		hitCount = 1;
+	}
+	if (buffer == "counterHits") {
+		*saveFile >> charBuf;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterHits = 0;
+	}
+	if (buffer == "noEvade") {
+		noEvade = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		noEvade = false;
+	}
+	if (buffer == "noCounter/") {
+		noCounter = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		noCounter = false;
+	}
+	if (buffer == "noCounterAttack/") {
+		noCounterAttack = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		noCounterAttack = false;
+	}
+	if (buffer == "poison") {
+		*saveFile >> charBuf;
+		poison = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poison = 0;
+	}
+	if (buffer == "selfPoison") {
+		*saveFile >> charBuf;
+		selfPoison = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfPoison = 0;
+	}
+	if (buffer == "bleed") {
+		*saveFile >> charBuf;
+		bleed = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleed = 0;
+	}
+	if (buffer == "selfBleed") {
+		*saveFile >> charBuf;
+		selfBleed = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfBleed = 0;
+	}
+	if (buffer == "lifeLink/") {
+		lifeLink = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		lifeLink = false;
+	}
+	if (buffer == "dualWield/") {
+		dualWield = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		dualWield = false;
+	}
+	if (buffer == "selfOverHeal/") {
+		selfOverHeal = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfOverHeal = false;
+	}
+	if (buffer == "targetOverHeal/") {
+		targetOverHeal = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		targetOverHeal = false;
+	}
+	if (buffer == "upgrade") {
+		upgrade = stringFromFile(saveFile);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		upgrade = "EMPTY";
+	}
+	if (buffer == "flatMagicDamageModifier") {
+		*saveFile >> flatMagicDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageModifier = 0;
+	}
+	if (buffer != "effectType") {
+		throw 1;
+	}
+	*saveFile >> charBuf;
+	effectType = static_cast<uint8_t>(charBuf);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "/weapon") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
 }

@@ -20,7 +20,7 @@
 	<turnManaRegen>0</turnManaRegen>
 	<poisonResist>0.1</poisonResist>
 	<bleedResist>0.1</bleedResist>
-	<constRegen>0</constRegen>
+	<turnRegen>0</turnRegen>
 	<weapons projectiles="0"> <!--projectiles is starting number of projectiles. Enemy can have up to 256 weapons, any beyond this number will be ignored-->
 		<weapon>EMPTY</weapon>
 	</weapons>
@@ -50,7 +50,7 @@
 <enemyBlueprint name="BAD_GUY">
 	<name>Bad guy</name>
 	<introduction>You must fight a bad guy</introduction>
-	<maxHealth>75</maxHealth>
+	<maxHealth>v_playerMaxHealthHalf</maxHealth>
 	<maxMana>50</maxMana>
 	<turnManaRegen>5</turnManaRegen>
 	<weapons projectiles="0">

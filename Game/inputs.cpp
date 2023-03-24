@@ -75,7 +75,7 @@ std::string getTag(std::istream* stream) {
 		}
 	}
 	getline(*stream, out, '>');
-	if (stream->eof()) {
+	if (stream->eof() || !(*stream)) {
 		throw 1;
 	}
 	return out;
@@ -446,9 +446,9 @@ int numFromString(std::string* in, player* playerCharacter) {
 			in->erase(0, 11);
 			value = static_cast<int>(100 * playerCharacter->getBleedResist());
 		}
-		else if (in->substr(0, 10) == "constRegen") {
+		else if (in->substr(0, 10) == "turnRegen") {
 			in->erase(0, 10);
-			value = playerCharacter->getConstRegen();
+			value = playerCharacter->getTurnRegen();
 		}
 		else if (in->substr(0, 11) == "battleRegen") {
 			in->erase(0, 11);
@@ -682,6 +682,36 @@ std::string removeEscapes(std::string in) {
 			out += in[0];
 			in.erase(0, 1);
 		}
+	}
+	return out;
+}
+
+std::string addEscapes(std::string in) {
+	std::string out;
+	while (!in.empty()) {
+		switch (in[0]) {
+		case '&':
+			out += "&amp;";
+			break;
+		case '\'':
+			out += "&apos;";
+			break;
+		case '>':
+			out += "&gt;";
+			break;
+		case '<':
+			out += "&lt;";
+			break;
+		case '\n':
+			out += "&nl;";
+			break;
+		case '\"':
+			out += "&quot;";
+			break;
+		default:
+			out += in[0];
+		}
+		in.erase(0, 1);
 	}
 	return out;
 }

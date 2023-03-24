@@ -26,10 +26,11 @@ extern resource g_manaName, g_projName;
 
 void Event::loadFromFile(string blueprint, bool custom) {
 	//Reset attributes to default values
-	eventName = preBattleSpell = enemyBlueprint = reward = "EMPTY";
+	real = true;
+	preBattleSpell = enemyBlueprint = reward = "EMPTY";
 	preBattleText = postBattleText = "";
 	choices.resize(0);
-	for (unsigned char i = 0; i < 18; i++) {
+	for (uint8_t i = 0; i < 18; i++) {
 		statChanges[i] = 0;
 	}
 	varChanges.reset();
@@ -53,6 +54,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 		if (custom && events.eof()) {
 			throw 4;
 		}
+		events.seekg(-1, ios_base::cur);
 		string blueprintName = "eventList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		{
@@ -160,9 +162,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 		buffer = getTag(&events);
 		short varBuffer = 0;
 		while (buffer != blueprintName) {
-			if (events.eof()) {
-				throw 1;
-			}
 			if (buffer == "preBattleText") {
 				preBattleText = stringFromFile(&events);
 			}
@@ -189,14 +188,8 @@ void Event::loadFromFile(string blueprint, bool custom) {
 			}
 			else if (buffer == "statChanges") {
 				ignoreLine(&events);
-				if (!events) {
-					throw 1;
-				}
 				buffer = getTag(&events);
 				while (buffer != "/statChanges") {
-					if (events.eof()) {
-						throw 1;
-					}
 					if (buffer == "health") {
 						statChanges[0] = numFromFile(&events);
 					}
@@ -218,7 +211,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 					else if (buffer == "battleManaRegen") {
 						statChanges[7] = numFromFile(&events);
 					}
-					else if (buffer == "constRegen") {
+					else if (buffer == "turnRegen") {
 						statChanges[2] = numFromFile(&events);
 					}
 					else if (buffer == "battleRegen") {
@@ -267,15 +260,9 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						throw 1;
 					}
 					ignoreLine(&events);
-					if (!events) {
-						throw 1;
-					}
 					buffer = getTag(&events);
 				}
 				ignoreLine(&events);
-				if (!events) {
-					throw 1;
-				}
 				buffer = getTag(&events);
 				continue;
 			}
@@ -289,9 +276,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				}
 				buffer = getTag(&events);
 				while (buffer != "/varChanges") {
-					if (events.eof()) {
-						throw 1;
-					}
 					if (buffer.substr(0, 10) == "var name=\"") {
 						buffer.erase(0, 10);
 						if (buffer.empty() || buffer.back() != '\"') {
@@ -308,9 +292,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 							throw 1;
 						}
 						ignoreLine(&events);
-						if (!events) {
-							throw 1;
-						}
 						buffer = getTag(&events);
 					}
 					else {
@@ -318,9 +299,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 					}
 				}
 				ignoreLine(&events);
-				if (!events) {
-					throw 1;
-				}
 				buffer = getTag(&events);
 				continue;
 			}
@@ -331,9 +309,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				}
 				buffer = getTag(&events);
 				while (buffer != "/choice") {
-					if (events.eof()) {
-						throw 1;
-					}
 					if (buffer == "text") {
 						choices.back().text = stringFromFile(&events);
 					}
@@ -352,9 +327,6 @@ void Event::loadFromFile(string blueprint, bool custom) {
 					else if (buffer == "hidden/") {
 						choices.back().hidden = true;
 						ignoreLine(&events);
-						if (!events) {
-							throw 1;
-						}
 						buffer = getTag(&events);
 						continue;
 					}
@@ -368,15 +340,9 @@ void Event::loadFromFile(string blueprint, bool custom) {
 						throw 1;
 					}
 					ignoreLine(&events);
-					if (!events) {
-						throw 1;
-					}
 					buffer = getTag(&events);
 				}
 				ignoreLine(&events);
-				if (!events) {
-					throw 1;
-				}
 				buffer = getTag(&events);
 				continue;
 			}
@@ -387,17 +353,14 @@ void Event::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			ignoreLine(&events);
-			if (!events) {
-				throw 1;
-			}
 			buffer = getTag(&events);
 		}
 		events.close();
-		eventName = blueprint;
 	}
 	catch (int err) {
 		events.close();
-		eventName = preBattleSpell = enemyBlueprint = reward = "EMPTY";
+		real = false;
+		preBattleSpell = enemyBlueprint = reward = "EMPTY";
 		preBattleText = postBattleText = "";
 		choices.resize(0);
 		varChanges.reset();
@@ -425,7 +388,7 @@ void Event::loadFromFile(string blueprint, bool custom) {
 	}
 }
 
-unsigned char Event::eventHandler(player* playerCharacter) {
+uint8_t Event::eventHandler(player* playerCharacter) {
 	static spell eventSpell;
 	static enemy opponent;
 	if (!preBattleText.empty()) {
@@ -488,21 +451,21 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 	}
 	if (statChanges[2] > 0) {
 		cout << statChanges[2] << " health per turn\n";
-		if (playerCharacter->constRegenBase > SHRT_MAX - statChanges[2]) {
-			playerCharacter->constRegenBase = SHRT_MAX;
+		if (playerCharacter->turnRegenBase > SHRT_MAX - statChanges[2]) {
+			playerCharacter->turnRegenBase = SHRT_MAX;
 		}
 		else {
-			playerCharacter->constRegenBase += statChanges[2];
+			playerCharacter->turnRegenBase += statChanges[2];
 		}
 		this_thread::sleep_for(chrono::milliseconds(100));
 	}
 	else if (statChanges[2] < 0) {
 		cout << statChanges[2] << " health per turn\n";
-		if (playerCharacter->constRegenBase < SHRT_MIN - statChanges[2]) {
-			playerCharacter->constRegenBase = SHRT_MIN;
+		if (playerCharacter->turnRegenBase < SHRT_MIN - statChanges[2]) {
+			playerCharacter->turnRegenBase = SHRT_MIN;
 		}
 		else {
-			playerCharacter->constRegenBase += statChanges[2];
+			playerCharacter->turnRegenBase += statChanges[2];
 		}
 		this_thread::sleep_for(chrono::milliseconds(100));
 	}
@@ -782,13 +745,13 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
 	}
-	case 2: //Chestplate
+	case 2: //Chest plate
 	{
-		armourTorso newChestplate(reward);
-		cout << "New chestwear: " << newChestplate.getName() << '\n';
+		armourTorso newChestPlate(reward);
+		cout << "New chest wear: " << newChestPlate.getName() << '\n';
 		cout << "To view stats, enter 1.\nTo discard, enter 2.\n";
 		if (userChoice(1, 2) == 1) {
-			playerCharacter->equip(&newChestplate);
+			playerCharacter->equip(&newChestPlate);
 		}
 		this_thread::sleep_for(chrono::milliseconds(500));
 		break;
@@ -868,7 +831,7 @@ unsigned char Event::eventHandler(player* playerCharacter) {
 	playerCharacter->modifyProjectiles(possibleChoices[chosen].projectileChange);
 	playerCharacter->modifyMana(possibleChoices[chosen].manaChange);
 	//Set next event
-	if (newEvents[chosen].eventName == "EMPTY") {
+	if (!newEvents[chosen].real) {
 		return 0;
 	}
 	*this = newEvents[chosen];

@@ -3,9 +3,7 @@
 #include <iostream>
 #include <iomanip>
 #include "inputs.h"
-#include "rng.h"
 #include "resources.h"
-#include "player.h"
 #include "language.h"
 #include <thread>
 using namespace std;
@@ -27,16 +25,55 @@ extern variables g_customVars;
 	9: Global class list missing
 */
 
-unsigned char adventureMode() {
-	unsigned char saveSlot = '0';
+uint8_t adventureMode() {
+	signed char saveSlot = '0';
 	//Allow player to load a save
 	{
 		bool existingSaves = false; //Are there existing save games
-		for (unsigned char i = 48; i < 58; i++) {
+		for (signed char i = '0'; i <= '9' && !existingSaves; i++) {
 			existingSaves |= checkSaveSlot(i);
 		}
 		if (existingSaves) {
-			//Add functionality here to load saved games
+			bool done = false;
+			while (!done) {
+				cout << "To start a new game, enter 1.\nTo load a saved game, enter 2.\nTo return to the menu, enter 0.\n";
+				switch (userChoice(0, 2)) {
+				case 0:
+					return 1;
+				case 1:
+					done = true;
+					break;
+				case 2: //Loading a save
+					cout << "Enter the number of the saved game you wish to load.\nTo go back, enter 0.\n";
+					cout << "Existing saved games:\n";
+					{
+						vector<short> saveSlots(1, 0);
+						for (signed char slot = '0'; slot <= '9'; slot++) {
+							if (checkSaveSlot(slot)) {
+								saveSlots.push_back(slot - 47);
+								displaySaveData(slot);
+							}
+							else {
+								cout << "Save slot " << slot - 47 << ": Empty\n\n";
+							}
+						}
+						short selectedSlot = userChoice(saveSlots);
+						if (selectedSlot == 0) {
+							break;
+						}
+						try {
+							signed char slot = static_cast<signed char>(selectedSlot + 47);
+							adventure chosenAdventure(slot);
+							return chosenAdventure.loadFromSave();
+						}
+						catch (int) {}
+					}
+					break;
+				}
+			}
+		}
+		else {
+			cout << "No existing save data found, starting a new game\n";
 		}
 	}
 	string adventureBlueprint; //Blueprint of the adventure we are running
@@ -73,6 +110,7 @@ unsigned char adventureMode() {
 				if (adventures.is_open()) {
 					ignoreLine(&adventures, '<');
 					if (!adventures.eof()) {
+						adventures.seekg(-1, ios_base::cur);
 						while (buffer != "adventureList" && !adventures.eof()) {
 							buffer = getTag(&adventures);
 							ignoreLine(&adventures);
@@ -114,7 +152,7 @@ unsigned char adventureMode() {
 		}
 		cout << "The following adventures are available, enter the number of the adventure you wish to play.\nTo go back to the main menu, enter 0.\n";
 		{
-			unsigned char numWidth = static_cast<unsigned char>(floor(log10(adventureCount))) + 1;
+			uint8_t numWidth = static_cast<uint8_t>(floor(log10(adventureCount))) + 1;
 			if (!vanillaAdventures.empty()) {
 				cout << "Vanilla adventures:\n\n";
 				for (int i = 0; i < vanillaAdventures.size(); i++) {
@@ -146,6 +184,22 @@ unsigned char adventureMode() {
 		}
 	}
 	try {
+		while (true) {
+			cout << "Enter the save slot you wish to use. (A number from 1 to 10)\n";
+			saveSlot = static_cast<uint8_t>(userChoice(1, 10) + 47);
+			if (checkSaveSlot(saveSlot)) {
+				cout << "Selected slot contains existing data:\n";
+				displaySaveData(saveSlot);
+				cout << "To overwrite this saved game, enter 1.\nTo choose a different slot, enter 2.\nTo return to the main menu, enter 0.\n";
+				switch (userChoice(0, 2)) {
+				case 0:
+					return 1;
+				case 2:
+					continue;
+				}
+			}
+			break;
+		}
 		adventure chosenAdventure(adventureBlueprint, custom, saveSlot);
 		return chosenAdventure.adventureInitialiser();
 	}
@@ -176,11 +230,12 @@ unsigned char adventureMode() {
 	}
 }
 
-adventure::adventure(string blueprint, bool custom, unsigned char slot) :saveSlot(slot) {
+adventure::adventure(string blueprint, bool custom, signed char slot) :saveSlot(slot) {
 	ifstream adventures;
 	string buffer;
 	string buffer3[3];
 	size_t posBuffer1 = 0, posBuffer2 = 0;
+	deleteSave();
 	try {
 		if (custom) {
 			adventures.open("custom\\adventures.xml");
@@ -245,9 +300,6 @@ adventure::adventure(string blueprint, bool custom, unsigned char slot) :saveSlo
 		}
 		buffer = getTag(&adventures);
 		while (buffer != "/adventureBlueprint") {
-			if (adventures.eof()) {
-				throw 1;
-			}
 			if (buffer == "name") {
 				name = stringFromFile(&adventures);
 			}
@@ -257,9 +309,6 @@ adventure::adventure(string blueprint, bool custom, unsigned char slot) :saveSlo
 			else if (buffer == "forceCustom/") {
 				forceCustom = true;
 				ignoreLine(&adventures);
-				if (!adventures) {
-					throw 1;
-				}
 				buffer = getTag(&adventures);
 				continue;
 			}
@@ -279,9 +328,6 @@ adventure::adventure(string blueprint, bool custom, unsigned char slot) :saveSlo
 					buffer = getTag(&adventures);
 				}
 				ignoreLine(&adventures);
-				if (!adventures) {
-					throw 1;
-				}
 				buffer = getTag(&adventures);
 				continue;
 			}
@@ -292,9 +338,6 @@ adventure::adventure(string blueprint, bool custom, unsigned char slot) :saveSlo
 				throw 1;
 			}
 			ignoreLine(&adventures);
-			if (!adventures) {
-				throw 1;
-			}
 			buffer = getTag(&adventures);
 		}
 		adventures.close();
@@ -337,7 +380,7 @@ dataRef::dataRef(string type, string openTag, ifstream* file) {
 	}
 }
 
-unsigned char adventure::adventureInitialiser() {
+uint8_t adventure::adventureInitialiser() {
 	cout << name << "\n\n" << description << "\n\n";
 	if (forceCustom) { //Enable custom data if required, otherwise allow player to choose
 		cout << "This adventure requires custom data to be enabled\n";
@@ -365,6 +408,7 @@ unsigned char adventure::adventureInitialiser() {
 				if (dataFile.is_open()) {
 					ignoreLine(&dataFile, '<');
 					if (!dataFile.eof()) {
+						dataFile.seekg(-1, ios_base::cur);
 						while (buffer != "classList name=\"GLOBAL\"") { //Find global class list
 							buffer = getTag(&dataFile);
 							ignoreLine(&dataFile);
@@ -453,6 +497,7 @@ unsigned char adventure::adventureInitialiser() {
 		ignoreLine(&dataFile);
 		//Variable initialisation
 		{
+			g_customVars.reset(); //Reset values
 			streampos filePos = dataFile.tellg();
 			string buffer1, buffer2;
 			if (getTag(&dataFile) == "initialVars") { //Check if there is a variable initialiser
@@ -488,7 +533,7 @@ unsigned char adventure::adventureInitialiser() {
 		player playerCharacter; //Player
 		cout << "Enter the number of the class you wish to play as:\n\n";
 		{
-			unsigned char numWidth = static_cast<unsigned char>(floor(log10(classes.size())) + 1);
+			uint8_t numWidth = static_cast<uint8_t>(floor(log10(classes.size())) + 1);
 			for (int i = 0; i < classes.size(); i++) {
 				cout << setw(numWidth) << i + 1 << ": " << classes[i].getName() << '\n' << classes[i].getDescription() << "\n\n";
 			}
@@ -556,30 +601,242 @@ unsigned char adventure::adventureInitialiser() {
 	return userChoice(0, 1);
 }
 
-adventure::adventure(unsigned char slot) :saveSlot(slot) {
-
+uint8_t adventure::loadFromSave() {
+	if (saveSlot < '0' || saveSlot>'9') {
+		cout << "Invalid save slot\n";
+		return 1;
+	}
+	ifstream dataFile;
+	try {
+		player playerCharacter;
+		{
+			string savePath = "saves\\sav";
+			savePath += saveSlot;
+			savePath += ".xml";
+			dataFile.open(savePath);
+		}
+		if (!dataFile.is_open()) {
+			cout << "Error: Unable to open save file\n";
+			throw 0;
+		}
+		streampos filePos;
+		try {
+			if (getTag(&dataFile) != "saveGame/") {
+				cout << "Error: Save file contains no data\n";
+				throw 0;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "adventure") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "name") {
+				throw 1;
+			}
+			name = stringFromFile(&dataFile);
+			if (getTag(&dataFile) != "/name") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "description") {
+				throw 1;
+			}
+			description = stringFromFile(&dataFile);
+			if (getTag(&dataFile) != "/description") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "file") {
+				throw 1;
+			}
+			file = stringFromFile(&dataFile);
+			if (getTag(&dataFile) != "/file") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "victory") {
+				throw 1;
+			}
+			victory = stringFromFile(&dataFile);
+			if (getTag(&dataFile) != "/victory") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "defeat") {
+				throw 1;
+			}
+			defeat = stringFromFile(&dataFile);
+			if (getTag(&dataFile) != "/defeat") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "/adventure") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			string buffer = getTag(&dataFile);
+			if (buffer == "custom/") {
+				g_useCustomData = true;
+				ignoreLine(&dataFile);
+			}
+			else if (buffer == "noCustom/") {
+				g_useCustomData = false;
+				ignoreLine(&dataFile);
+			}
+			else {
+				throw 1;
+			}
+			playerCharacter.loadSave(&dataFile);
+			if (getTag(&dataFile) != "filePos") {
+				throw 1;
+			}
+			{
+				long long posBuffer;
+				dataFile >> posBuffer;
+				filePos = posBuffer;
+			}
+			if (getTag(&dataFile) != "/filePos") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "variables") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			buffer = getTag(&dataFile);
+			{
+				g_customVars.vars.resize(0); //Reset variables
+				size_t posBuffer;
+				short value;
+				while (buffer != "/variables") {
+					if (g_customVars.vars.size() == USHRT_MAX) {
+						throw 8;
+					}
+					if (buffer.substr(0, 10) != "var name=\"") {
+						throw 1;
+					}
+					buffer.erase(0, 10);
+					posBuffer = buffer.find('\"');
+					if (posBuffer == string::npos) {
+						throw 1;
+					}
+					if (buffer.substr(posBuffer) != "\"") {
+						throw 1;
+					}
+					buffer.pop_back();
+					dataFile >> value;
+					g_customVars.vars.emplace_back(buffer, value);
+					if (getTag(&dataFile) != "/var") {
+						throw 1;
+					}
+					ignoreLine(&dataFile);
+					buffer = getTag(&dataFile);
+				}
+				ignoreLine(&dataFile);
+			}
+			if (getTag(&dataFile) != "resources") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "projectiles") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			g_projName.loadSave(&dataFile);
+			if (getTag(&dataFile) != "/projectiles") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "mana") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			g_manaName.loadSave(&dataFile);
+			if (getTag(&dataFile) != "/mana") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			if (getTag(&dataFile) != "/resources") {
+				throw 1;
+			}
+			ignoreLine(&dataFile);
+			dataFile.close();
+		}
+		catch (int err) {
+			if (err == 1) {
+				cout << "Error: Unable to parse save file\n";
+				throw 0;
+			}
+			else {
+				throw err;
+			}
+		}
+		//Open actual adventure file
+		dataFile.open("adventures\\" + file);
+		if (!dataFile.is_open()) {
+			cout << "Error: Unable to open adventure file\n";
+			throw 0;
+		}
+		dataFile.seekg(filePos); //Move to saved position in file
+		return adventureHandler(&playerCharacter, &dataFile);
+	}
+	catch (int err) {
+		dataFile.close();
+		switch (err) {
+		case 1:
+			cout << "Error: Unable to parse adventure file\n";
+			break;
+		case 2:
+			cout << "Error: Specified item not found\n";
+			break;
+		case 3:
+			cout << "Error: Attempted to load empty slot\n";
+			break;
+		case 4:
+			cout << "Error: Unable to open file\n";
+			break;
+		case 5:
+			cout << "Error: Attempting to choose entry from an empty list\n";
+			break;
+		case 6:
+			cout << "Error: Attempting to access slot out of range\n";
+			break;
+		case 7:
+			cout << "Error: Attempting to choose number from empty set\n";
+			break;
+		case 8:
+			cout << "Error: Variable limit reached\n";
+			break;
+		case 9:
+			cout << "Error: Global class list missing\n";
+			break;
+		}
+	}
+	cout << "To return to the main menu, enter 1.\nTo quit, enter 0.\n";
+	return userChoice(0, 1);
 }
 
-unsigned char adventure::adventureInitialiser(unsigned char slot) {
-	return 0;
-}
 
-unsigned char adventure::adventureHandler(player* playerCharacter, ifstream* file) {
-	unsigned char i = 0;
+
+uint8_t adventure::adventureHandler(player* playerCharacter, ifstream* file) {
+	uint8_t i = 0;
 	while (i == 0) {
 		i = doLine(file, playerCharacter);
 		switch (i) {
 		case 1:
 			cout << victory << '\n';
+			deleteSave();
 			break;
 		case 2:
 			cout << defeat << '\n';
+			//deleteSave();
+			//Currently save is not deleted on defeat, to allow retrying, may be changed later
 			break;
 		case 3:
 		case 4:
 			throw 1;
 		case 5:
-			save();
+			save(playerCharacter, file->tellg());
 			i = 0;
 			break;
 		}
@@ -589,6 +846,160 @@ unsigned char adventure::adventureHandler(player* playerCharacter, ifstream* fil
 	return userChoice(0, 1);
 }
 
-void adventure::save() {
+void adventure::save(player* playerCharacter, streampos filePos) {
+	if (saveSlot < 48 || saveSlot > 57) {
+		cout << "Ivalid save slot\n";
+		return;
+	}
+	ofstream saveFile;
+	{
+		string savePath = "saves\\sav";
+		savePath += saveSlot;
+		savePath += ".xml";
+		saveFile.open(savePath, ofstream::trunc);
+	}
+	if (!saveFile.is_open()) {
+		cout << "Unable to open file for saving\n";
+		return;
+	}
+	saveFile << "<saveGame/>\n\n"; //Indicates there is save data
+	//Adventure data
+	saveFile << "<adventure>\n";
+		saveFile << "\t<name>" << addEscapes(name) << "</name>\n";
+		saveFile << "\t<description>" << addEscapes(description) << "</description>\n";
+		saveFile << "\t<file>" << addEscapes(file) << "</file>\n";
+		saveFile << "\t<victory>" << addEscapes(victory) << "</victory>\n";
+		saveFile << "\t<defeat>" << addEscapes(defeat) << "</defeat>\n";
+	saveFile << "</adventure>\n\n";
+	//Is custom data enabled
+	if (g_useCustomData) {
+		saveFile << "<custom/>\n\n";
+	}
+	else {
+		saveFile << "<noCustom/>\n\n";
+	}
+	//Player stats, stats which have default value will not be saved, only base values will be saved
+	playerCharacter->save(&saveFile);
+	//Position in adventure file
+	saveFile << "<filePos>" << filePos << "</filePos>\n\n";
+	//Variables
+	saveFile << "<variables>\n";
+	for (unsigned short i = 0; i < g_customVars.vars.size(); i++) {
+		saveFile << "\t<var name=\"" << g_customVars.vars[i].name << "\">" << g_customVars.vars[i].value << "</var>\n";
+	}
+	saveFile << "</variables>\n\n";
+	//Name of mana and projectiles
+	saveFile << "<resources>\n";
+		saveFile << "\t<projectiles>\n";
+			saveFile << "\t\t<singular>" << addEscapes(g_projName.singular()) << "</singular>\n";
+			saveFile << "\t\t<plural>" << addEscapes(g_projName.plural()) << "</plural>\n";
+		saveFile << "\t</projectiles>\n";
+		saveFile << "\t<mana>\n";
+			saveFile << "\t\t<singular>" << addEscapes(g_manaName.singular()) << "</singular>\n";
+			saveFile << "\t\t<plural>" << addEscapes(g_manaName.plural()) << "</plural>\n";
+		saveFile << "\t</mana>\n";
+	saveFile << "</resources>\n\n";
+	saveFile.close();
+}
 
+void displaySaveData(signed char saveSlot) {
+	if (saveSlot < 48 || saveSlot > 57) {
+		cout << "Invalid save slot\n";
+		return;
+	}
+	string savePath = "saves\\sav";
+	savePath += saveSlot;
+	savePath += ".xml";
+	saveSlot++;
+	cout << "Save slot " << saveSlot << ": ";
+	ifstream saveFile(savePath);
+	if (!saveFile.is_open()) {
+		cout << "Empty\n\n";
+		return;
+	}
+	ignoreLine(&saveFile, '<');
+	if (saveFile.eof()) {
+		cout << "Empty\n\n";
+		saveFile.close();
+		return;
+	}
+	saveFile.seekg(-1, ios_base::cur);
+	if (getTag(&saveFile) != "saveGame/") {
+		cout << "Empty\n\n";
+		saveFile.close();
+		return;
+	}
+	try {
+		string name, className, buffer;
+		short level;
+		bool custom;
+		ignoreLine(&saveFile);
+		if (getTag(&saveFile) != "adventure") {
+			throw 1;
+		}
+		ignoreLine(&saveFile);
+		if (getTag(&saveFile) != "name") {
+			throw 1;
+		}
+		name = stringFromFile(&saveFile);
+		if (getTag(&saveFile) != "/name") {
+			throw 1;
+		}
+		do {
+			ignoreLine(&saveFile);
+		} while (getTag(&saveFile) != "/adventure");
+		ignoreLine(&saveFile);
+		buffer = getTag(&saveFile);
+		if (buffer == "custom/") {
+			custom = true;
+			ignoreLine(&saveFile);
+			buffer = getTag(&saveFile);
+		}
+		else if (buffer == "noCustom/") {
+			custom = false;
+			ignoreLine(&saveFile);
+			buffer = getTag(&saveFile);
+		}
+		else {
+			throw 1;
+		}
+		if (buffer != "player") {
+			throw 1;
+		}
+		ignoreLine(&saveFile);
+		if (getTag(&saveFile) != "level") {
+			throw 1;
+		}
+		saveFile >> level;
+		if (getTag(&saveFile) != "/level") {
+			throw 1;
+		}
+		ignoreLine(&saveFile);
+		if (getTag(&saveFile) != "className") {
+			throw 1;
+		}
+		className = stringFromFile(&saveFile);
+		if (getTag(&saveFile) != "/className") {
+			throw 1;
+		}
+		saveFile.close();
+		cout << name << '\n';
+		cout << "Level " << level << ' ' << className;
+		if (custom) {
+			cout << "; custom data enabled";
+		}
+		cout << "\n\n";
+	}
+	catch (int) {
+		saveFile.close();
+		cout << "Error parsing save file\n\n";
+	}
+}
+
+void adventure::deleteSave() {
+	string savePath = "saves\\sav";
+	savePath += saveSlot;
+	savePath += ".xml";
+	ofstream saveFile(savePath, ofstream::trunc);
+	saveFile.close();
 }

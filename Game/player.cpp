@@ -19,7 +19,7 @@ using namespace std;
 extern resource g_manaName;
 extern resource g_projName;
 
-short player::flatDamage(short p, short m, short a, bool overheal) {
+short player::flatDamage(short p, short m, short a, bool overHeal) {
 	if (p > 0) { //Apply physical armour
 		p = max(0, p - flatArmour);
 		p = static_cast<short>(p * (1 + propArmour));
@@ -42,7 +42,7 @@ short player::flatDamage(short p, short m, short a, bool overheal) {
 		return static_cast<short>(totDamage);
 	}
 	else if (totDamage < 0) {
-		if (overheal) { //May overheal
+		if (overHeal) { //May over heal
 			if (SHRT_MAX + totDamage < health) { //Check for overflow
 				health = SHRT_MAX;
 			}
@@ -55,7 +55,7 @@ short player::flatDamage(short p, short m, short a, bool overheal) {
 			return static_cast<short>(totDamage);
 		}
 		else {
-			if (health >= maxHealth) { //Already overhealed
+			if (health >= maxHealth) { //Already over healed
 				return 0;
 			}
 			if (health - totDamage > maxHealth || SHRT_MAX + totDamage < health) { //Overflow or exceed max
@@ -135,7 +135,7 @@ void player::modifyMaxHealth(short m) {
 void player::calculateMaxHealth() {
 	maxHealth = maxHealthBase;
 	modifyMaxHealth(helmet.getMaxHealthModifier());
-	modifyMaxHealth(chestplate.getMaxHealthModifier());
+	modifyMaxHealth(chestPlate.getMaxHealthModifier());
 	modifyMaxHealth(greaves.getMaxHealthModifier());
 	modifyMaxHealth(boots.getMaxHealthModifier());
 	if (health > maxHealth) {
@@ -193,7 +193,7 @@ void player::modifyMaxMana(short m) {
 void player::calculateMaxMana() {
 	maxMana = maxManaBase;
 	modifyMaxMana(helmet.getMaxManaModifier());
-	modifyMaxMana(chestplate.getMaxManaModifier());
+	modifyMaxMana(chestPlate.getMaxManaModifier());
 	modifyMaxMana(greaves.getMaxManaModifier());
 	modifyMaxMana(boots.getMaxManaModifier());
 	if (mana > maxMana) {
@@ -223,7 +223,7 @@ void player::modifyTurnManaRegen(short m) {
 void player::calculateTurnManaRegen() {
 	turnManaRegen = turnManaRegenBase;
 	modifyTurnManaRegen(helmet.getTurnManaRegenModifier());
-	modifyTurnManaRegen(chestplate.getTurnManaRegenModifier());
+	modifyTurnManaRegen(chestPlate.getTurnManaRegenModifier());
 	modifyTurnManaRegen(greaves.getTurnManaRegenModifier());
 	modifyTurnManaRegen(boots.getTurnManaRegenModifier());
 }
@@ -250,7 +250,7 @@ void player::modifyBattleManaRegen(short b) {
 void player::calculateBattleManaRegen() {
 	battleManaRegen = battleManaRegenBase;
 	modifyBattleManaRegen(helmet.getBattleManaRegenModifier());
-	modifyBattleManaRegen(chestplate.getBattleManaRegenModifier());
+	modifyBattleManaRegen(chestPlate.getBattleManaRegenModifier());
 	modifyBattleManaRegen(greaves.getBattleManaRegenModifier());
 	modifyBattleManaRegen(boots.getBattleManaRegenModifier());
 }
@@ -303,31 +303,31 @@ void player::modifyTempRegen(short r) {
 	}
 }
 
-void player::modifyConstRegen(short c) {
+void player::modifyTurnRegen(short c) {
 	if (c > 0) {
-		if (SHRT_MAX - c < constRegen) { //Overflow
-			constRegen = SHRT_MAX;
+		if (SHRT_MAX - c < turnRegen) { //Overflow
+			turnRegen = SHRT_MAX;
 		}
 		else {
-			constRegen += c;
+			turnRegen += c;
 		}
 	}
 	else if (c < 0) {
-		if (SHRT_MIN + (-c) > constRegen) { //Underflow
-			constRegen = SHRT_MIN;
+		if (SHRT_MIN + (-c) > turnRegen) { //Underflow
+			turnRegen = SHRT_MIN;
 		}
 		else {
-			constRegen += c;
+			turnRegen += c;
 		}
 	}
 }
 
-void player::calculateConstRegen() {
-	constRegen = constRegenBase;
-	modifyConstRegen(helmet.getConstRegenModifier());
-	modifyConstRegen(chestplate.getConstRegenModifier());
-	modifyConstRegen(greaves.getConstRegenModifier());
-	modifyConstRegen(boots.getConstRegenModifier());
+void player::calculateTurnRegen() {
+	turnRegen = turnRegenBase;
+	modifyTurnRegen(helmet.getTurnRegenModifier());
+	modifyTurnRegen(chestPlate.getTurnRegenModifier());
+	modifyTurnRegen(greaves.getTurnRegenModifier());
+	modifyTurnRegen(boots.getTurnRegenModifier());
 }
 
 void player::modifyBattleRegen(short b) {
@@ -352,7 +352,7 @@ void player::modifyBattleRegen(short b) {
 void player::calculateBattleRegen() {
 	battleRegen = battleRegenBase;
 	modifyBattleRegen(helmet.getBattleRegenModifier());
-	modifyBattleRegen(chestplate.getBattleRegenModifier());
+	modifyBattleRegen(chestPlate.getBattleRegenModifier());
 	modifyBattleRegen(greaves.getBattleRegenModifier());
 	modifyBattleRegen(boots.getBattleRegenModifier());
 }
@@ -413,25 +413,25 @@ void player::calculateArmour() {
 	//Flat armour
 	flatArmour = flatArmourBase;
 	modifyFlatArmour(helmet.getFlatArmourModifier());
-	modifyFlatArmour(chestplate.getFlatArmourModifier());
+	modifyFlatArmour(chestPlate.getFlatArmourModifier());
 	modifyFlatArmour(greaves.getFlatArmourModifier());
 	modifyFlatArmour(boots.getFlatArmourModifier());
 	//Prop armour
 	propArmour = propArmourBase;
 	modifyPropArmour(helmet.getPropArmourModifier());
-	modifyPropArmour(chestplate.getPropArmourModifier());
+	modifyPropArmour(chestPlate.getPropArmourModifier());
 	modifyPropArmour(greaves.getPropArmourModifier());
 	modifyPropArmour(boots.getPropArmourModifier());
 	//Flat magic armour
 	flatMagicArmour = flatMagicArmourBase;
 	modifyFlatMagicArmour(helmet.getFlatMagicArmourModifier());
-	modifyFlatMagicArmour(chestplate.getFlatMagicArmourModifier());
+	modifyFlatMagicArmour(chestPlate.getFlatMagicArmourModifier());
 	modifyFlatMagicArmour(greaves.getFlatMagicArmourModifier());
 	modifyFlatMagicArmour(boots.getFlatMagicArmourModifier());
 	//Prop magic armour
 	propMagicArmour = propMagicArmourBase;
 	modifyPropMagicArmour(helmet.getPropMagicArmourModifier());
-	modifyPropMagicArmour(chestplate.getPropMagicArmourModifier());
+	modifyPropMagicArmour(chestPlate.getPropMagicArmourModifier());
 	modifyPropMagicArmour(greaves.getPropMagicArmourModifier());
 	modifyPropMagicArmour(boots.getPropMagicArmourModifier());
 }
@@ -466,22 +466,22 @@ void player::calculateDamageModifiers() {
 	//Flat
 	flatDamageModifier = flatDamageModifierBase;
 	modifyFlatDamageModifier(helmet.getFlatDamageModifier());
-	modifyFlatDamageModifier(chestplate.getFlatDamageModifier());
+	modifyFlatDamageModifier(chestPlate.getFlatDamageModifier());
 	modifyFlatDamageModifier(greaves.getFlatDamageModifier());
 	modifyFlatDamageModifier(boots.getFlatDamageModifier());
 	//Prop
 	propDamageModifier = propDamageModifierBase;
 	modifyPropDamageModifier(helmet.getPropDamageModifier());
-	modifyPropDamageModifier(chestplate.getPropDamageModifier());
+	modifyPropDamageModifier(chestPlate.getPropDamageModifier());
 	modifyPropDamageModifier(greaves.getPropDamageModifier());
 	modifyPropDamageModifier(boots.getPropDamageModifier());
 	//Flat magic
 	flatMagicDamageModifier = flatMagicDamageModifierBase;
 	modifyFlatMagicDamageModifier(helmet.getFlatMagicDamageModifier());
-	modifyFlatMagicDamageModifier(chestplate.getFlatMagicDamageModifier());
+	modifyFlatMagicDamageModifier(chestPlate.getFlatMagicDamageModifier());
 	modifyFlatMagicDamageModifier(greaves.getFlatMagicDamageModifier());
 	modifyFlatMagicDamageModifier(boots.getFlatMagicDamageModifier());
-	for (unsigned char i = 0; i < weapons.size(); i++) {
+	for (uint8_t i = 0; i < weapons.size(); i++) {
 		if (weapons[i].getReal()) {
 			modifyFlatMagicDamageModifier(weapons[i].getFlatMagicDamageModifier());
 		}
@@ -489,19 +489,19 @@ void player::calculateDamageModifiers() {
 	//Prop magic
 	propMagicDamageModifier = propMagicDamageModifierBase;
 	modifyPropMagicDamageModifier(helmet.getPropMagicDamageModifier());
-	modifyPropMagicDamageModifier(chestplate.getPropMagicDamageModifier());
+	modifyPropMagicDamageModifier(chestPlate.getPropMagicDamageModifier());
 	modifyPropMagicDamageModifier(greaves.getPropMagicDamageModifier());
 	modifyPropMagicDamageModifier(boots.getPropMagicDamageModifier());
 	//Flat AP
 	flatArmourPiercingDamageModifier = flatArmourPiercingDamageModifierBase;
 	modifyFlatArmourPiercingDamageModifier(helmet.getFlatArmourPiercingDamageModifier());
-	modifyFlatArmourPiercingDamageModifier(chestplate.getFlatArmourPiercingDamageModifier());
+	modifyFlatArmourPiercingDamageModifier(chestPlate.getFlatArmourPiercingDamageModifier());
 	modifyFlatArmourPiercingDamageModifier(greaves.getFlatArmourPiercingDamageModifier());
 	modifyFlatArmourPiercingDamageModifier(boots.getFlatArmourPiercingDamageModifier());
 	//Prop AP
 	propArmourPiercingDamageModifier = propArmourPiercingDamageModifierBase;
 	modifyPropArmourPiercingDamageModifier(helmet.getPropArmourPiercingDamageModifier());
-	modifyPropArmourPiercingDamageModifier(chestplate.getPropArmourPiercingDamageModifier());
+	modifyPropArmourPiercingDamageModifier(chestPlate.getPropArmourPiercingDamageModifier());
 	modifyPropArmourPiercingDamageModifier(greaves.getPropArmourPiercingDamageModifier());
 	modifyPropArmourPiercingDamageModifier(boots.getPropArmourPiercingDamageModifier());
 }
@@ -523,7 +523,7 @@ void player::modifyPoisonResist(float p) {
 void player::calculatePoisonResist() {
 	poisonResist = poisonResistBase;
 	modifyPoisonResist(helmet.getPoisonResistModifier());
-	modifyPoisonResist(chestplate.getPoisonResistModifier());
+	modifyPoisonResist(chestPlate.getPoisonResistModifier());
 	modifyPoisonResist(greaves.getPoisonResistModifier());
 	modifyPoisonResist(boots.getPoisonResistModifier());
 }
@@ -538,7 +538,7 @@ void player::modifyBleedResist(float b) {
 void player::calculateBleedResist() {
 	bleedResist = bleedResistBase;
 	modifyBleedResist(helmet.getBleedResistModifier());
-	modifyBleedResist(chestplate.getBleedResistModifier());
+	modifyBleedResist(chestPlate.getBleedResistModifier());
 	modifyBleedResist(greaves.getBleedResistModifier());
 	modifyBleedResist(boots.getBleedResistModifier());
 }
@@ -546,7 +546,7 @@ void player::calculateBleedResist() {
 void player::calculateEvadeChance() {
 	evadeChance = evadeChanceBase;
 	modifyEvadeChance(helmet.getEvadeChanceModifier());
-	modifyEvadeChance(chestplate.getEvadeChanceModifier());
+	modifyEvadeChance(chestPlate.getEvadeChanceModifier());
 	modifyEvadeChance(greaves.getEvadeChanceModifier());
 	modifyEvadeChance(boots.getEvadeChanceModifier());
 }
@@ -556,7 +556,7 @@ void player::calculateModifiers() {
 	calculateMaxMana();
 	calculateTurnManaRegen();
 	calculateBattleManaRegen();
-	calculateConstRegen();
+	calculateTurnRegen();
 	calculateBattleRegen();
 	calculateArmour();
 	calculateDamageModifiers();
@@ -627,12 +627,12 @@ void player::equip(weapon* w) {
 	}
 	cout << "Currently equipped weapons:\n";
 	for (short i = 0; i < weapons.size(); i++) {
-		cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
+		cout << i + 1 << ": " << getWeapon(static_cast<uint8_t>(i))->getName() << '\n';
 	}
 	while (true) {
 		cout << "Enter the number of the slot in which to equip the weapon.\nTo discard the weapon, enter 0.\n";
 		try {
-			unsigned char slot = userChoice(0, static_cast<int>(weapons.size()));
+			uint8_t slot = userChoice(0, static_cast<int>(weapons.size()));
 			if (slot == 0) {
 				return;
 			}
@@ -664,12 +664,12 @@ void player::equip(spell* s) {
 	}
 	cout << "Currently equipped spells:\n";
 	for (short i = 0; i < spells.size(); i++) {
-		cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
+		cout << i + 1 << ": " << getSpell(static_cast<uint8_t>(i))->getName() << '\n';
 	}
 	while (true) {
 		cout << "Enter the number of the slot in which to equip the spell.\nTo discard the spell, enter 0.\n";
 		try {
-			unsigned char slot = userChoice(0, static_cast<int>(spells.size()));
+			uint8_t slot = userChoice(0, static_cast<int>(spells.size()));
 			if (slot == 0) {
 				return;
 			}
@@ -707,12 +707,12 @@ void player::equip(armourHead* h) {
 
 void player::equip(armourTorso* c) {
 	cout << "Currently equipped:\n";
-	chestplate.displayStats();
+	chestPlate.displayStats();
 	cout << "New armour:\n";
 	c->displayStats();
 	cout << "To equip the new armour, enter 1.\nTo discard it, enter 2.\n";
 	if (userChoice(1, 2) == 1) {
-		chestplate = *c;
+		chestPlate = *c;
 	}
 }
 
@@ -738,14 +738,14 @@ void player::equip(armourFeet* b) {
 	}
 }
 
-weapon* player::getWeapon(unsigned char i) {
+weapon* player::getWeapon(uint8_t i) {
 	if (i >= weapons.size()) {
 		throw 6;
 	}
 	return &(weapons[i]);
 }
 
-spell* player::getSpell(unsigned char i) {
+spell* player::getSpell(uint8_t i) {
 	if (i >= spells.size()) {
 		throw 6;
 	}
@@ -762,7 +762,7 @@ void player::modifyCounterAttackChance(float c) {
 void player::calculateCounterAttackChance() {
 	counterAttackChance = counterAttackChanceBase;
 	modifyCounterAttackChance(helmet.getCounterAttackChanceModifier());
-	modifyCounterAttackChance(chestplate.getCounterAttackChanceModifier());
+	modifyCounterAttackChance(chestPlate.getCounterAttackChanceModifier());
 	modifyCounterAttackChance(greaves.getCounterAttackChanceModifier());
 	modifyCounterAttackChance(boots.getCounterAttackChanceModifier());
 }
@@ -788,7 +788,7 @@ void player::modifyBonusActions(short b) {
 void player::calculateBonusActions() {
 	bonusActions = bonusActionsBase;
 	modifyBonusActions(helmet.getBonusActionsModifier());
-	modifyBonusActions(chestplate.getBonusActionsModifier());
+	modifyBonusActions(chestPlate.getBonusActionsModifier());
 	modifyBonusActions(greaves.getBonusActionsModifier());
 	modifyBonusActions(boots.getBonusActionsModifier());
 }
@@ -815,6 +815,7 @@ void player::loadClass(string playerClass, bool custom) {
 		if (custom && classBlueprints.eof()) {
 			throw 4;
 		}
+		classBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = "classBlueprintList name=\"" + playerClass + '\"';
 		bool customFile = custom;
 		//Check for a list
@@ -835,9 +836,6 @@ void player::loadClass(string playerClass, bool custom) {
 				if (!noList) {
 					filePos = classBlueprints.tellg();
 					do {
-						if (classBlueprints.eof()) {
-							throw 1;
-						}
 						listCount++;
 						buffer = getTag(&classBlueprints);
 						ignoreLine(&classBlueprints);
@@ -924,9 +922,6 @@ void player::loadClass(string playerClass, bool custom) {
 		}
 		buffer = getTag(&classBlueprints);
 		while (buffer != "/classBlueprint") {
-			if (classBlueprints.eof()) {
-				throw 1;
-			}
 			if (buffer == "maxHealth") {
 				maxHealthBase = numFromFile(&classBlueprints);
 			}
@@ -951,15 +946,15 @@ void player::loadClass(string playerClass, bool custom) {
 					bleedResistBase = 0;
 				}
 			}
-			else if (buffer == "constRegen") {
-				constRegenBase = numFromFile(&classBlueprints);
+			else if (buffer == "turnRegen") {
+				turnRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "battleRegen") {
 				battleRegenBase = numFromFile(&classBlueprints);
 			}
 			else if (buffer.substr(0, 15) == "weapons count=\"") { //It's the weapons tag, count is how many slots there are, which varies, so only checking the beginning of the tag
 				buffer.erase(0, 15); //Get rid of the stuff that has been checked
-				weapons.resize(static_cast<unsigned char>(numFromString(&buffer))); //If the number is negative or bigger than 255, it will overflow or underflow, but the documentation will say it must be in this range so it is an error by whoever made the class
+				weapons.resize(static_cast<uint8_t>(numFromString(&buffer))); //If the number is negative or bigger than 255, it will overflow or underflow, but the documentation will say it must be in this range so it is an error by whomever made the class
 				if (buffer.substr(0, 15) != "\" projectiles=\"") { //This should be next
 					throw 1;
 				}
@@ -997,15 +992,12 @@ void player::loadClass(string playerClass, bool custom) {
 					buffer = getTag(&classBlueprints);
 					ignoreLine(&classBlueprints);
 				}
-				if (!classBlueprints) {
-					throw 1;
-				}
 				buffer = getTag(&classBlueprints);
 				continue;
 			}
 			else if (buffer.substr(0, 14) == "spells count=\"") { //Similar to weapon setting
 				buffer.erase(0, 14);
-				spells.resize(static_cast<unsigned char>(numFromString(&buffer)));
+				spells.resize(static_cast<uint8_t>(numFromString(&buffer)));
 				if (buffer != "\"") {
 					throw 1;
 				}
@@ -1037,9 +1029,6 @@ void player::loadClass(string playerClass, bool custom) {
 				while (buffer != "/spells") {
 					buffer = getTag(&classBlueprints);
 					ignoreLine(&classBlueprints);
-				}
-				if (!classBlueprints) {
-					throw 1;
 				}
 				buffer = getTag(&classBlueprints);
 				continue;
@@ -1075,13 +1064,13 @@ void player::loadClass(string playerClass, bool custom) {
 				buffer = getTag(&classBlueprints);
 				continue;
 			}
-			else if (buffer == "chestplate") {
+			else if (buffer == "chestPlate") {
 				buffer = stringFromFile(&classBlueprints);
 				if (classBlueprints.eof()) {
 					throw 1;
 				}
-				chestplate.loadFromFile(buffer);
-				if (getTag(&classBlueprints) != "/chestplate") {
+				chestPlate.loadFromFile(buffer);
+				if (getTag(&classBlueprints) != "/chestPlate") {
 					throw 1;
 				}
 				ignoreLine(&classBlueprints);
@@ -1161,7 +1150,7 @@ void player::loadClass(string playerClass, bool custom) {
 				else if (charBuf > 127) {
 					charBuf = 127;
 				}
-				bonusActionsBase = static_cast<signed char>(charBuf);
+				bonusActionsBase = static_cast<int8_t>(charBuf);
 			}
 			else if (buffer == "className") {
 				className = stringFromFile(&classBlueprints);
@@ -1185,9 +1174,6 @@ void player::loadClass(string playerClass, bool custom) {
 				throw 1;
 			}
 			ignoreLine(&classBlueprints);
-			if (!classBlueprints) {
-				throw 1;
-			}
 			buffer = getTag(&classBlueprints);
 		}
 		classBlueprints.close();
@@ -1218,11 +1204,11 @@ void player::displayStats() {
 	}
 	//Health
 	cout << "Health: " << health << '/' << maxHealth << '\n';
-	if (constRegen > 0) {
-		cout << '+' << constRegen << " health per turn\n";
+	if (turnRegen > 0) {
+		cout << '+' << turnRegen << " health per turn\n";
 	}
-	else if (constRegen < 0) {
-		cout << constRegen << " health per turn\n";
+	else if (turnRegen < 0) {
+		cout << turnRegen << " health per turn\n";
 	}
 	if (battleRegen > 0) {
 		cout << '+' << battleRegen << " health at end of battle\n";
@@ -1337,16 +1323,16 @@ void player::showInventory() {
 	while (true) {
 		cout << "Armour:\n";
 		cout << "Head: " << helmet.getName() << '\n';
-		cout << "Torso: " << chestplate.getName() << '\n';
+		cout << "Torso: " << chestPlate.getName() << '\n';
 		cout << "Legs: " << greaves.getName() << '\n';
 		cout << "Feet: " << boots.getName() << '\n';
 		cout << "Weapons:\n";
 		for (short i = 0; i < weapons.size(); i++) {
-			cout << i + 1 << ": " << getWeapon(static_cast<unsigned char>(i))->getName() << '\n';
+			cout << i + 1 << ": " << getWeapon(static_cast<uint8_t>(i))->getName() << '\n';
 		}
 		cout << "Spells:\n";
 		for (short i = 0; i < spells.size(); i++) {
-			cout << i + 1 << ": " << getSpell(static_cast<unsigned char>(i))->getName() << '\n';
+			cout << i + 1 << ": " << getSpell(static_cast<uint8_t>(i))->getName() << '\n';
 		}
 		cout << "To view armour stats, enter 1.\nTo view weapon stats, enter 2.\nTo view spell stats, enter 3.\nTo view player stats, enter 4.\n";
 		switch (userChoice(1, 4)) {
@@ -1357,7 +1343,7 @@ void player::showInventory() {
 				helmet.displayStats();
 				break;
 			case 2:
-				chestplate.displayStats();
+				chestPlate.displayStats();
 				break;
 			case 3:
 				greaves.displayStats();
@@ -1374,7 +1360,7 @@ void player::showInventory() {
 			}
 			cout << "Enter the number of the weapon slot you wish to view\n";
 			try {
-				getWeapon(static_cast<unsigned char>(userChoice(1, static_cast<int>(weapons.size())) - 1))->displayStats(); //Using getWeapon as it has protection against attempts to access outside the weapons vector
+				getWeapon(static_cast<uint8_t>(userChoice(1, static_cast<int>(weapons.size())) - 1))->displayStats(); //Using getWeapon as it has protection against attempts to access outside the weapons vector
 			}
 			catch (int err) {
 				switch (err) {
@@ -1394,7 +1380,7 @@ void player::showInventory() {
 			}
 			cout << "Enter the number of the spell slot you wish to view\n";
 			try {
-				getSpell(static_cast<unsigned char>(userChoice(1, static_cast<int>(spells.size())) - 1))->displayStats();
+				getSpell(static_cast<uint8_t>(userChoice(1, static_cast<int>(spells.size())) - 1))->displayStats();
 			}
 			catch (int err) {
 				switch (err) {
@@ -1417,7 +1403,7 @@ void player::showInventory() {
 
 void player::turnStart() {
 	modifyHealth(-(POISON_MULTIPLIER * poison + BLEED_MULTIPLIER * bleed));
-	modifyHealth(constRegen + REGEN_MULTIPLIER * tempRegen);
+	modifyHealth(turnRegen + REGEN_MULTIPLIER * tempRegen);
 	if (health > maxHealth) {
 		health = max(static_cast<int>(maxHealth), health - PLAYER_OVERHEAL_DECAY);
 	}
@@ -1434,7 +1420,7 @@ void player::turnStart() {
 	if (tempRegen > 0) {
 		tempRegen--;
 	}
-	for (unsigned char i = 0; i < spells.size(); i++) {
+	for (uint8_t i = 0; i < spells.size(); i++) {
 		spells[i].decCooldown();
 	}
 	if (bonusActions < 0) {
@@ -1463,7 +1449,7 @@ void player::resetBonusActions() {
 void player::reset() {
 	modifyHealth(battleRegen);
 	modifyMana(battleManaRegen);
-	for (unsigned char i = 0; i < spells.size(); i++) {
+	for (uint8_t i = 0; i < spells.size(); i++) {
 		spells[i].resetCooldown();
 	}
 	calculateModifiers();
@@ -1472,7 +1458,7 @@ void player::reset() {
 	removeRegen();
 }
 
-unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, string enemyName, const unsigned char timing, string itemName1, string itemName2) {
+uint8_t player::chooseAction(uint8_t* slot1, uint8_t* slot2, string enemyName, const uint8_t timing, string itemName1, string itemName2) {
 	vector<short> choices(1, 0); //For holding a list of possible choices
 	const short currentHealth = health, currentMana = mana, currentProjectiles = projectiles;
 	short choiceCounter = 0;
@@ -1485,7 +1471,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 		if (currentBonusActions <= 0) {
 			return 0;
 		}
-		for (unsigned char i = 0; i < spells.size(); i++) {
+		for (uint8_t i = 0; i < spells.size(); i++) {
 			if (spells[i].getReal() && spells[i].getHitCount() > 0 && spells[i].getTiming() != 0) {
 				choiceCounter++;
 			}
@@ -1498,12 +1484,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 		if (currentBonusActions <= 0) {
 			return 0;
 		}
-		for (unsigned char i = 0; i < weapons.size(); i++) {
+		for (uint8_t i = 0; i < weapons.size(); i++) {
 			if (weapons[i].getReal() && weapons[i].getCounterHits() > 0) {
 				choiceCounter++;
 			}
 		}
-		for (unsigned char i = 0; i < spells.size(); i++) {
+		for (uint8_t i = 0; i < spells.size(); i++) {
 			if (spells[i].getReal() && spells[i].getCounterHits() > 0) {
 				choiceCounter++;
 			}
@@ -1540,12 +1526,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 					break;
 				}
 				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < weapons.size(); i++) {
+				for (uint8_t i = 0; i < weapons.size(); i++) {
 					cout << i + 1 << ": ";
 					weapons[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(weapons.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(weapons.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1592,7 +1578,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				//Can dual wield, choose another weapon
 				//Find possible weapons
 				choices.resize(1);
-				for (unsigned char i = 0; i < weapons.size(); i++) {
+				for (uint8_t i = 0; i < weapons.size(); i++) {
 					if (i == *slot1) { //Can't dual wield the same weapon twice
 						continue;
 					}
@@ -1634,10 +1620,10 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 						cout << "Enter the number of the additional weapon you wish to attack with.\nTo go back, enter 0.\n";
 						for (short i = 1; i < choices.size(); i++) {
 							cout << choices[i] << ": ";
-							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+							weapons[static_cast<uint8_t>(choices[i] - 1)].displayName();
 							cout << '\n';
 						}
-						*slot2 = static_cast<unsigned char>(userChoice(choices));
+						*slot2 = static_cast<uint8_t>(userChoice(choices));
 						if (*slot2 == 0) {
 							break;
 						}
@@ -1693,12 +1679,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 					break;
 				}
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spells.size(); i++) {
+				for (uint8_t i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1760,12 +1746,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spells.size(); i++) {
+				for (uint8_t i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1828,12 +1814,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spells.size(); i++) {
+				for (uint8_t i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1896,12 +1882,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				break;
 			case 2:
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spells.size(); i++) {
+				for (uint8_t i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -1964,12 +1950,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 					break;
 				}
 				cout << "Enter the number of the weapon you wish to attack with.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < weapons.size(); i++) {
+				for (uint8_t i = 0; i < weapons.size(); i++) {
 					cout << i + 1 << ": ";
 					weapons[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(weapons.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(weapons.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -2017,7 +2003,7 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 				//Can dual wield, choose another weapon
 				//Find possible weapons
 				choices.resize(1);
-				for (unsigned char i = 0; i < weapons.size(); i++) {
+				for (uint8_t i = 0; i < weapons.size(); i++) {
 					if (i == *slot1) { //Can't dual wield the same weapon twice
 						continue;
 					}
@@ -2059,10 +2045,10 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 						cout << "Enter the number of the additional weapon you wish to attack with.\nTo go back, enter 0.\n";
 						for (short i = 1; i < choices.size(); i++) {
 							cout << choices[i] << ": ";
-							weapons[static_cast<unsigned char>(choices[i] - 1)].displayName();
+							weapons[static_cast<uint8_t>(choices[i] - 1)].displayName();
 							cout << '\n';
 						}
-						*slot2 = static_cast<unsigned char>(userChoice(choices));
+						*slot2 = static_cast<uint8_t>(userChoice(choices));
 						if (*slot2 == 0) {
 							break;
 						}
@@ -2118,12 +2104,12 @@ unsigned char player::chooseAction(unsigned char* slot1, unsigned char* slot2, s
 					break;
 				}
 				cout << "Enter the number of the spell you wish to cast.\nTo go back, enter 0.\n";
-				for (unsigned char i = 0; i < spells.size(); i++) {
+				for (uint8_t i = 0; i < spells.size(); i++) {
 					cout << i + 1 << ": ";
 					spells[i].displayName();
 					cout << '\n';
 				}
-				*slot1 = static_cast<unsigned char>(userChoice(0, static_cast<int>(spells.size())));
+				*slot1 = static_cast<uint8_t>(userChoice(0, static_cast<int>(spells.size())));
 				if (*slot1 == 0) {
 					break;
 				}
@@ -2245,20 +2231,20 @@ void player::upgradeItems(short upgradeNum) {
 		while (!done) {
 			cout << "Armour:\n";
 			cout << "Head: " << helmet.getName() << '\n';
-			cout << "Torso: " << chestplate.getName() << '\n';
+			cout << "Torso: " << chestPlate.getName() << '\n';
 			cout << "Legs: " << greaves.getName() << '\n';
 			cout << "Feet: " << boots.getName() << '\n';
 			cout << "Weapons:\n";
 			for (short j = 0; j < weapons.size(); j++) {
-				cout << j + 1 << ": " << getWeapon(static_cast<unsigned char>(j))->getName() << '\n';
+				cout << j + 1 << ": " << getWeapon(static_cast<uint8_t>(j))->getName() << '\n';
 			}
 			cout << "Spells:\n";
 			for (short j = 0; j < spells.size(); j++) {
-				cout << j + 1 << ": " << getSpell(static_cast<unsigned char>(j))->getName() << '\n';
+				cout << j + 1 << ": " << getSpell(static_cast<uint8_t>(j))->getName() << '\n';
 			}
 			cout << i << " upgrade points remaining\n";
 			cout << "To upgrade an armour piece, enter 1.\nTo upgrade a weapon, enter 2.\nTo upgrade a spell, enter 3.\nTo upgrade nothing, enter 0.\n";
-			unsigned char j;
+			uint8_t j;
 			switch (userChoice(0, 3)) {
 			case 1:
 				cout << "To upgrade your head armour, enter 1.\nTo upgrade your torso armour, enter 2.\nTo upgrade your leg armour, enter 3.\nTo upgrade your foot armour, enter 4.\nTo go back, enter 0.\n";
@@ -2267,7 +2253,7 @@ void player::upgradeItems(short upgradeNum) {
 					done = helmet.upgradeItem();
 					break;
 				case 2:
-					done = chestplate.upgradeItem();
+					done = chestPlate.upgradeItem();
 					break;
 				case 3:
 					done = greaves.upgradeItem();
@@ -2476,23 +2462,23 @@ void player::levelUp() {
 			bleedResistBase = newLevel.bleedResist;
 			this_thread::sleep_for(chrono::milliseconds(100));
 		}
-		if (newLevel.constRegen > 0) {
-			cout << newLevel.constRegen << " health per turn\n";
-			if (constRegenBase > SHRT_MAX - newLevel.constRegen) {
-				constRegenBase = SHRT_MAX;
+		if (newLevel.turnRegen > 0) {
+			cout << newLevel.turnRegen << " health per turn\n";
+			if (turnRegenBase > SHRT_MAX - newLevel.turnRegen) {
+				turnRegenBase = SHRT_MAX;
 			}
 			else {
-				constRegenBase += newLevel.constRegen;
+				turnRegenBase += newLevel.turnRegen;
 			}
 			this_thread::sleep_for(chrono::milliseconds(100));
 		}
-		else if (newLevel.constRegen < 0) {
-			cout << newLevel.constRegen << " health per turn\n";
-			if (constRegenBase < SHRT_MIN - newLevel.constRegen) {
-				constRegenBase = SHRT_MIN;
+		else if (newLevel.turnRegen < 0) {
+			cout << newLevel.turnRegen << " health per turn\n";
+			if (turnRegenBase < SHRT_MIN - newLevel.turnRegen) {
+				turnRegenBase = SHRT_MIN;
 			}
 			else {
-				constRegenBase += newLevel.constRegen;
+				turnRegenBase += newLevel.turnRegen;
 			}
 			this_thread::sleep_for(chrono::milliseconds(100));
 		}
@@ -2750,6 +2736,7 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 		if (custom && classBlueprints.eof()) {
 			throw 4;
 		}
+		classBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = "levelBlueprintList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		{
@@ -2854,9 +2841,6 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 		blueprintName = "/levelBlueprint";
 		buffer = getTag(&classBlueprints);
 		while (buffer != blueprintName) {
-			if (classBlueprints.eof()) {
-				throw 1;
-			}
 			if (buffer == "heal") {
 				valBuffer = stringFromFile(&classBlueprints);
 				if (valBuffer == "FULL") {
@@ -2902,8 +2886,8 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 					bleedResist = -2;
 				}
 			}
-			else if (buffer == "constRegen") {
-				constRegen = numFromFile(&classBlueprints);
+			else if (buffer == "turnRegen") {
+				turnRegen = numFromFile(&classBlueprints);
 			}
 			else if (buffer == "battleRegen") {
 				battleRegen = numFromFile(&classBlueprints);
@@ -2990,9 +2974,6 @@ void playerLevel::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			ignoreLine(&classBlueprints);
-			if (!classBlueprints) {
-				throw 1;
-			}
 			buffer = getTag(&classBlueprints);
 		}
 		classBlueprints.close();
@@ -3037,7 +3018,7 @@ void player::modifyInitiative(short i) {
 void player::calculateInitiative() {
 	initiative = initiativeBase;
 	modifyInitiative(helmet.getInitiativeModifier());
-	modifyInitiative(chestplate.getInitiativeModifier());
+	modifyInitiative(chestPlate.getInitiativeModifier());
 	modifyInitiative(greaves.getInitiativeModifier());
 	modifyInitiative(boots.getInitiativeModifier());
 }
@@ -3231,4 +3212,468 @@ void player::upgradeStats(short upgradeNum) {
 		}
 	}
 	this_thread::sleep_for(chrono::milliseconds(100));
+}
+
+void player::save(ofstream* saveFile) {
+	*saveFile << "<player>\n";
+		*saveFile << "\t<level>" << level << "</level>\n";
+		*saveFile << "\t<className>" << addEscapes(className) << "</className>\n";
+		*saveFile << "\t<maxHealth>" << maxHealthBase << "</maxHealth>\n";
+		*saveFile << "\t<maxMana>" << maxManaBase << "</maxMana>\n";
+		if (turnManaRegenBase != 5) {
+			*saveFile << "\t<turnManaRegen>" << turnManaRegenBase << "</turnManaRegen>\n";
+		}
+		if (battleManaRegenBase != 10) {
+			*saveFile << "\t<battleManaRegen>" << battleManaRegenBase << "</battleManaRegen>\n";
+		}
+		if (poisonResistBase != 0.1f) {
+			*saveFile << "\t<poisonResist>" << poisonResistBase << "</poisonResist>\n";
+		}
+		if (bleedResistBase != 0.1f) {
+			*saveFile << "\t<bleedResist>" << bleedResistBase << "</bleedResist>\n";
+		}
+		if (turnRegenBase != 0) {
+			*saveFile << "\t<turnRegen>" << turnRegenBase << "</turnRegen>\n";
+		}
+		if (battleRegenBase != 0) {
+			*saveFile << "\t<battleRegen>" << battleRegenBase << "</battleRegen>\n";
+		}
+		*saveFile << "\t<weapons count=\"" << weapons.size() << "\" projectiles=\"" << projectiles << "\">\n";
+		for (uint8_t i = 0; i < weapons.size(); i++) {
+			weapons[i].save(saveFile);
+		}
+		*saveFile << "\t</weapons>\n";
+		*saveFile << "\t<spells count=\"" << spells.size() << "\">\n";
+		for (uint8_t i = 0; i < spells.size(); i++) {
+			spells[i].save(saveFile);
+		}
+		*saveFile << "\t</spells>\n";
+		if (flatArmourBase != 0) {
+			*saveFile << "\t<flatArmour>" << flatArmourBase << "</flatArmour>\n";
+		}
+		if (propArmourBase != 0) {
+			*saveFile << "\t<propArmour>" << propArmourBase << "</propArmour>\n";
+		}
+		if (flatMagicArmourBase != 0) {
+			*saveFile << "\t<flatMagicArmour>" << flatMagicArmourBase << "</flatMagicArmour>\n";
+		}
+		if (propMagicArmourBase != 0) {
+			*saveFile << "\t<propMagicArmour>" << propMagicArmourBase << "</propMagicArmour>\n";
+		}
+		*saveFile << "\t<armour>\n";
+		helmet.save(saveFile);
+		chestPlate.save(saveFile);
+		greaves.save(saveFile);
+		boots.save(saveFile);
+		*saveFile << "\t</armour>\n";
+		if (flatDamageModifierBase != 0) {
+			*saveFile << "\t<flatDamageModifier>" << flatDamageModifierBase << "</flatDamageModifier>\n";
+		}
+		if (propDamageModifierBase != 0) {
+			*saveFile << "\t<propDamageModifier>" << propDamageModifierBase << "</propDamageModifier>\n";
+		}
+		if (flatMagicDamageModifierBase != 0) {
+			*saveFile << "\t<flatMagicDamageModifier>" << flatMagicDamageModifierBase << "</flatMagicDamageModifier>\n";
+		}
+		if (propMagicDamageModifierBase != 0) {
+			*saveFile << "\t<propMagicDamageModifier>" << propMagicDamageModifierBase << "</propMagicDamageModifier>\n";
+		}
+		if (flatArmourPiercingDamageModifierBase != 0) {
+			*saveFile << "\t<flatArmourPiercingDamageModifier>" << flatArmourPiercingDamageModifierBase << "</flatArmourPiercingDamageModifier>\n";
+		}
+		if (propArmourPiercingDamageModifierBase != 0) {
+			*saveFile << "\t<propArmourPiercingDamageModifier>" << propArmourPiercingDamageModifierBase << "</propArmourPiercingDamageModifier>\n";
+		}
+		if (evadeChanceBase != 0.1f) {
+			*saveFile << "\t<evadeChance>" << evadeChanceBase << "</evadeChance>\n";
+		}
+		if (counterAttackChanceBase != 0.1f) {
+			*saveFile << "\t<counterAttackChance>" << counterAttackChanceBase << "</counterAttackChance>\n";
+		}
+		if (bonusActionsBase != 1) {
+			*saveFile << "\t<bonusActions>" << +bonusActionsBase << "</bonusActions>\n";
+		}
+		if (initiativeBase != 10) {
+			*saveFile << "\t<initiative>" << initiativeBase << "</initiative>\n";
+		}
+		*saveFile << "\t<xp>" << xp << "</xp>\n";
+		*saveFile << "\t<maxXp>" << maxXp << "</maxXp>\n";
+		*saveFile << "\t<nextLevel>" << addEscapes(nextLevel) << "</nextLevel>\n";
+		*saveFile << "\t<health>" << health << "</health>\n";
+		*saveFile << "\t<mana>" << mana << "</mana>\n";
+	*saveFile << "</player>\n\n";
+}
+
+void player::loadSave(ifstream* saveFile) {
+	string buffer = getTag(saveFile);
+	if (buffer != "player") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "level") {
+		throw 1;
+	}
+	*saveFile >> level;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "className") {
+		throw 1;
+	}
+	className = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "maxHealth") {
+		throw 1;
+	}
+	*saveFile >> maxHealthBase;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "maxMana") {
+		throw 1;
+	}
+	*saveFile >> maxManaBase;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "turnManaRegen") {
+		*saveFile >> turnManaRegenBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnManaRegenBase = 5;
+	}
+	if (buffer == "battleManaRegen") {
+		*saveFile >> battleManaRegenBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleManaRegenBase = 10;
+	}
+	if (buffer == "poisonResist") {
+		*saveFile >> poisonResistBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poisonResistBase = 0.1f;
+	}
+	if (buffer == "bleedResist") {
+		*saveFile >> bleedResistBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleedResistBase = 0.1f;
+	}
+	if (buffer == "turnRegen") {
+		*saveFile >> turnRegenBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnRegenBase = 0;
+	}
+	if (buffer == "battleRegen") {
+		*saveFile >> battleRegenBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleRegenBase = 0;
+	}
+	if (buffer.substr(0, 15) != "weapons count=\"") {
+		throw 1;
+	}
+	buffer.erase(0, 15);
+	short numBuf = numFromString(&buffer);
+	if (numBuf > 255) {
+		throw 1;
+	}
+	if (buffer.substr(0, 15) != "\" projectiles=\"") {
+		throw 1;
+	}
+	buffer.erase(0, 15);
+	projectiles = numFromString(&buffer);
+	if (buffer != "\"") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	for (uint8_t i = 0; i < numBuf; i++) {
+		weapons.emplace_back(saveFile);
+	}
+	if (getTag(saveFile) != "/weapons") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer.substr(0, 14) != "spells count=\"") {
+		throw 1;
+	}
+	buffer.erase(0, 14);
+	numBuf = numFromString(&buffer);
+	if (numBuf > 255) {
+		throw 1;
+	}
+	if (buffer != "\"") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	for (uint8_t i = 0; i < numBuf; i++) {
+		spells.emplace_back(saveFile);
+	}
+	if (getTag(saveFile) != "/spells") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "flatArmour") {
+		*saveFile >> flatArmourBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourBase = 0;
+	}
+	if (buffer == "propArmour") {
+		*saveFile >> propArmourBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourBase = 0;
+	}
+	if (buffer == "flatMagicArmour") {
+		*saveFile >> flatMagicArmourBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicArmourBase = 0;
+	}
+	if (buffer == "propMagicArmour") {
+		*saveFile >> propMagicArmourBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicArmourBase = 0;
+	}
+	if (buffer != "armour") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	helmet.loadSave(saveFile);
+	chestPlate.loadSave(saveFile);
+	greaves.loadSave(saveFile);
+	boots.loadSave(saveFile);
+	if (getTag(saveFile) != "/armour") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "flatDamageModifier") {
+		*saveFile >> flatDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageModifierBase = 0;
+	}
+	if (buffer == "propDamageModifier") {
+		*saveFile >> propDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamageModifierBase = 0;
+	}
+	if (buffer == "flatMagicDamageModifier") {
+		*saveFile >> flatMagicDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageModifierBase = 0;
+	}
+	if (buffer == "propMagicDamageModifier") {
+		*saveFile >> propMagicDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicDamageModifierBase = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageModifier") {
+		*saveFile >> flatArmourPiercingDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageModifierBase = 0;
+	}
+	if (buffer == "propArmourPiercingDamageModifier") {
+		*saveFile >> propArmourPiercingDamageModifierBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourPiercingDamageModifierBase = 0;
+	}
+	if (buffer == "evadeChance") {
+		*saveFile >> evadeChanceBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		evadeChanceBase = 0.1f;
+	}
+	if (buffer == "counterAttackChance") {
+		*saveFile >> counterAttackChanceBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterAttackChanceBase = 0.1f;
+	}
+	if (buffer == "bonusActions") {
+		*saveFile >> numBuf;
+		bonusActionsBase = static_cast<int8_t>(numBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bonusActionsBase = 1;
+	}
+	if (buffer == "initiative") {
+		*saveFile >> initiativeBase;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		initiativeBase = 10;
+	}
+	if (buffer != "xp") {
+		throw 1;
+	}
+	*saveFile >> xp;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "maxXp") {
+		throw 1;
+	}
+	*saveFile >> maxXp;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "nextLevel") {
+		throw 1;
+	}
+	nextLevel = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	calculateModifiers();
+	if (buffer != "health") {
+		throw 1;
+	}
+	*saveFile >> health;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "mana") {
+		throw 1;
+	}
+	*saveFile >> mana;
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "/player") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
 }

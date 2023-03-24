@@ -25,7 +25,7 @@ string spell::getName() {
 
 void spell::loadFromFile(string blueprint, bool custom) {
 	ifstream spellBlueprints;
-	string stringbuffer = "";
+	string buffer = "";
 	short charBuf = 0;
 	try {
 		if (blueprint == "EMPTY") {
@@ -45,6 +45,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 		if (custom && spellBlueprints.eof()) {
 			throw 4;
 		}
+		spellBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = "spellBlueprintList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		//Check for a list
@@ -53,8 +54,8 @@ void spell::loadFromFile(string blueprint, bool custom) {
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //Number of items in list, also holding which one we have picked
 			while (true) {
-				while (stringbuffer != blueprintName) {
-					stringbuffer = getTag(&spellBlueprints);
+				while (buffer != blueprintName) {
+					buffer = getTag(&spellBlueprints);
 					ignoreLine(&spellBlueprints);
 					if (spellBlueprints.eof()) {
 						spellBlueprints.clear();
@@ -65,13 +66,10 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				if (!noList) {
 					filePos = spellBlueprints.tellg();
 					do {
-						if (spellBlueprints.eof()) {
-							throw 1;
-						}
 						listCount++;
-						stringbuffer = getTag(&spellBlueprints);
+						buffer = getTag(&spellBlueprints);
 						ignoreLine(&spellBlueprints);
-					} while (stringbuffer != "/spellBlueprintList");
+					} while (buffer != "/spellBlueprintList");
 					spellBlueprints.clear();
 					if (listCount == 0) {
 						throw 5;
@@ -126,22 +124,21 @@ void spell::loadFromFile(string blueprint, bool custom) {
 			}
 		}
 		spellBlueprints.seekg(0);
-		stringbuffer = "";
+		buffer = "";
 		//Reset attributes to default values
 		real = true;
-		spellName = blueprint;
 		name = description = "";
-		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = constRegenModifierEnemy = constRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = battleManaRegenModifierEnemy = battleRegenModifierEnemy = initiativeModifier = 0;
-		propDamage = propSelfDamage = poisonResistModifierEnemy = poisonResistModifier = bleedResistModifierEnemy = bleedResistModifier = propArmourModifierEnemy = propArmourModifier = propMagicArmourModifierEnemy = propMagicArmourModifier = propDamageModifierEnemy = propDamageModifier = propMagicDamageModifierEnemy = propMagicDamageModifier = propArmourPiercingDamageModifierEnemy = propArmourPiercingDamageModifier = evadeChanceModifierEnemy = evadeChanceModifier = 0;
+		flatDamageMin = flatDamageMax = flatMagicDamageMin = flatMagicDamageMax = flatArmourPiercingDamageMin = flatArmourPiercingDamageMax = flatSelfDamageMin = flatSelfDamageMax = flatSelfMagicDamageMin = flatSelfMagicDamageMax = flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax = manaChangeEnemy = manaChange = projectileChange = poison = selfPoison = bleed = selfBleed = maxHealthModifierEnemy = maxHealthModifier = maxManaModifierEnemy = maxManaModifier = turnManaRegenModifierEnemy = turnManaRegenModifier = battleManaRegenModifier = tempRegen = tempRegenSelf = turnRegenModifierEnemy = turnRegenModifier = battleRegenModifier = flatArmourModifierEnemy = flatArmourModifier = flatMagicArmourModifierEnemy = flatMagicArmourModifier = flatDamageModifierEnemy = flatDamageModifier = flatMagicDamageModifierEnemy = flatMagicDamageModifier = flatArmourPiercingDamageModifierEnemy = flatArmourPiercingDamageModifier = bonusActionsModifierEnemy = bonusActionsModifier = healthChange = battleManaRegenModifierEnemy = battleRegenModifierEnemy = initiativeModifier = 0;
+		propDamage = propSelfDamage = poisonResistModifierEnemy = poisonResistModifier = bleedResistModifierEnemy = bleedResistModifier = propArmourModifierEnemy = propArmourModifier = propMagicArmourModifierEnemy = propMagicArmourModifier = propDamageModifierEnemy = propDamageModifier = propMagicDamageModifierEnemy = propMagicDamageModifier = propArmourPiercingDamageModifierEnemy = propArmourPiercingDamageModifier = evadeChanceModifierEnemy = evadeChanceModifier = counterAttackChanceModifierEnemy = counterAttackChanceModifier = 0;
 		hitCount = cooldown = 1;
 		counterHits = currentCooldown = spellType = timing = counterSpell = 0;
-		noEvade = canCounterAttack = noCounter = lifelink = selfOverheal = targetOverheal = false;
+		noEvade = canCounterAttack = noCounter = lifeLink = selfOverHeal = targetOverHeal = false;
 		upgrade = "EMPTY";
 		blueprintName = "spellBlueprint name=\"" + blueprint + '\"';
 		//Read blueprint
 		while (true) {
-			while (stringbuffer != blueprintName) {
-				stringbuffer = getTag(&spellBlueprints);
+			while (buffer != blueprintName) {
+				buffer = getTag(&spellBlueprints);
 				ignoreLine(&spellBlueprints);
 				if (spellBlueprints.eof()) {
 					break;
@@ -162,48 +159,45 @@ void spell::loadFromFile(string blueprint, bool custom) {
 			}
 			break;
 		}
-		stringbuffer = getTag(&spellBlueprints);
-		while (stringbuffer != "/spellBlueprint") {
-			if (spellBlueprints.eof()) {
-				throw 1;
-			}
-			if (stringbuffer == "name") {
+		buffer = getTag(&spellBlueprints);
+		while (buffer != "/spellBlueprint") {
+			if (buffer == "name") {
 				name = stringFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "description") {
+			else if (buffer == "description") {
 				description = stringFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatDamageMin") {
+			else if (buffer == "flatDamageMin") {
 				flatDamageMin = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatDamageMax") {
+			else if (buffer == "flatDamageMax") {
 				flatDamageMax = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatDamage") {
+			else if (buffer == "flatDamage") {
 				flatDamageMax = numFromFile(&spellBlueprints);
 				flatDamageMin = flatDamageMax;
 			}
-			else if (stringbuffer == "flatMagicDamageMin") {
+			else if (buffer == "flatMagicDamageMin") {
 				flatMagicDamageMin = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatMagicDamageMax") {
+			else if (buffer == "flatMagicDamageMax") {
 				flatMagicDamageMax = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatMagicDamage") {
+			else if (buffer == "flatMagicDamage") {
 				flatMagicDamageMax = numFromFile(&spellBlueprints);
 				flatMagicDamageMin = flatMagicDamageMax;
 			}
-			else if (stringbuffer == "flatArmourPiercingDamageMin") {
+			else if (buffer == "flatArmourPiercingDamageMin") {
 				flatArmourPiercingDamageMin = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatArmourPiercingDamageMax") {
+			else if (buffer == "flatArmourPiercingDamageMax") {
 				flatArmourPiercingDamageMax = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatArmourPiercingDamage") {
+			else if (buffer == "flatArmourPiercingDamage") {
 				flatArmourPiercingDamageMax = numFromFile(&spellBlueprints);
 				flatArmourPiercingDamageMin = flatArmourPiercingDamageMax;
 			}
-			else if (stringbuffer == "propDamage") {
+			else if (buffer == "propDamage") {
 				propDamage = floatFromFile(&spellBlueprints);
 				if (propDamage > 1) {
 					propDamage = 1;
@@ -212,37 +206,37 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					propDamage = -1;
 				}
 			}
-			else if (stringbuffer == "flatSelfDamageMin") {
+			else if (buffer == "flatSelfDamageMin") {
 				flatSelfDamageMin = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatSelfDamageMax") {
+			else if (buffer == "flatSelfDamageMax") {
 				flatSelfDamageMax = numFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "flatSelfDamage") {
+			else if (buffer == "flatSelfDamage") {
 				flatSelfDamageMax = numFromFile(&spellBlueprints);
 				flatSelfDamageMin = flatSelfDamageMax;
 			}
-			else if (stringbuffer == "flatSelfMagicDamageMin") {
+			else if (buffer == "flatSelfMagicDamageMin") {
 				flatSelfMagicDamageMin = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatSelfMagicDamageMax") {
+			else if (buffer == "flatSelfMagicDamageMax") {
 				flatSelfMagicDamageMax = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatSelfMagicDamage") {
+			else if (buffer == "flatSelfMagicDamage") {
 				flatSelfMagicDamageMax = numFromFile(&spellBlueprints);;
 				flatSelfMagicDamageMin = flatSelfMagicDamageMax;
 			}
-			else if (stringbuffer == "flatSelfArmourPiercingDamageMin") {
+			else if (buffer == "flatSelfArmourPiercingDamageMin") {
 				flatSelfArmourPiercingDamageMin = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatSelfArmourPiercingDamageMax") {
+			else if (buffer == "flatSelfArmourPiercingDamageMax") {
 				flatSelfArmourPiercingDamageMax = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatSelfArmourPiercingDamage") {
+			else if (buffer == "flatSelfArmourPiercingDamage") {
 				flatSelfArmourPiercingDamageMax = numFromFile(&spellBlueprints);;
 				flatSelfArmourPiercingDamageMin = flatSelfArmourPiercingDamageMax;
 			}
-			else if (stringbuffer == "propSelfDamage") {
+			else if (buffer == "propSelfDamage") {
 				propSelfDamage = floatFromFile(&spellBlueprints);;
 				if (propSelfDamage < -1) {
 					propSelfDamage = -1;
@@ -251,7 +245,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					propSelfDamage = 1;
 				}
 			}
-			else if (stringbuffer == "hitCount") {
+			else if (buffer == "hitCount") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0) {
 					charBuf = 0;
@@ -259,27 +253,24 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				else if (charBuf > 255) {
 					charBuf = 255;
 				}
-				hitCount = static_cast<unsigned char>(charBuf);
+				hitCount = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "noEvade/") {
+			else if (buffer == "noEvade/") {
 				noEvade = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "manaChangeEnemy") {
+			else if (buffer == "manaChangeEnemy") {
 				manaChangeEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "manaChange") {
+			else if (buffer == "manaChange") {
 				manaChange = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "projectileChange") {
+			else if (buffer == "projectileChange") {
 				projectileChange = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "poison") {
+			else if (buffer == "poison") {
 				poison = numFromFile(&spellBlueprints);;
 				if (poison < -255) {
 					poison = -255;
@@ -288,7 +279,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					poison = 255;
 				}
 			}
-			else if (stringbuffer == "selfPoison") {
+			else if (buffer == "selfPoison") {
 				selfPoison = numFromFile(&spellBlueprints);;
 				if (selfPoison < -255) {
 					selfPoison = -255;
@@ -297,7 +288,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					selfPoison = 255;
 				}
 			}
-			else if (stringbuffer == "bleed") {
+			else if (buffer == "bleed") {
 				bleed = numFromFile(&spellBlueprints);;
 				if (bleed < -255) {
 					bleed = -255;
@@ -306,7 +297,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					bleed = 255;
 				}
 			}
-			else if (stringbuffer == "selfBleed") {
+			else if (buffer == "selfBleed") {
 				selfBleed = numFromFile(&spellBlueprints);;
 				if (selfBleed < -255) {
 					selfBleed = -255;
@@ -315,52 +306,52 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					selfBleed = 255;
 				}
 			}
-			else if (stringbuffer == "maxHealthModifierEnemy") {
+			else if (buffer == "maxHealthModifierEnemy") {
 				maxHealthModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "maxHealthModifier") {
+			else if (buffer == "maxHealthModifier") {
 				maxHealthModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "maxManaModifierEnemy") {
+			else if (buffer == "maxManaModifierEnemy") {
 				maxManaModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "maxManaModifier") {
+			else if (buffer == "maxManaModifier") {
 				maxManaModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "turnManaRegenModifierEnemy") {
+			else if (buffer == "turnManaRegenModifierEnemy") {
 				turnManaRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "turnManaRegenModifier") {
+			else if (buffer == "turnManaRegenModifier") {
 				turnManaRegenModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "battleManaRegenModifier") {
+			else if (buffer == "battleManaRegenModifier") {
 				battleManaRegenModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "poisonResistModifierEnemy") {
+			else if (buffer == "poisonResistModifierEnemy") {
 				poisonResistModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (poisonResistModifierEnemy < -1) {
 					poisonResistModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "poisonResistModifier") {
+			else if (buffer == "poisonResistModifier") {
 				poisonResistModifier = floatFromFile(&spellBlueprints);;
 				if (poisonResistModifier < -1) {
 					poisonResistModifier = -1;
 				}
 			}
-			else if (stringbuffer == "bleedResistModifierEnemy") {
+			else if (buffer == "bleedResistModifierEnemy") {
 				bleedResistModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (bleedResistModifierEnemy < -1) {
 					bleedResistModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "bleedResistModifier") {
+			else if (buffer == "bleedResistModifier") {
 				bleedResistModifier = floatFromFile(&spellBlueprints);;
 				if (bleedResistModifier < -1) {
 					bleedResistModifier = -1;
 				}
 			}
-			else if (stringbuffer == "tempRegen") {
+			else if (buffer == "tempRegen") {
 				tempRegen = numFromFile(&spellBlueprints);;
 				if (tempRegen < -255) {
 					tempRegen = -255;
@@ -369,7 +360,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					tempRegen = 255;
 				}
 			}
-			else if (stringbuffer == "tempRegenSelf") {
+			else if (buffer == "tempRegenSelf") {
 				tempRegenSelf = numFromFile(&spellBlueprints);;
 				if (tempRegenSelf < -255) {
 					tempRegenSelf = -255;
@@ -378,118 +369,118 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					tempRegenSelf = 255;
 				}
 			}
-			else if (stringbuffer == "constRegenModifierEnemy") {
-				constRegenModifierEnemy = numFromFile(&spellBlueprints);;
+			else if (buffer == "turnRegenModifierEnemy") {
+				turnRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "constRegenModifier") {
-				constRegenModifier = numFromFile(&spellBlueprints);;
+			else if (buffer == "turnRegenModifier") {
+				turnRegenModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "battleRegenModifier") {
+			else if (buffer == "battleRegenModifier") {
 				battleRegenModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatArmourModifierEnemy") {
+			else if (buffer == "flatArmourModifierEnemy") {
 				flatArmourModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatArmourModifier") {
+			else if (buffer == "flatArmourModifier") {
 				flatArmourModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "propArmourModifierEnemy") {
+			else if (buffer == "propArmourModifierEnemy") {
 				propArmourModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propArmourModifierEnemy < -1) {
 					propArmourModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "propArmourModifier") {
+			else if (buffer == "propArmourModifier") {
 				propArmourModifier = floatFromFile(&spellBlueprints);;
 				if (propArmourModifier < -1) {
 					propArmourModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatMagicArmourModifierEnemy") {
+			else if (buffer == "flatMagicArmourModifierEnemy") {
 				flatMagicArmourModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatMagicArmourModifier") {
+			else if (buffer == "flatMagicArmourModifier") {
 				flatMagicArmourModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "propMagicArmourModifierEnemy") {
+			else if (buffer == "propMagicArmourModifierEnemy") {
 				propMagicArmourModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propMagicArmourModifierEnemy < -1) {
 					propMagicArmourModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "propMagicArmourModifier") {
+			else if (buffer == "propMagicArmourModifier") {
 				propMagicArmourModifier = floatFromFile(&spellBlueprints);;
 				if (propMagicArmourModifier < -1) {
 					propMagicArmourModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatDamageModifierEnemy") {
+			else if (buffer == "flatDamageModifierEnemy") {
 				flatDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatDamageModifier") {
+			else if (buffer == "flatDamageModifier") {
 				flatDamageModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "propDamageModifierEnemy") {
+			else if (buffer == "propDamageModifierEnemy") {
 				propDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propDamageModifierEnemy < -1) {
 					propDamageModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "propDamageModifier") {
+			else if (buffer == "propDamageModifier") {
 				propDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatMagicDamageModifierEnemy") {
+			else if (buffer == "flatMagicDamageModifierEnemy") {
 				flatMagicDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatMagicDamageModifier") {
+			else if (buffer == "flatMagicDamageModifier") {
 				flatMagicDamageModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "propMagicDamageModifierEnemy") {
+			else if (buffer == "propMagicDamageModifierEnemy") {
 				propMagicDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propMagicDamageModifierEnemy < -1) {
 					propMagicDamageModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "propMagicDamageModifier") {
+			else if (buffer == "propMagicDamageModifier") {
 				propMagicDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatArmourPiercingDamageModifierEnemy") {
+			else if (buffer == "flatArmourPiercingDamageModifierEnemy") {
 				flatArmourPiercingDamageModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
+			else if (buffer == "flatArmourPiercingDamageModifier") {
 				flatArmourPiercingDamageModifier = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "propArmourPiercingDamageModifierEnemy") {
+			else if (buffer == "propArmourPiercingDamageModifierEnemy") {
 				propArmourPiercingDamageModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (propArmourPiercingDamageModifierEnemy < -1) {
 					propArmourPiercingDamageModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "propArmourPiercingDamageModifier") {
+			else if (buffer == "propArmourPiercingDamageModifier") {
 				propArmourPiercingDamageModifier = floatFromFile(&spellBlueprints);;
 				if (propArmourPiercingDamageModifier < -1) {
 					propArmourPiercingDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "evadeChanceModifierEnemy") {
+			else if (buffer == "evadeChanceModifierEnemy") {
 				evadeChanceModifierEnemy = floatFromFile(&spellBlueprints);;
 				if (evadeChanceModifierEnemy < -1) {
 					evadeChanceModifierEnemy = -1;
 				}
 			}
-			else if (stringbuffer == "evadeChanceModifier") {
+			else if (buffer == "evadeChanceModifier") {
 				evadeChanceModifier = floatFromFile(&spellBlueprints);;
 				if (evadeChanceModifier < -1) {
 					evadeChanceModifier = -1;
 				}
 			}
-			else if (stringbuffer == "cooldown") {
+			else if (buffer == "cooldown") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 1) {
 					charBuf = 1;
@@ -497,16 +488,16 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				else if (charBuf > 255) {
 					charBuf = 255;
 				}
-				cooldown = static_cast<unsigned char>(charBuf);
+				cooldown = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "spellType") {
+			else if (buffer == "spellType") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 1 || charBuf > SPELL_TYPES_NO) {
 					charBuf = 0;
 				}
-				spellType = static_cast<unsigned char>(charBuf);
+				spellType = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "counterHits") {
+			else if (buffer == "counterHits") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0) {
 					charBuf = 0;
@@ -514,32 +505,29 @@ void spell::loadFromFile(string blueprint, bool custom) {
 				else if (charBuf > 255) {
 					charBuf = 255;
 				}
-				counterHits = static_cast<unsigned char>(charBuf);
+				counterHits = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "canCounterAttack/") {
+			else if (buffer == "canCounterAttack/") {
 				canCounterAttack = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "timing") {
+			else if (buffer == "timing") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0 || charBuf > 2) {
 					charBuf = 0;
 				}
-				timing = static_cast<unsigned char>(charBuf);
+				timing = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "counterSpell") {
+			else if (buffer == "counterSpell") {
 				charBuf = numFromFile(&spellBlueprints);;
 				if (charBuf < 0 || charBuf > 3) {
 					charBuf = 0;
 				}
-				counterSpell = static_cast<unsigned char>(charBuf);
+				counterSpell = static_cast<uint8_t>(charBuf);
 			}
-			else if (stringbuffer == "bonusActionsModifierEnemy") {
+			else if (buffer == "bonusActionsModifierEnemy") {
 				bonusActionsModifierEnemy = numFromFile(&spellBlueprints);;
 				if (bonusActionsModifierEnemy < -255) {
 					bonusActionsModifierEnemy = -255;
@@ -548,7 +536,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					bonusActionsModifierEnemy = 255;
 				}
 			}
-			else if (stringbuffer == "bonusActionsModifier") {
+			else if (buffer == "bonusActionsModifier") {
 				bonusActionsModifier = numFromFile(&spellBlueprints);;
 				if (bonusActionsModifier < -255) {
 					bonusActionsModifier = -255;
@@ -557,68 +545,65 @@ void spell::loadFromFile(string blueprint, bool custom) {
 					bonusActionsModifier = 255;
 				}
 			}
-			else if (stringbuffer == "noCounter/") {
+			else if (buffer == "noCounter/") {
 				noCounter = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "battleManaRegenModifierEnemy") {
+			else if (buffer == "battleManaRegenModifierEnemy") {
 				battleManaRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "battleRegenModifierEnemy") {
+			else if (buffer == "battleRegenModifierEnemy") {
 				battleRegenModifierEnemy = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "lifelink/") {
-				lifelink = true;
+			else if (buffer == "lifeLink/") {
+				lifeLink = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "healthChange") {
+			else if (buffer == "healthChange") {
 				healthChange = numFromFile(&spellBlueprints);;
 			}
-			else if (stringbuffer == "selfOverheal/") {
-				selfOverheal = true;
+			else if (buffer == "selfOverHeal/") {
+				selfOverHeal = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "targetOverheal/") {
-				targetOverheal = true;
+			else if (buffer == "targetOverHeal/") {
+				targetOverHeal = true;
 				ignoreLine(&spellBlueprints);
-				if (!spellBlueprints) {
-					throw 1;
-				}
-				stringbuffer = getTag(&spellBlueprints);
+				buffer = getTag(&spellBlueprints);
 				continue;
 			}
-			else if (stringbuffer == "upgrade") {
+			else if (buffer == "upgrade") {
 				upgrade = stringFromFile(&spellBlueprints);
 			}
-			else if (stringbuffer == "initiativeModifier") {
+			else if (buffer == "initiativeModifier") {
 				initiativeModifier = numFromFile(&spellBlueprints);;
+			}
+			else if (buffer == "counterAttackChanceModifierEnemy") {
+				counterAttackChanceModifierEnemy = floatFromFile(&spellBlueprints);
+				if (counterAttackChanceModifierEnemy < -1) {
+					counterAttackChanceModifierEnemy = -1;
+				}
+			}
+			else if (buffer == "counterAttackChanceModifier") {
+				counterAttackChanceModifier = floatFromFile(&spellBlueprints);
+				if (counterAttackChanceModifier < -1) {
+					counterAttackChanceModifier = -1;
+				}
 			}
 			else {
 				throw 1;
 			}
-			if (getTag(&spellBlueprints) != '/' + stringbuffer) {
+			if (getTag(&spellBlueprints) != '/' + buffer) {
 				throw 1;
 			}
 			ignoreLine(&spellBlueprints);
-			if (!spellBlueprints) {
-				throw 1;
-			}
-			stringbuffer = getTag(&spellBlueprints);
+			buffer = getTag(&spellBlueprints);
 		}
 		if (flatDamageMin > flatDamageMax || flatMagicDamageMin > flatMagicDamageMax || flatArmourPiercingDamageMin > flatArmourPiercingDamageMax || flatSelfDamageMin > flatSelfDamageMax || flatSelfMagicDamageMin > flatSelfMagicDamageMax || flatSelfArmourPiercingDamageMin > flatSelfArmourPiercingDamageMax) {
 			throw 1;
@@ -631,7 +616,7 @@ void spell::loadFromFile(string blueprint, bool custom) {
 	}
 	catch (int err) {
 		spellBlueprints.close();
-		spellName = upgrade = "EMPTY";
+		upgrade = "EMPTY";
 		real = false;
 		name = "";
 		description = "";
@@ -734,8 +719,8 @@ void spell::displayStats() {
 			cout << '\n';
 		}
 	}
-	if (targetOverheal) {
-		cout << "May overheal target\n";
+	if (targetOverHeal) {
+		cout << "May over heal target\n";
 	}
 	//Proportional damage
 	if (propDamage > 0) {
@@ -814,8 +799,8 @@ void spell::displayStats() {
 			cout << " on cast\n";
 		}
 	}
-	if (selfOverheal) {
-		cout << "May overheal caster\n";
+	if (selfOverHeal) {
+		cout << "May over heal caster\n";
 	}
 	//Prop self damage
 	if (propSelfDamage > 0) {
@@ -831,8 +816,8 @@ void spell::displayStats() {
 	else if (healthChange < 0) {
 		cout << "Costs " << -healthChange << " health to attack (even if countered)\n";
 	}
-	//Lifelink
-	if (lifelink) {
+	//LifeLink
+	if (lifeLink) {
 		cout << "On dealing damage to target, heals the caster by that much\n";
 	}
 	//Hit count
@@ -1048,18 +1033,18 @@ void spell::displayStats() {
 		cout << "Removes " << -tempRegenSelf << " regeneration from user on cast\n";
 	}
 	//Enemy regen
-	if (constRegenModifierEnemy > 0) {
-		cout << "Target gets +" << constRegenModifierEnemy << " health per turn, (applied on hit)\n";
+	if (turnRegenModifierEnemy > 0) {
+		cout << "Target gets +" << turnRegenModifierEnemy << " health per turn, (applied on hit)\n";
 	}
-	else if (constRegenModifierEnemy < 0) {
-		cout << "Target gets " << constRegenModifierEnemy << " health per turn, (applied on hit)\n";
+	else if (turnRegenModifierEnemy < 0) {
+		cout << "Target gets " << turnRegenModifierEnemy << " health per turn, (applied on hit)\n";
 	}
 	//Regen
-	if (constRegenModifier > 0) {
-		cout << "User gets +" << constRegenModifier << " health per turn\n";
+	if (turnRegenModifier > 0) {
+		cout << "User gets +" << turnRegenModifier << " health per turn\n";
 	}
-	else if (constRegenModifier < 0) {
-		cout << "User gets " << constRegenModifier << " health per turn\n";
+	else if (turnRegenModifier < 0) {
+		cout << "User gets " << turnRegenModifier << " health per turn\n";
 	}
 	//Enemy battle regen
 	if (battleRegenModifierEnemy > 0) {
@@ -1283,6 +1268,19 @@ void spell::displayStats() {
 	else if (evadeChanceModifier < 0) {
 		cout << "Reduces user's evasion chance by " << -100 * evadeChanceModifier << "%\n";
 	}
+	//Counter chance
+	if (counterAttackChanceModifierEnemy > 0) {
+		cout << "Increases target's counter attack chance by " << 100 * counterAttackChanceModifierEnemy << "&, (applied on hit)\n";
+	}
+	else if (counterAttackChanceModifierEnemy < 0) {
+		cout << "Reduces target's counter attack chance by " << -100 * counterAttackChanceModifierEnemy << "%, (applied on hit)\n";
+	}
+	if (counterAttackChanceModifier > 0) {
+		cout << "Increases user's counter attack chance by " << 100 * counterAttackChanceModifier << "%\n";
+	}
+	else if (counterAttackChanceModifier < 0) {
+		cout << "Reduces user's counter attack chance by " << -100 * counterAttackChanceModifier << "%\n";
+	}
 }
 
 void spell::setSpellType() {
@@ -1308,7 +1306,7 @@ void spell::setSpellType() {
 	spellType = 3;
 }
 
-bool spell::checkSpellType(unsigned char type) {
+bool spell::checkSpellType(uint8_t type) {
 	switch (type) {
 	case 1:
 		if (spellType == 1 || spellType == 4) { //Attack or attack+healing
@@ -1372,7 +1370,7 @@ bool spell::checkSelfEffect() {
 	if (maxHealthModifier != 0 || maxManaModifier != 0) {
 		return true;
 	}
-	if (turnManaRegenModifier != 0 || constRegenModifier != 0) {
+	if (turnManaRegenModifier != 0 || turnRegenModifier != 0) {
 		return true;
 	}
 	if (poisonResistModifier != 0 || bleedResistModifier != 0) {
@@ -1387,7 +1385,7 @@ bool spell::checkSelfEffect() {
 	if (propDamageModifier != 0 || propMagicDamageModifier != 0 || propArmourPiercingDamageModifier != 0) {
 		return true;
 	}
-	if (evadeChanceModifier != 0 || bonusActionsModifier != 0) {
+	if (evadeChanceModifier != 0 || bonusActionsModifier != 0 || counterAttackChanceModifier != 0) {
 		return true;
 	}
 	return false;
@@ -1406,7 +1404,7 @@ bool spell::checkTargetEffect() {
 	if (maxHealthModifierEnemy != 0 || maxManaModifierEnemy != 0) {
 		return true;
 	}
-	if (turnManaRegenModifierEnemy != 0 || constRegenModifierEnemy != 0) {
+	if (turnManaRegenModifierEnemy != 0 || turnRegenModifierEnemy != 0) {
 		return true;
 	}
 	if (poisonResistModifierEnemy != 0 || bleedResistModifierEnemy != 0) {
@@ -1421,7 +1419,7 @@ bool spell::checkTargetEffect() {
 	if (propDamageModifierEnemy != 0 || propMagicDamageModifierEnemy != 0 || propArmourPiercingDamageModifierEnemy != 0) {
 		return true;
 	}
-	if (evadeChanceModifierEnemy != 0 || bonusActionsModifierEnemy != 0) {
+	if (evadeChanceModifierEnemy != 0 || bonusActionsModifierEnemy != 0 || counterAttackChanceModifierEnemy != 0) {
 		return true;
 	}
 	return false;
@@ -1505,4 +1503,1171 @@ bool spell::upgradeItem() {
 	}
 	*this = newItem;
 	return true;
+}
+
+void spell::save(ofstream* saveFile) {
+	if (real) {
+		*saveFile << "\t\t<spell>\n";
+			*saveFile << "\t\t\t<name>" << addEscapes(name) << "</name>\n";
+			*saveFile << "\t\t\t<description>" << addEscapes(description) << "</description>\n";
+			if (flatDamageMin != 0) {
+				*saveFile << "\t\t\t<flatDamageMin>" << flatDamageMin << "</flatDamageMin>\n";
+			}
+			if (flatDamageMax != 0) {
+				*saveFile << "\t\t\t<flatDamageMax>" << flatDamageMax << "</flatDamageMax>\n";
+			}
+			if (flatMagicDamageMin != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageMin>" << flatMagicDamageMin << "</flatMagicDamageMin>\n";
+			}
+			if (flatMagicDamageMax != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageMax>" << flatMagicDamageMax << "</flatMagicDamageMax>\n";
+			}
+			if (flatArmourPiercingDamageMin != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageMin>" << flatArmourPiercingDamageMin << "</flatArmourPiercingDamageMin>\n";
+			}
+			if (flatArmourPiercingDamageMax != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageMax>" << flatArmourPiercingDamageMax << "</flatArmourPiercingDamageMax>\n";
+			}
+			if (propDamage != 0) {
+				*saveFile << "\t\t\t<propDamage>" << propDamage << "</propDamage>\n";
+			}
+			if (flatSelfDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfDamageMin>" << flatSelfDamageMin << "</flatSelfDamageMin>\n";
+			}
+			if (flatSelfDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfDamageMax>" << flatSelfDamageMax << "</flatSelfDamageMax>\n";
+			}
+			if (flatSelfMagicDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfMagicDamageMin>" << flatSelfMagicDamageMin << "</flatSelfMagicDamageMin>\n";
+			}
+			if (flatSelfMagicDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfMagicDamageMax>" << flatSelfMagicDamageMax << "</flatSelfMagicDamageMax>\n";
+			}
+			if (flatSelfArmourPiercingDamageMin != 0) {
+				*saveFile << "\t\t\t<flatSelfArmourPiercingDamageMin>" << flatSelfArmourPiercingDamageMin << "</flatSelfArmourPiercingDamageMin>\n";
+			}
+			if (flatSelfArmourPiercingDamageMax != 0) {
+				*saveFile << "\t\t\t<flatSelfArmourPiercingDamageMax>" << flatSelfArmourPiercingDamageMax << "</flatSelfArmourPiercingDamageMax>\n";
+			}
+			if (propSelfDamage != 0) {
+				*saveFile << "\t\t\t<propSelfDamage>" << propSelfDamage << "</propSelfDamage>\n";
+			}
+			if (hitCount != 1) {
+				*saveFile << "\t\t\t<hitCount>" << +hitCount << "</hitCount>\n";
+			}
+			if (counterHits != 0) {
+				*saveFile << "\t\t\t<counterHits>" << +counterHits << "</counterHits>\n";
+			}
+			if (noEvade) {
+				*saveFile << "\t\t\t<noEvade/>\n";
+			}
+			if (canCounterAttack) {
+				*saveFile << "\t\t\t<canCounterAttack/>\n";
+			}
+			if (noCounter) {
+				*saveFile << "\t\t\t<noCounter/>\n";
+			}
+			if (manaChangeEnemy != 0) {
+				*saveFile << "\t\t\t<manaChangeEnemy>" << manaChangeEnemy << "</manaChangeEnemy>\n";
+			}
+			if (manaChange != 0) {
+				*saveFile << "\t\t\t<manaChange>" << manaChange << "</manaChange>\n";
+			}
+			if (projectileChange != 0) {
+				*saveFile << "\t\t\t<projectileChange>" << projectileChange << "</projectileChange>\n";
+			}
+			if (healthChange != 0) {
+				*saveFile << "\t\t\t<healthChange>" << healthChange << "</healthChange>\n";
+			}
+			if (poison != 0) {
+				*saveFile << "\t\t\t<poison>" << poison << "</poison>\n";
+			}
+			if (selfPoison != 0) {
+				*saveFile << "\t\t\t<selfPoison>" << selfPoison << "</selfPoison>\n";
+			}
+			if (bleed != 0) {
+				*saveFile << "\t\t\t<bleed>" << bleed << "</bleed>\n";
+			}
+			if (selfBleed != 0) {
+				*saveFile << "\t\t\t<selfBleed>" << selfBleed << "</selfBleed>\n";
+			}
+			if (tempRegen != 0) {
+				*saveFile << "\t\t\t<tempRegen>" << tempRegen << "</tempRegen>\n";
+			}
+			if (tempRegenSelf != 0) {
+				*saveFile << "\t\t\t<tempRegenSelf>" << tempRegenSelf << "</tempRegenSelf>\n";
+			}
+			if (maxHealthModifierEnemy != 0) {
+				*saveFile << "\t\t\t<maxHealthModifierEnemy>" << maxHealthModifierEnemy << "</maxHealthModifierEnemy>\n";
+			}
+			if (maxHealthModifier != 0) {
+				*saveFile << "\t\t\t<maxHealthModifier>" << maxHealthModifier << "</maxHealthModifier>\n";
+			}
+			if (maxManaModifierEnemy != 0) {
+				*saveFile << "\t\t\t<maxManaModifierEnemy>" << maxManaModifierEnemy << "</maxManaModifierEnemy>\n";
+			}
+			if (maxManaModifier != 0) {
+				*saveFile << "\t\t\t<maxManaModifier>" << maxManaModifier << "</maxManaModifier>\n";
+			}
+			if (turnManaRegenModifierEnemy != 0) {
+				*saveFile << "\t\t\t<turnManaRegenModifierEnemy>" << turnManaRegenModifierEnemy << "</turnManaRegenModifierEnemy>\n";
+			}
+			if (turnManaRegenModifier != 0) {
+				*saveFile << "\t\t\t<turnManaRegenModifier>" << turnManaRegenModifier << "</turnManaRegenModifier>\n";
+			}
+			if (battleManaRegenModifierEnemy != 0) {
+				*saveFile << "\t\t\t<battleManaRegenModifierEnemy>" << battleManaRegenModifierEnemy << "</battleManaRegenModifierEnemy>\n";
+			}
+			if (battleManaRegenModifier != 0) {
+				*saveFile << "\t\t\t<battleManaRegenModifier>" << battleManaRegenModifier << "</battleManaRegenModifier>\n";
+			}
+			if (poisonResistModifierEnemy != 0) {
+				*saveFile << "\t\t\t<poisonResistModifierEnemy>" << poisonResistModifierEnemy << "</poisonResistModifierEnemy>\n";
+			}
+			if (poisonResistModifier != 0) {
+				*saveFile << "\t\t\t<poisonResistModifier>" << poisonResistModifier << "</poisonResistModifier>\n";
+			}
+			if (bleedResistModifierEnemy != 0) {
+				*saveFile << "\t\t\t<<bleedResistModifierEnemy>" << bleedResistModifierEnemy << "</bleedResistModifierEnemy>\n";
+			}
+			if (bleedResistModifier != 0) {
+				*saveFile << "\t\t\t<bleedResistModifier>" << bleedResistModifier << "</bleedResistModifier>\n";
+			}
+			if (turnRegenModifierEnemy != 0) {
+				*saveFile << "\t\t\t<turnRegenModifierEnemy>" << turnRegenModifierEnemy << "</turnRegenModifierEnemy>\n";
+			}
+			if (turnRegenModifier != 0) {
+				*saveFile << "\t\t\t<turnRegenModifier>" << turnRegenModifier << "</turnRegenModifier>\n";
+			}
+			if (battleRegenModifierEnemy != 0) {
+				*saveFile << "\t\t\t<battleRegenModifierEnemy>" << battleRegenModifierEnemy << "</battleRegenModifierEnemy>\n";
+			}
+			if (battleRegenModifier != 0) {
+				*saveFile << "\t\t\t<battleRegenModifier>" << battleRegenModifier << "</battleRegenModifier>\n";
+			}
+			if (flatArmourModifierEnemy != 0) {
+				*saveFile << "\t\t\t<flatArmourModifierEnemy>" << flatArmourModifierEnemy << "</flatArmourModifierEnemy>\n";
+			}
+			if (flatArmourModifier != 0) {
+				*saveFile << "\t\t\t<flatArmourModifier>" << flatArmourModifier << "</flatArmourModifier>\n";
+			}
+			if (propArmourModifierEnemy != 0) {
+				*saveFile << "\t\t\t<propArmourModifierEnemy>" << propArmourModifierEnemy << "</propArmourModifierEnemy>\n";
+			}
+			if (propArmourModifier != 0) {
+				*saveFile << "\t\t\t<propArmourModifier>" << propArmourModifier << "</propArmourModifier>\n";
+			}
+			if (flatMagicArmourModifierEnemy != 0) {
+				*saveFile << "\t\t\t<flatMagicArmourModifierEnemy>" << flatMagicArmourModifierEnemy << "</flatMagicArmourModifierEnemy>\n";
+			}
+			if (flatMagicArmourModifier != 0) {
+				*saveFile << "\t\t\t<flatMagicArmourModifier>" << flatMagicArmourModifier << "</flatMagicArmourModifier>\n";
+			}
+			if (propMagicArmourModifierEnemy != 0) {
+				*saveFile << "\t\t\t<propMagicArmourModifierEnemy>" << propMagicArmourModifierEnemy << "</propMagicArmourModifierEnemy>\n";
+			}
+			if (propMagicArmourModifier != 0) {
+				*saveFile << "\t\t\t<propMagicArmourModifier>" << propMagicArmourModifier << "</propMagicArmourModifier>\n";
+			}
+			if (flatDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<flatDamageModifierEnemy>" << flatDamageModifierEnemy << "</flatDamageModifierEnemy>\n";
+			}
+			if (flatDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatDamageModifier>" << flatDamageModifier << "</flatDamageModifier>\n";
+			}
+			if (propDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<propDamageModifierEnemy>" << propDamageModifierEnemy << "</propDamageModifierEnemy>\n";
+			}
+			if (propDamageModifier != 0) {
+				*saveFile << "\t\t\t<propDamageModifier>" << propDamageModifier << "</propDamageModifier>\n";
+			}
+			if (flatMagicDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageModifierEnemy>" << flatMagicDamageModifierEnemy << "</flatMagicDamageModifierEnemy>\n";
+			}
+			if (flatMagicDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageModifier>" << flatMagicDamageModifier << "</flatMagicDamageModifier>\n";
+			}
+			if (propMagicDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<propMagicDamageModifierEnemy>" << propMagicDamageModifierEnemy << "</propMagicDamageModifierEnemy>\n";
+			}
+			if (propMagicDamageModifier != 0) {
+				*saveFile << "\t\t\t<propMagicDamageModifier>" << propMagicDamageModifier << "</propMagicDamageModifier>\n";
+			}
+			if (flatArmourPiercingDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageModifierEnemy>" << flatArmourPiercingDamageModifierEnemy << "</flatArmourPiercingDamageModifierEnemy>\n";
+			}
+			if (flatArmourPiercingDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageModifier>" << flatArmourPiercingDamageModifier << "</flatArmourPiercingDamageModifier>\n";
+			}
+			if (propArmourPiercingDamageModifierEnemy != 0) {
+				*saveFile << "\t\t\t<propArmourPiercingDamageModifierEnemy>" << propArmourPiercingDamageModifierEnemy << "</propArmourPiercingDamageModifierEnemy>\n";
+			}
+			if (propArmourPiercingDamageModifier != 0) {
+				*saveFile << "\t\t\t<propArmourPiercingDamageModifier>" << propArmourPiercingDamageModifier << "</propArmourPiercingDamageModifier>\n";
+			}
+			if (evadeChanceModifierEnemy != 0) {
+				*saveFile << "\t\t\t<evadeChanceModifierEnemy>" << evadeChanceModifierEnemy << "</evadeChanceModifierEnemy>\n";
+			}
+			if (evadeChanceModifier != 0) {
+				*saveFile << "\t\t\t<evadeChanceModifier>" << evadeChanceModifier << "</evadeChanceModifier>\n";
+			}
+			if (counterAttackChanceModifierEnemy != 0) {
+				*saveFile << "\t\t\t<counterAttackChanceModifierEnemy>" << counterAttackChanceModifierEnemy << "</counterAttackChanceModifierEnemy>\n";
+			}
+			if (counterAttackChanceModifier != 0) {
+				*saveFile << "\t\t\t<counterAttackChanceModifier>" << counterAttackChanceModifier << "</counterAttackChanceModifier>\n";
+			}
+			if (bonusActionsModifierEnemy != 0) {
+				*saveFile << "\t\t\t<bonusActionsModifierEnemy>" << bonusActionsModifierEnemy << "</bonusActionsModifierEnemy>\n";
+			}
+			if (bonusActionsModifier != 0) {
+				*saveFile << "\t\t\t<bonusActionsModifier>" << bonusActionsModifier << "</bonusActionsModifier>\n";
+			}
+			if (cooldown != 1) {
+				*saveFile << "\t\t\t<cooldown>" << +cooldown << "</cooldown>\n";
+			}
+			*saveFile << "\t\t\t<spellType>" << +spellType << "</spellType>\n";
+			if (timing != 0) {
+				*saveFile << "\t\t\t<timing>" << +timing << "</timing>\n";
+			}
+			if (counterSpell != 0) {
+				*saveFile << "\t\t\t<counterSpell>" << +counterSpell << "</counterSpell>\n";
+			}
+			if (lifeLink) {
+				*saveFile << "\t\t\t<lifeLink/>\n";
+			}
+			if (selfOverHeal) {
+				*saveFile << "\t\t\t<selfOverHeal/>\n";
+			}
+			if (targetOverHeal) {
+				*saveFile << "\t\t\t<targetOverHeal/>\n";
+			}
+			if (upgrade!="EMPTY") {
+				*saveFile << "\t\t\t<upgrade>" << addEscapes(upgrade) << "</upgrade>\n";
+			}
+			if (initiativeModifier != 0) {
+				*saveFile << "\t\t\t<initiative>" << initiativeModifier << "</initiative>\n";
+			}
+			*saveFile << "\t\t\t<effectType>" << +effectType << "</effectType>\n";
+		*saveFile << "\t\t</spell>\n";
+	}
+	else {
+		*saveFile << "\t\t<spell/>\n";
+	}
+}
+
+void spell::loadSave(ifstream* saveFile) {
+	string buffer = getTag(saveFile);
+	short charBuf;
+	if (buffer == "spell/") {
+		real = false;
+		ignoreLine(saveFile);
+		return;
+	}
+	else if (buffer == "spell") {
+		real = true;
+	}
+	else {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "name") {
+		throw 1;
+	}
+	name = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "description") {
+		throw 1;
+	}
+	description = stringFromFile(saveFile);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "flatDamageMin") {
+		*saveFile >> flatDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageMin = 0;
+	}
+	if (buffer == "flatDamageMax") {
+		*saveFile >> flatDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageMax = 0;
+	}
+	if (buffer == "flatMagicDamageMin") {
+		*saveFile >> flatMagicDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageMin = 0;
+	}
+	if (buffer == "flatMagicDamageMax") {
+		*saveFile >> flatMagicDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageMax = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageMin") {
+		*saveFile >> flatArmourPiercingDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageMin = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageMax") {
+		*saveFile >> flatArmourPiercingDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageMax = 0;
+	}
+	if (buffer == "propDamage") {
+		*saveFile >> propDamage;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamage = 0;
+	}
+	if (buffer == "flatSelfDamageMin") {
+		*saveFile >> flatSelfDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfDamageMin = 0;
+	}
+	if (buffer == "flatSelfDamageMax") {
+		*saveFile >> flatSelfDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfDamageMax = 0;
+	}
+	if (buffer == "flatSelfMagicDamageMin") {
+		*saveFile >> flatSelfMagicDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfMagicDamageMin = 0;
+	}
+	if (buffer == "flatSelfMagicDamageMax") {
+		*saveFile >> flatSelfMagicDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfMagicDamageMax = 0;
+	}
+	if (buffer == "flatSelfArmourPiercingDamageMin") {
+		*saveFile >> flatSelfArmourPiercingDamageMin;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfArmourPiercingDamageMin = 0;
+	}
+	if (buffer == "flatSelfArmourPiercingDamageMax") {
+		*saveFile >> flatSelfArmourPiercingDamageMax;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatSelfArmourPiercingDamageMax = 0;
+	}
+	if (buffer == "propSelfDamage") {
+		*saveFile >> propSelfDamage;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propSelfDamage = 0;
+	}
+	if (buffer == "hitCount") {
+		*saveFile >> charBuf;
+		hitCount = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		hitCount = 1;
+	}
+	if (buffer == "counterHits") {
+		*saveFile >> charBuf;
+		counterHits = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterHits = 0;
+	}
+	if (buffer == "noEvade/") {
+		noEvade = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		noEvade = false;
+	}
+	if (buffer == "canCounterAttack/") {
+		canCounterAttack = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		canCounterAttack = false;
+	}
+	if (buffer == "noCounter/") {
+		noCounter = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		noCounter = false;
+	}
+	if (buffer == "manaChangeEnemy") {
+		*saveFile >> manaChangeEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		manaChangeEnemy = 0;
+	}
+	if (buffer == "manaChange") {
+		*saveFile >> manaChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		manaChange = 0;
+	}
+	if (buffer == "projectileChange") {
+		*saveFile >> projectileChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		projectileChange = 0;
+	}
+	if (buffer == "healthChange") {
+		*saveFile >> healthChange;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		healthChange = 0;
+	}
+	if (buffer == "poison") {
+		*saveFile >> poison;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poison = 0;
+	}
+	if (buffer == "selfPoison") {
+		*saveFile >> selfPoison;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfPoison = 0;
+	}
+	if (buffer == "bleed") {
+		*saveFile >> bleed;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleed = 0;
+	}
+	if (buffer == "selfBleed") {
+		*saveFile >> selfBleed;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfBleed = 0;
+	}
+	if (buffer == "tempRegen") {
+		*saveFile >> tempRegen;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		tempRegen = 0;
+	}
+	if (buffer == "tempRegenSelf") {
+		*saveFile >> tempRegenSelf;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		tempRegenSelf = 0;
+	}
+	if (buffer == "maxHealthModifierEnemy") {
+		*saveFile >> maxHealthModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxHealthModifierEnemy = 0;
+	}
+	if (buffer == "maxHealthModifier") {
+		*saveFile >> maxHealthModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxHealthModifier = 0;
+	}
+	if (buffer == "maxManaModifierEnemy") {
+		*saveFile >> maxManaModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxManaModifierEnemy = 0;
+	}
+	if (buffer == "maxManaModifier") {
+		*saveFile >> maxManaModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxManaModifier = 0;
+	}
+	if (buffer == "turnManaRegenModifierEnemy") {
+		*saveFile >> turnManaRegenModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnManaRegenModifierEnemy = 0;
+	}
+	if (buffer == "turnManaRegenModifier") {
+		*saveFile >> turnManaRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnManaRegenModifier = 0;
+	}
+	if (buffer == "battleManaRegenModifierEnemy") {
+		*saveFile >> battleManaRegenModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleManaRegenModifierEnemy = 0;
+	}
+	if (buffer == "battleManaRegenModifier") {
+		*saveFile >> battleManaRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleManaRegenModifier = 0;
+	}
+	if (buffer == "poisonResistModifierEnemy") {
+		*saveFile >> poisonResistModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poisonResistModifierEnemy = 0;
+	}
+	if (buffer == "poisonResistModifier") {
+		*saveFile >> poisonResistModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poisonResistModifier = 0;
+	}
+	if (buffer == "bleedResistModifierEnemy") {
+		*saveFile >> bleedResistModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleedResistModifierEnemy = 0;
+	}
+	if (buffer == "bleedResistModifier") {
+		*saveFile >> bleedResistModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleedResistModifier = 0;
+	}
+	if (buffer == "turnRegenModifierEnemy") {
+		*saveFile >> turnRegenModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnRegenModifierEnemy = 0;
+	}
+	if (buffer == "turnRegenModifier") {
+		*saveFile >> turnRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnRegenModifier = 0;
+	}
+	if (buffer == "battleRegenModifierEnemy") {
+		*saveFile >> battleRegenModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleRegenModifierEnemy = 0;
+	}
+	if (buffer == "battleRegenModifier") {
+		*saveFile >> battleRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleRegenModifier = 0;
+	}
+	if (buffer == "flatArmourModifierEnemy") {
+		*saveFile >> flatArmourModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourModifierEnemy = 0;
+	}
+	if (buffer == "flatArmourModifier") {
+		*saveFile >> flatArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourModifier = 0;
+	}
+	if (buffer == "propArmourModifierEnemy") {
+		*saveFile >> propArmourModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourModifierEnemy = 0;
+	}
+	if (buffer == "propArmourModifier") {
+		*saveFile >> propArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourModifier = 0;
+	}
+	if (buffer == "flatMagicArmourModifierEnemy") {
+		*saveFile >> flatMagicArmourModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicArmourModifierEnemy = 0;
+	}
+	if (buffer == "flatMagicArmourModifier") {
+		*saveFile >> flatMagicArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicArmourModifier = 0;
+	}
+	if (buffer == "propMagicArmourModifierEnemy") {
+		*saveFile >> propMagicArmourModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicArmourModifierEnemy = 0;
+	}
+	if (buffer == "propMagicArmourModifier") {
+		*saveFile >> propMagicArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicArmourModifier = 0;
+	}
+	if (buffer == "flatDamageModifierEnemy") {
+		*saveFile >> flatDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageModifierEnemy = 0;
+	}
+	if (buffer == "flatDamageModifier") {
+		*saveFile >> flatDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageModifier = 0;
+	}
+	if (buffer == "propDamageModifierEnemy") {
+		*saveFile >> propDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamageModifierEnemy = 0;
+	}
+	if (buffer == "propDamageModifier") {
+		*saveFile >> propDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamageModifier = 0;
+	}
+	if (buffer == "flatMagicDamageModifierEnemy") {
+		*saveFile >> flatMagicDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageModifierEnemy = 0;
+	}
+	if (buffer == "flatMagicDamageModifier") {
+		*saveFile >> flatMagicDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageModifier = 0;
+	}
+	if (buffer == "propMagicDamageModifierEnemy") {
+		*saveFile >> propMagicDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicDamageModifierEnemy = 0;
+	}
+	if (buffer == "propMagicDamageModifier") {
+		*saveFile >> propMagicDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicDamageModifier = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageModifierEnemy") {
+		*saveFile >> flatArmourPiercingDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageModifierEnemy = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageModifier") {
+		*saveFile >> flatArmourPiercingDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageModifier = 0;
+	}
+	if (buffer == "propArmourPiercingDamageModifierEnemy") {
+		*saveFile >> propArmourPiercingDamageModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourPiercingDamageModifierEnemy = 0;
+	}
+	if (buffer == "propArmourPiercingDamageModifier") {
+		*saveFile >> propArmourPiercingDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourPiercingDamageModifier = 0;
+	}
+	if (buffer == "evadeChanceModifierEnemy") {
+		*saveFile >> evadeChanceModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		evadeChanceModifierEnemy = 0;
+	}
+	if (buffer == "evadeChanceModifier") {
+		*saveFile >> evadeChanceModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		evadeChanceModifier = 0;
+	}
+	if (buffer == "counterAttackChanceModifierEnemy") {
+		*saveFile >> counterAttackChanceModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterAttackChanceModifierEnemy = 0;
+	}
+	if (buffer == "counterAttackChanceModifier") {
+		*saveFile >> counterAttackChanceModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterAttackChanceModifier = 0;
+	}
+	if (buffer == "bonusActionsModifierEnemy") {
+		*saveFile >> bonusActionsModifierEnemy;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bonusActionsModifierEnemy = 0;
+	}
+	if (buffer == "bonusActionsModifier") {
+		*saveFile >> bonusActionsModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bonusActionsModifier = 0;
+	}
+	if (buffer == "cooldown") {
+		*saveFile >> charBuf;
+		cooldown = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		cooldown = 1;
+	}
+	if (buffer != "spellType") {
+		throw 1;
+	}
+	*saveFile >> charBuf;
+	spellType = static_cast<uint8_t>(charBuf);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "timing") {
+		*saveFile >> charBuf;
+		timing = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		timing = 0;
+	}
+	if (buffer == "counterSpell") {
+		*saveFile >> charBuf;
+		counterSpell = static_cast<uint8_t>(charBuf);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterSpell = 0;
+	}
+	if (buffer == "lifeLink/") {
+		lifeLink = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		lifeLink = false;
+	}
+	if (buffer == "selfOverHeal/") {
+		selfOverHeal = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		selfOverHeal = false;
+	}
+	if (buffer == "targetOverHeal/") {
+		targetOverHeal = true;
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		targetOverHeal = false;
+	}
+	if (buffer == "upgrade") {
+		upgrade = stringFromFile(saveFile);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		upgrade = "EMPTY";
+	}
+	if (buffer == "initiativeModifier") {
+		*saveFile >> initiativeModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		initiativeModifier = 0;
+	}
+	if (buffer != "effectType") {
+		throw 1;
+	}
+	*saveFile >> charBuf;
+	effectType = static_cast<uint8_t>(charBuf);
+	if (getTag(saveFile) != '/' + buffer) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "/spell") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
 }

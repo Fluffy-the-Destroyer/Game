@@ -10,10 +10,10 @@
 // 7: Specified set of values is empty
 
 std::string resource::Singular() {
-	if (singular() == "") {
-		return singular();
+	if (s == "") {
+		return s;
 	}
-	std::string buffer = singular(); //Create buffer as singular is const
+	std::string buffer = s; //Create buffer as singular should not be changed
 	if (97 <= buffer[0] && buffer[0] <= 122) { //It's a lower case letter
 		buffer[0] -= 32; //Will capitalise the first letter
 	}
@@ -21,10 +21,10 @@ std::string resource::Singular() {
 }
 
 std::string resource::Plural() {
-	if (plural() == "") {
-		return plural();
+	if (p == "") {
+		return p;
 	}
-	std::string buffer = plural(); //Create buffer as plural is const
+	std::string buffer = p; //Create buffer as plural is cannot be changed
 	if (97 <= buffer[0] && buffer[0] <= 122) { //It's a lower case letter
 		buffer[0] -= 32; //Will capitalise the first letter
 	}
@@ -48,6 +48,7 @@ void resource::loadFromFile(std::string resource, bool custom) {
 		if (custom && misc.eof()) {
 			throw 4;
 		}
+		misc.seekg(-1, std::ios_base::cur);
 		std::string resourceName = "resourceBlueprint name=\"" + resource + '\"';
 		while (buffer != resourceName) {
 			buffer = getTag(&misc);
@@ -58,9 +59,6 @@ void resource::loadFromFile(std::string resource, bool custom) {
 		}
 		buffer = getTag(&misc);
 		while (buffer != "/resourceBlueprint") {
-			if (misc.eof()) {
-				throw 1;
-			}
 			if (buffer == "singular") {
 				std::getline(misc, s, '<');
 			}
@@ -75,9 +73,6 @@ void resource::loadFromFile(std::string resource, bool custom) {
 				throw 1;
 			}
 			ignoreLine(&misc);
-			if (!misc) {
-				throw 1;
-			}
 			buffer = getTag(&misc);
 		}
 		misc.close();
@@ -111,4 +106,23 @@ void resource::loadFromFile(std::string resource, bool custom) {
 			s = p = "mana";
 		}
 	}
+}
+
+void resource::loadSave(std::ifstream* saveFile) {
+	if (getTag(saveFile) != "singular") {
+		throw 1;
+	}
+	s = stringFromFile(saveFile);
+	if (getTag(saveFile) != "/singular") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	if (getTag(saveFile) != "plural") {
+		throw 1;
+	}
+	p = stringFromFile(saveFile);
+	if (getTag(saveFile) != "/plural") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
 }

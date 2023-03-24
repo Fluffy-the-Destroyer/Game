@@ -10,7 +10,7 @@ protected:
 	short maxManaModifier;
 	short turnManaRegenModifier;
 	short battleManaRegenModifier;
-	short constRegenModifier;
+	short turnRegenModifier;
 	short battleRegenModifier;
 	short flatArmourModifier;
 	float propArmourModifier;
@@ -28,18 +28,16 @@ protected:
 	float counterAttackChanceModifier;
 	short bonusActionsModifier;
 	short initiativeModifier;
-	std::string armourName;
 	std::string name; //Armour name
 	std::string description; //Description
 	std::string upgrade; //Upgraded version
 public:
 	//Get attributes
-	std::string getArmourName() { return armourName; }
 	short getMaxHealthModifier() { return maxHealthModifier; }
 	short getMaxManaModifier() { return maxManaModifier; }
 	short getTurnManaRegenModifier() { return turnManaRegenModifier; }
 	short getBattleManaRegenModifier() { return battleManaRegenModifier; }
-	short getConstRegenModifier() { return constRegenModifier; }
+	short getTurnRegenModifier() { return turnRegenModifier; }
 	short getBattleRegenModifier() { return battleRegenModifier; }
 	short getFlatArmourModifier() { return flatArmourModifier; }
 	float getPropArmourModifier() { return propArmourModifier; }
@@ -60,13 +58,18 @@ public:
 	short getBonusActionsModifier() { return bonusActionsModifier; }
 	bool getReal() { return real; }
 	short getInitiativeModifier() { return initiativeModifier; }
+	std::string getUpgrade() { return upgrade; }
 	//Displays an armour piece's attributes, intended for use in an inventory or similar
 	void displayStats();
 	//Returns type of armour, 1 is head, 2 is torso, 3 is legs, 4 is feet
-	virtual char armourType() { return 0; }
+	virtual uint8_t armourType() { return 0; }
 	//Loads armour from file
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
 	armour(std::string blueprint = "EMPTY") { loadFromFile(blueprint); }
+	//Writes stats to save file
+	void save(std::ofstream* saveFile);
+	//Loads stats from save file
+	void loadSave(std::ifstream* saveFile);
 };
 
 class armourHead :public armour {
@@ -76,7 +79,7 @@ public:
 	//Loads data from file onto already existing armour, defaults to replacing with non existent armour
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
-	char armourType() { return 1; }
+	uint8_t armourType() { return 1; }
 	bool upgradeItem();
 };
 
@@ -87,7 +90,7 @@ public:
 	//Loads data from file onto already existing armour, defaults to replacing with non existent armour
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
-	char armourType() { return 2; }
+	uint8_t armourType() { return 2; }
 	bool upgradeItem();
 };
 
@@ -98,7 +101,7 @@ public:
 	//Loads data from file onto already existing armour, defaults to replacing with non existent armour
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
-	char armourType() { return 3; }
+	uint8_t armourType() { return 3; }
 	bool upgradeItem();
 };
 
@@ -109,6 +112,6 @@ public:
 	//Loads data from file onto already existing armour, defaults to replacing with non existent armour
 	//void loadFromFile(std::string blueprint = "EMPTY");
 	//Returns type of armour
-	char armourType() { return 4; }
+	uint8_t armourType() { return 4; }
 	bool upgradeItem();
 };

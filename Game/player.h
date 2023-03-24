@@ -3,8 +3,7 @@
 #include "spells.h"
 #include "armour.h"
 #include <vector>
-#include "rng.h"
-#define PLAYER_OVERHEAL_DECAY 5 //Amount of overheal lost per turn
+#define PLAYER_OVERHEAL_DECAY 5 //Amount of over heal lost per turn
 #define MANA_DECAY 5 //Excess mana lost per turn
 
 extern bool g_useCustomData;
@@ -12,26 +11,26 @@ extern bool g_useCustomData;
 class player {
 private:
 	std::string className;
-	short health = 100; //Current health
-	short maxHealthBase = 100; //Base max health
-	short maxHealth = 100; //Max health. Must remain non-negative. Value of zero would lead to death
+	short health = 150; //Current health
+	short maxHealthBase = 150; //Base max health
+	short maxHealth = 150; //Max health. Must remain non-negative. Value of zero would lead to death
 	short projectiles = 0; //How many projectiles the player has
 	short mana = 0; //Current mana
-	short maxManaBase = 0; //Base max mana
+	short maxManaBase = 100; //Base max mana
 	short maxMana = 0; //Max mana
-	short turnManaRegenBase = 0; //Base mana regen per turn (may vary by class)
+	short turnManaRegenBase = 5; //Base mana regen per turn (may vary by class)
 	short turnManaRegen = 0; //Actual mana regen per turn (after modifiers)
-	short battleManaRegenBase = 0; //Base mana regen after battle
+	short battleManaRegenBase = 10; //Base mana regen after battle
 	short battleManaRegen = 0; //Actual mana regen after battle
-	unsigned char poison = 0; //Current amount of poison. Every turn, will lose k times this value in health, if positive, then it is decremented. k a constant to be determined later.
+	uint8_t poison = 0; //Current amount of poison. Every turn, will lose k times this value in health, if positive, then it is decremented. k a constant to be determined later.
 	float poisonResistBase = 0.1f;
 	float poisonResist = 0; //Chance to resist poison. Must be at least 0
-	unsigned char bleed = 0; //Current amount of bleed. Works the same as poison, but they will both decrement
+	uint8_t bleed = 0; //Current amount of bleed. Works the same as poison, but they will both decrement
 	float bleedResistBase = 0.1f;
 	float bleedResist = 0; //Bleed resist chance
-	unsigned char tempRegen = 0; //Current regen. Similar to poison but for healing.
-	short constRegen = 0; //Regen amount which is independent of timer, probably added by armour. May allow negatives, for long term damage over time
-	short constRegenBase = 0; //Base per turn regen
+	uint8_t tempRegen = 0; //Current regen. Similar to poison but for healing.
+	short turnRegen = 0; //Regen amount which is independent of timer, probably added by armour. May allow negatives, for long term damage over time
+	short turnRegenBase = 0; //Base per turn regen
 	short battleRegenBase = 0; //Base battle regen
 	short battleRegen = 0; //Actual battle regen
 	std::vector<weapon> weapons; //The player's weapons
@@ -45,7 +44,7 @@ private:
 	float propMagicArmourBase = 0;
 	float propMagicArmour = 0;
 	armourHead helmet; //Currently equipped headwear
-	armourTorso chestplate; //Currently equipped chestpiece
+	armourTorso chestPlate; //Currently equipped chest piece
 	armourLegs greaves; //Currently equipped legwear
 	armourFeet boots; //Currently equipped footwear
 	short flatDamageModifierBase = 0; //Base value
@@ -64,22 +63,22 @@ private:
 	float evadeChance = 0; //Chance to evade a hit. Only applies to flat damage, Must be at least 0. Values greater than 1 guarantee evasion
 	float counterAttackChanceBase = 0.1f; //Chance to counter attack
 	float counterAttackChance = 0;
-	signed char bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
-	signed char currentBonusActions = 1; //How many bonus actions remain this turn
-	signed char bonusActions = 1;
+	int8_t bonusActionsBase = 1; //How many bonus actions can be taken in a turn, instant speed spells and counter attacks
+	int8_t currentBonusActions = 1; //How many bonus actions remain this turn
+	int8_t bonusActions = 1;
 	short initiativeBase = 10;
 	short initiative = 10;
 	int xp = 0; //Current experience
 	int maxXp = 0; //Experience needed to level
-	std::string nextLevel; //The blueprint name fo the next level
+	std::string nextLevel = "EMPTY"; //The blueprint name fo the next level
 	short level = 1;
 public: //Not providing set functions, as these values should not usually be set. Providing functions for altering some attributes in certain ways
 	//Sets health to 0
 	void removeAllHealth() { health = 0; }
 	//Heals to full
 	void fullHeal() { health = maxHealth; }
-	//Deals flat damage, applies armour. Negatives heal. p is physical damage, m is magic, a is armour piercing. Returns actual health loss, overheal=true allows overhealing
-	short flatDamage(short p, short m = 0, short a = 0, bool overheal = false);
+	//Deals flat damage, applies armour. Negatives heal. p is physical damage, m is magic, a is armour piercing. Returns actual health loss, overHeal=true allows over healing
+	short flatDamage(short p, short m = 0, short a = 0, bool overHeal = false);
 	//Damages player by a proportion of their health.
 	void propDamage(float d);
 	void modifyHealth(short h);
@@ -117,10 +116,10 @@ public: //Not providing set functions, as these values should not usually be set
 	void modifyTempRegen(short r);
 	//Fully removes tempRegen
 	void removeRegen() { tempRegen = 0; }
-	//Modifies constRegen
-	void modifyConstRegen(short c);
-	//Recalculates constRegen to the value from armour
-	void calculateConstRegen();
+	//Modifies turnRegen
+	void modifyTurnRegen(short c);
+	//Recalculates turnRegen to the value from armour
+	void calculateTurnRegen();
 	//Modifies battleRegen
 	void modifyBattleRegen(short b);
 	//Recalculates battleRegen
@@ -141,7 +140,7 @@ public: //Not providing set functions, as these values should not usually be set
 	void calculateArmour();
 	//Equips specified headwear
 	void equip(armourHead* h);
-	//Equips chestpiece
+	//Equips chest piece
 	void equip(armourTorso* c);
 	//Equips leggings
 	void equip(armourLegs* g);
@@ -192,34 +191,38 @@ public: //Not providing set functions, as these values should not usually be set
 	//Get Attributes
 	short getHealth() { return health; }
 	short getMaxHealth() { return std::max(maxHealth, (short)0); }
+	short getMaxHealthBase() { return maxHealthBase; }
 	short getProjectiles() { return projectiles; }
 	short getMana() { return mana; }
 	short getMaxMana() { return std::max(maxMana, (short)0); }
+	short getMaxManaBase() { return maxManaBase; }
 	short getTurnManaRegenBase() { return turnManaRegenBase; }
 	short getTurnManaRegen() { return turnManaRegen; }
 	short getBattleManaRegenBase() { return battleManaRegenBase; }
 	short getBattleManaRegen() { return battleManaRegen; }
-	unsigned char getPoison() { return poison; }
+	uint8_t getPoison() { return poison; }
 	float getPoisonResist() { return poisonResist; }
-	unsigned char getBleed() { return bleed; }
+	float getPoisonResistBase() { return poisonResistBase; }
+	uint8_t getBleed() { return bleed; }
 	float getBleedResist() { return bleedResist; }
-	unsigned char getRegen() { return tempRegen; }
-	short getConstRegen() { return constRegen; }
-	short getConstRegenBase() { return constRegenBase; }
+	float getBleedResistBase() { return bleedResistBase; }
+	uint8_t getRegen() { return tempRegen; }
+	short getTurnRegen() { return turnRegen; }
+	short getTurnRegenBase() { return turnRegenBase; }
 	short getBattleRegenBase() { return battleRegenBase; }
 	short getBattleRegen() { return battleRegen; }
-	unsigned char getWeaponSlots() { return static_cast<unsigned char>(weapons.size()); }
+	uint8_t getWeaponSlots() { return static_cast<uint8_t>(weapons.size()); }
 	//Will throw a 6 if looking at a slot out of range, must be in a try block
-	weapon* getWeapon(unsigned char i);
-	unsigned char getSpellSlots() { return static_cast<unsigned char>(spells.size()); }
+	weapon* getWeapon(uint8_t i);
+	uint8_t getSpellSlots() { return static_cast<uint8_t>(spells.size()); }
 	//Will throw a 6 if looking at a slot out of range, must be in a try block
-	spell* getSpell(unsigned char i);
+	spell* getSpell(uint8_t i);
 	short getFlatArmourBase() { return flatArmourBase; }
 	short getFlatArmour() { return flatArmour; }
 	float getPropArmourBase() { return propArmourBase; }
 	float getPropArmour() { return propArmour; }
 	armourHead* getHelmet() { return &helmet; }
-	armourTorso* getChestplate() { return &chestplate; }
+	armourTorso* getChestPlate() { return &chestPlate; }
 	armourLegs* getGreaves() { return &greaves; }
 	armourFeet* getBoots() { return &boots; }
 	short getFlatDamageModifierBase() { return flatDamageModifierBase; }
@@ -242,11 +245,12 @@ public: //Not providing set functions, as these values should not usually be set
 	float getEvadeChance() { return evadeChance; }
 	float getCounterAttackChanceBase() { return counterAttackChanceBase; }
 	float getCounterAttackChance() { return counterAttackChance; }
-	signed char getBonusActionsBase() { return bonusActionsBase; }
-	signed char getBonusActions() { return bonusActions; }
-	signed char getCurrentBonusActions() { return currentBonusActions; }
+	int8_t getBonusActionsBase() { return bonusActionsBase; }
+	int8_t getBonusActions() { return bonusActions; }
+	int8_t getCurrentBonusActions() { return currentBonusActions; }
 	std::string getClassName() { return className; }
 	short getInitiative() { return initiative; }
+	short getInitiativeBase() { return initiativeBase; }
 	short rollInitiative() { return rng(0, std::max((short)0, initiative)); }
 	int getXp() { return xp; }
 	int getMaxXp() { return maxXp; }
@@ -264,7 +268,7 @@ public: //Not providing set functions, as these values should not usually be set
 	//For end of battle, applies battle regens, removes status effects and recalculates modifiers
 	void reset();
 	//Gets the player to choose an action. Returns 0 for no action, 1 for a weapon, 2 for a spell, 3 for dual wield. Timing 0 is normal, 1 is responding to weapon, 2 responding to spell, 3 is counter attacking. Timing 4 is responding to dual attack. itemName holds the name(s) of weapon/spell being responded to. Stores slots of selected weapon/spell in slot1 and slot2
-	unsigned char chooseAction(unsigned char* slot1, unsigned char* slot2, std::string enemyName, const unsigned char timing = 0, std::string itemName1 = "", std::string itemName2 = "");
+	uint8_t chooseAction(uint8_t* slot1, uint8_t* slot2, std::string enemyName, const uint8_t timing = 0, std::string itemName1 = "", std::string itemName2 = "");
 	//Applies modifiers to damage
 	void applyDamageModifiers(short* p, short* m, short* a);
 	//Lets the player upgrade some items
@@ -277,6 +281,10 @@ public: //Not providing set functions, as these values should not usually be set
 	void upgradeStats(short upgradeNum = 1);
 	//To allow events to modify base stats
 	friend class Event;
+	//Writes stats to save file
+	void save(std::ofstream* saveFile);
+	//Loads stats from save file
+	void loadSave(std::ifstream* saveFile);
 };
 
 class playerLevel {
@@ -293,7 +301,7 @@ private:
 	short battleManaRegen = 0;
 	float poisonResist = -2; //Value of -2 is not allowed, so using it to indicate no change
 	float bleedResist = -2;
-	short constRegen = 0;
+	short turnRegen = 0;
 	short battleRegen = 0;
 	short flatArmour = 0;
 	float propArmour = -2;
@@ -310,7 +318,7 @@ private:
 	short bonusActions = 0;
 	short initiative = 0;
 	int maxXp = 0;
-	std::string nextLevel;
+	std::string nextLevel = "EMPTY";
 	short statPoints = 0;
 	short upgradePoints = 0;
 	playerLevel(std::string blueprint) { loadFromFile(blueprint); }

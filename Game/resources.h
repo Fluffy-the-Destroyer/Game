@@ -15,4 +15,6 @@ public:
 	std::string Singular();
 	//Returns the plural form with a capital
 	std::string Plural();
+	//Loads names from save
+	void loadSave(std::ifstream* saveFile);
 };

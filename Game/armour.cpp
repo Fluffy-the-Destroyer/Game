@@ -26,7 +26,7 @@ string armour::getName() {
 
 void armour::loadFromFile(string blueprint, bool custom) {
 	ifstream armourBlueprints;
-	string stringbuffer = "";
+	string buffer = "";
 	string type = "";
 	switch (armourType()) {
 	case 1:
@@ -60,6 +60,7 @@ void armour::loadFromFile(string blueprint, bool custom) {
 		if (custom && armourBlueprints.eof()) {
 			throw 4;
 		}
+		armourBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = type + "BlueprintList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		//Check for a blueprint list
@@ -68,11 +69,11 @@ void armour::loadFromFile(string blueprint, bool custom) {
 			streampos filePos = 0; //Position in file
 			short listCount = -1; //Number of items in a list, initialising to -1 to streamline later code, also using to store which entry we have chosen
 			while (true) {
-				while (stringbuffer != blueprintName) { //Haven't found a list
-					stringbuffer = getTag(&armourBlueprints);
+				while (buffer != blueprintName) { //Haven't found a list
+					buffer = getTag(&armourBlueprints);
 					ignoreLine(&armourBlueprints);
 					if (armourBlueprints.eof()) { //Reached end of file without finding list. If the last line of the file is the opening tag of a matching list, it would be bad XML so that case can be ignored.
-						armourBlueprints.clear(); //Reset eofbit and (if necessary) failbit
+						armourBlueprints.clear(); //Reset eof bit and (if necessary) fail bit
 						noList = true;
 						break;
 					}
@@ -82,9 +83,9 @@ void armour::loadFromFile(string blueprint, bool custom) {
 					blueprintName = '/' + type + "BlueprintList";
 					do {
 						listCount++;
-						stringbuffer = getTag(&armourBlueprints);
+						buffer = getTag(&armourBlueprints);
 						ignoreLine(&armourBlueprints);
-					} while (stringbuffer != blueprintName);
+					} while (buffer != blueprintName);
 					armourBlueprints.clear(); //In case the closing tag of the list was the end of the file
 					if (listCount == 0) { //Empty list
 						throw 5;
@@ -139,19 +140,18 @@ void armour::loadFromFile(string blueprint, bool custom) {
 			}
 		}
 		armourBlueprints.seekg(0); //Go back to beginning of file
-		stringbuffer = "";
+		buffer = "";
 		//Reset attributes to default values
 		real = true;
-		armourName = blueprint;
-		maxHealthModifier = maxManaModifier = turnManaRegenModifier = battleManaRegenModifier = constRegenModifier = battleRegenModifier = flatArmourModifier = flatMagicArmourModifier = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = bonusActionsModifier = initiativeModifier = 0;
+		maxHealthModifier = maxManaModifier = turnManaRegenModifier = battleManaRegenModifier = turnRegenModifier = battleRegenModifier = flatArmourModifier = flatMagicArmourModifier = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = bonusActionsModifier = initiativeModifier = 0;
 		propArmourModifier = propMagicArmourModifier = propDamageModifier = propMagicDamageModifier = propArmourPiercingDamageModifier = evadeChanceModifier = poisonResistModifier = bleedResistModifier = counterAttackChanceModifier = 0;
 		name = description = "";
 		upgrade = "EMPTY";
 		//Find and read actual blueprint
 		blueprintName = type + "Blueprint name=\"" + blueprint + '\"';
 		while (true) {
-			while (stringbuffer != blueprintName) { //Haven't found a blueprint
-				stringbuffer = getTag(&armourBlueprints);
+			while (buffer != blueprintName) { //Haven't found a blueprint
+				buffer = getTag(&armourBlueprints);
 				ignoreLine(&armourBlueprints);
 				if (armourBlueprints.eof()) { //Reached end of file without finding blueprint. If the last line of the file is the opening tag of a matching blueprint, it would be bad XML so that case can be ignored.
 					break;
@@ -173,130 +173,123 @@ void armour::loadFromFile(string blueprint, bool custom) {
 			break;
 		}
 		blueprintName = '/' + type + "Blueprint";
-		stringbuffer = getTag(&armourBlueprints); //Get the tag
-		while (stringbuffer != blueprintName) { //Keep reading data until we reach the end of the blueprint, this is what getTag will return
-			if (armourBlueprints.eof()) { //Reached end of file without finding proper closing tag for blueprint
-				throw 1;
-			}
-			if (stringbuffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
+		buffer = getTag(&armourBlueprints); //Get the tag
+		while (buffer != blueprintName) { //Keep reading data until we reach the end of the blueprint, this is what getTag will return
+			if (buffer == "maxHealthModifier") { //Set the appropriate attribute, then ignore the rest of the line.
 				maxHealthModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "maxManaModifier") {
+			else if (buffer == "maxManaModifier") {
 				maxManaModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "turnManaRegenModifier") {
+			else if (buffer == "turnManaRegenModifier") {
 				turnManaRegenModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "battleManaRegenModifier") {
+			else if (buffer == "battleManaRegenModifier") {
 				battleManaRegenModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "constRegenModifier") {
-				constRegenModifier = numFromFile(&armourBlueprints);
+			else if (buffer == "turnRegenModifier") {
+				turnRegenModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "battleRegenModifier") {
+			else if (buffer == "battleRegenModifier") {
 				battleRegenModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "flatArmourModifier") {
+			else if (buffer == "flatArmourModifier") {
 				flatArmourModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "propArmourModifier") {
+			else if (buffer == "propArmourModifier") {
 				propArmourModifier = floatFromFile(&armourBlueprints);
 				if (propArmourModifier < -1) {
 					propArmourModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatMagicArmourModifier") {
+			else if (buffer == "flatMagicArmourModifier") {
 				flatMagicArmourModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "propMagicArmourModifier") {
+			else if (buffer == "propMagicArmourModifier") {
 				propMagicArmourModifier = floatFromFile(&armourBlueprints);
 				if (propMagicArmourModifier < -1) {
 					propMagicArmourModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatDamageModifier") {
+			else if (buffer == "flatDamageModifier") {
 				flatDamageModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "propDamageModifier") {
+			else if (buffer == "propDamageModifier") {
 				propDamageModifier = floatFromFile(&armourBlueprints);
 				if (propDamageModifier < -1) {
 					propDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "evadeChanceModifier") {
+			else if (buffer == "evadeChanceModifier") {
 				evadeChanceModifier = floatFromFile(&armourBlueprints);
 				if (evadeChanceModifier < -1) {
 					evadeChanceModifier = -1;
 				}
 			}
-			else if (stringbuffer == "poisonResistModifier") {
+			else if (buffer == "poisonResistModifier") {
 				poisonResistModifier = floatFromFile(&armourBlueprints);
 				if (poisonResistModifier < -1) {
 					poisonResistModifier = -1;
 				}
 			}
-			else if (stringbuffer == "bleedResistModifier") {
+			else if (buffer == "bleedResistModifier") {
 				bleedResistModifier = floatFromFile(&armourBlueprints);
 				if (bleedResistModifier < -1) {
 					bleedResistModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatMagicDamageModifier") {
+			else if (buffer == "flatMagicDamageModifier") {
 				flatMagicDamageModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "propMagicDamageModifier") {
+			else if (buffer == "propMagicDamageModifier") {
 				propMagicDamageModifier = floatFromFile(&armourBlueprints);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "flatArmourPiercingDamageModifier") {
+			else if (buffer == "flatArmourPiercingDamageModifier") {
 				flatArmourPiercingDamageModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "propArmourPiercingDamageModifier") {
+			else if (buffer == "propArmourPiercingDamageModifier") {
 				propArmourPiercingDamageModifier = floatFromFile(&armourBlueprints);
 				if (propMagicDamageModifier < -1) {
 					propMagicDamageModifier = -1;
 				}
 			}
-			else if (stringbuffer == "counterAttackChanceModifier") {
+			else if (buffer == "counterAttackChanceModifier") {
 				counterAttackChanceModifier = floatFromFile(&armourBlueprints);
 				if (counterAttackChanceModifier < -1) {
 					counterAttackChanceModifier = -1;
 				}
 			}
-			else if (stringbuffer == "name") {
+			else if (buffer == "name") {
 				name = stringFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "description") {
+			else if (buffer == "description") {
 				description = stringFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "bonusActionsModifier") {
+			else if (buffer == "bonusActionsModifier") {
 				bonusActionsModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "initiativeModifier") {
+			else if (buffer == "initiativeModifier") {
 				initiativeModifier = numFromFile(&armourBlueprints);
 			}
-			else if (stringbuffer == "upgrade") {
+			else if (buffer == "upgrade") {
 				upgrade = stringFromFile(&armourBlueprints);
 			}
 			else {
 				throw 1;
 			}
-			if (getTag(&armourBlueprints) != '/' + stringbuffer) { //Closing tag is different from opening tag
+			if (getTag(&armourBlueprints) != '/' + buffer) { //Closing tag is different from opening tag
 				throw 1;
 			}
 			ignoreLine(&armourBlueprints);
-			if (!armourBlueprints) {
-				throw 1;
-			}
-			stringbuffer = getTag(&armourBlueprints); //Get the tag
+			buffer = getTag(&armourBlueprints); //Get the tag
 		}
 		armourBlueprints.close();
 	}
 	catch (int err) { //Default values for an empty slot
 		armourBlueprints.close();
-		armourName = upgrade = "EMPTY";
 		real = false;
 		name = "";
 		description = "";
@@ -352,8 +345,8 @@ void armour::displayStats() {
 		cout << maxHealthModifier << " maximum health\n";
 	}
 	//Health regen per turn
-	if (constRegenModifier != 0) {
-		cout << constRegenModifier << " health per turn\n";
+	if (turnRegenModifier != 0) {
+		cout << turnRegenModifier << " health per turn\n";
 	}
 	//Health regen at end of battle
 	if (battleRegenModifier != 0) {
@@ -541,4 +534,411 @@ bool armourFeet::upgradeItem() {
 	}
 	*this = newItem;
 	return true;
+}
+
+void armour::save(ofstream* saveFile) {
+	string type;
+	switch (armourType()) {
+	case 1:
+		type = "Head";
+		break;
+	case 2:
+		type = "Torso";
+		break;
+	case 3:
+		type = "Legs";
+		break;
+	case 4:
+		type = "Feet";
+		break;
+	default:
+		return;
+	}
+	if (real) {
+		*saveFile << "\t\t<armour" << type << ">\n";
+			*saveFile << "\t\t\t<name>" << addEscapes(name) << "</name>\n";
+			*saveFile << "\t\t\t<description>" << addEscapes(description) << "</description>\n";
+			if (maxHealthModifier != 0) {
+				*saveFile << "\t\t\t<maxHealthModifier>" << maxHealthModifier << "</maxHealthModifier>\n";
+			}
+			if (maxManaModifier != 0) {
+				*saveFile << "\t\t\t<maxManaModifier>" << maxManaModifier << "</maxManaModifier>\n";
+			}
+			if (turnManaRegenModifier != 0) {
+				*saveFile << "\t\t\t<turnManaRegenModifier>" << turnManaRegenModifier << "</turnManaRegenModifier>\n";
+			}
+			if (battleManaRegenModifier != 0) {
+				*saveFile << "\t\t\t<battleManaRegenModifier>" << battleManaRegenModifier << "</battleManaRegenModifier>\n";
+			}
+			if (turnRegenModifier != 0) {
+				*saveFile << "\t\t\t<turnRegenModifier>" << turnRegenModifier << "</turnRegenModifier>\n";
+			}
+			if (battleRegenModifier != 0) {
+				*saveFile << "\t\t\t<battleRegenModifier>" << battleRegenModifier << "</battleRegenModifier>\n";
+			}
+			if (flatArmourModifier != 0) {
+				*saveFile << "\t\t\t<flatArmourModifier>" << flatArmourModifier << "</flatArmourModifier>\n";
+			}
+			if (propArmourModifier != 0) {
+				*saveFile << "\t\t\t<propArmourModifier>" << propArmourModifier << "</propArmourModifier>\n";
+			}
+			if (flatMagicArmourModifier != 0) {
+				*saveFile << "\t\t\t<flatMagicArmourModifier>" << flatMagicArmourModifier << "</flatMagicArmourModifier>\n";
+			}
+			if (propMagicArmourModifier != 0) {
+				*saveFile << "\t\t\t<propMagicArmourModifier>" << propMagicArmourModifier << "</propMagicArmourModifier>\n";
+			}
+			if (flatDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatDamageModifier>" << flatDamageModifier << "</flatDamageModifier>\n";
+			}
+			if (propDamageModifier != 0) {
+				*saveFile << "\t\t\t<propDamageModifier>" << propDamageModifier << "</propDamageModifier>\n";
+			}
+			if (flatMagicDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatMagicDamageModifier>" << flatMagicDamageModifier << "</flatMagicDamageModifier>\n";
+			}
+			if (propMagicDamageModifier != 0) {
+				*saveFile << "\t\t\t<propMagicDamageModifier>" << propMagicDamageModifier << "</propMagicDamageModifier>\n";
+			}
+			if (flatArmourPiercingDamageModifier != 0) {
+				*saveFile << "\t\t\t<flatArmourPiercingDamageModifier>" << flatArmourPiercingDamageModifier << "</flatArmourPiercingDamageModifier>\n";
+			}
+			if (propArmourPiercingDamageModifier != 0) {
+				*saveFile << "\t\t\t<propArmourPiercingDamageModifier>" << propArmourPiercingDamageModifier << "</propArmourPiercingDamageModifier>\n";
+			}
+			if (evadeChanceModifier != 0) {
+				*saveFile << "\t\t\t<evadeChanceModifier>" << evadeChanceModifier << "</evadeChanceModifier>\n";
+			}
+			if (poisonResistModifier != 0) {
+				*saveFile << "\t\t\t<poisonResistModifier>" << poisonResistModifier << "</poisonResistModifier>\n";
+			}
+			if (bleedResistModifier != 0) {
+				*saveFile << "\t\t\t<bleedResistModifier>" << bleedResistModifier << "</bleedResistModifier>\n";
+			}
+			if (counterAttackChanceModifier != 0) {
+				*saveFile << "\t\t\t<counterAttackChanceModifier>" << counterAttackChanceModifier << "</counterAttackChanceModifier>\n";
+			}
+			if (bonusActionsModifier != 0) {
+				*saveFile << "\t\t\t<bonusActionsModifier>" << bonusActionsModifier << "</bonusActionsModifier>\n";
+			}
+			if (initiativeModifier != 0) {
+				*saveFile << "\t\t\t<initiativeModifier>" << initiativeModifier << "</initiativeModifier>\n";
+			}
+			if (upgrade != "EMPTY") {
+				*saveFile << "\t\t\t<upgrade>" << addEscapes(upgrade) << "</upgrade>\n";
+			}
+		*saveFile << "\t\t</armour" << type << ">\n";
+	}
+	else {
+		*saveFile << "\t\t<amour" << type << "/>\n";
+	}
+}
+
+void armour::loadSave(ifstream* saveFile) {
+	string type, buffer;
+	switch (armourType()) {
+	case 1:
+		type = "armourHead";
+		break;
+	case 2:
+		type = "armourTorso";
+		break;
+	case 3:
+		type = "armourLegs";
+		break;
+	case 4:
+		type = "armourFeet";
+		break;
+	default:
+		return;
+	}
+	buffer = getTag(saveFile);
+	if (buffer == type + '/') {
+		real = false;
+		ignoreLine(saveFile);
+		return;
+	}
+	else if (buffer == type) {
+		real = true;
+	}
+	else {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "name") {
+		throw 1;
+	}
+	name = stringFromFile(saveFile);
+	if (getTag(saveFile) != "/name") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer != "description") {
+		throw 1;
+	}
+	description = stringFromFile(saveFile);
+	if (getTag(saveFile) != "/description") {
+		throw 1;
+	}
+	ignoreLine(saveFile);
+	buffer = getTag(saveFile);
+	if (buffer == "maxHealthModifier") {
+		*saveFile >> maxHealthModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxHealthModifier = 0;
+	}
+	if (buffer == "maxManaModifier") {
+		*saveFile >> maxManaModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		maxManaModifier = 0;
+	}
+	if (buffer == "turnManaRegenModifier") {
+		*saveFile >> turnManaRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnManaRegenModifier = 0;
+	}
+	if (buffer == "battleManaRegenModifier") {
+		*saveFile >> battleManaRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleManaRegenModifier = 0;
+	}
+	if (buffer == "turnRegenModifier") {
+		*saveFile >> turnRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		turnRegenModifier = 0;
+	}
+	if (buffer == "battleRegenModifier") {
+		*saveFile >> battleRegenModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		battleRegenModifier = 0;
+	}
+	if (buffer == "flatArmourModifier") {
+		*saveFile >> flatArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourModifier = 0;
+	}
+	if (buffer == "propArmourModifier") {
+		*saveFile >> propArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourModifier = 0;
+	}
+	if (buffer == "flatMagicArmourModifier") {
+		*saveFile >> flatMagicArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicArmourModifier = 0;
+	}
+	if (buffer == "propMagicArmourModifier") {
+		*saveFile >> propMagicArmourModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicArmourModifier = 0;
+	}
+	if (buffer == "flatDamageModifier") {
+		*saveFile >> flatDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatDamageModifier = 0;
+	}
+	if (buffer == "propDamageModifier") {
+		*saveFile >> propDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propDamageModifier = 0;
+	}
+	if (buffer == "flatMagicDamageModifier") {
+		*saveFile >> flatMagicDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatMagicDamageModifier = 0;
+	}
+	if (buffer == "propMagicDamageModifier") {
+		*saveFile >> propMagicDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propMagicDamageModifier = 0;
+	}
+	if (buffer == "flatArmourPiercingDamageModifier") {
+		*saveFile >> flatArmourPiercingDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		flatArmourPiercingDamageModifier = 0;
+	}
+	if (buffer == "propArmourPiercingDamageModifier") {
+		*saveFile >> propArmourPiercingDamageModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		propArmourPiercingDamageModifier = 0;
+	}
+	if (buffer == "evadeChanceModifier") {
+		*saveFile >> evadeChanceModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		evadeChanceModifier = 0;
+	}
+	if (buffer == "poisonResistModifier") {
+		*saveFile >> poisonResistModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		poisonResistModifier = 0;
+	}
+	if (buffer == "bleedResistModifier") {
+		*saveFile >> bleedResistModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bleedResistModifier = 0;
+	}
+	if (buffer == "counterAttackChanceModifier") {
+		*saveFile >> counterAttackChanceModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		counterAttackChanceModifier = 0;
+	}
+	if (buffer == "bonusActionsModifier") {
+		*saveFile >> bonusActionsModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		bonusActionsModifier = 0;
+	}
+	if (buffer == "initiativeModifier") {
+		*saveFile >> initiativeModifier;
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		initiativeModifier = 0;
+	}
+	if (buffer == "upgrade") {
+		upgrade = stringFromFile(saveFile);
+		if (getTag(saveFile) != '/' + buffer) {
+			throw 1;
+		}
+		ignoreLine(saveFile);
+		buffer = getTag(saveFile);
+	}
+	else {
+		upgrade = "EMPTY";
+	}
+	if (buffer != '/' + type) {
+		throw 1;
+	}
+	ignoreLine(saveFile);
 }

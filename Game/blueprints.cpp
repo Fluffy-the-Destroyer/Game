@@ -12,7 +12,7 @@ using namespace std;
 // 4: Unable to open file
 // 5: Empty list
 
-unsigned char blueprintListSelector(string* blueprint, bool custom) {
+uint8_t blueprintListSelector(string* blueprint, bool custom) {
 	ifstream blueprintLists;
 	try {
 		if (blueprint->empty()) {
@@ -81,6 +81,7 @@ unsigned char blueprintListSelector(string* blueprint, bool custom) {
 		if (custom && blueprintLists.eof()) {
 			throw 4;
 		}
+		blueprintLists.seekg(-1, ios_base::cur);
 		string blueprintName = "blueprintList name=\"" + *blueprint + '\"';
 		streampos filePos = 0;
 		short listCount = -1;

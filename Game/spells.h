@@ -20,7 +20,6 @@ extern bool g_useCustomData;
 class spell {
 private:
 	bool real; //Is it a real spell
-	std::string spellName;
 	std::string name; //Spell name
 	std::string description; //Spell description
 	short flatDamageMin;
@@ -37,8 +36,8 @@ private:
 	short flatSelfArmourPiercingDamageMin;
 	short flatSelfArmourPiercingDamageMax;
 	float propSelfDamage;
-	unsigned char hitCount;
-	unsigned char counterHits;
+	uint8_t hitCount;
+	uint8_t counterHits;
 	bool noEvade;
 	bool canCounterAttack; //Allows counter attacks
 	bool noCounter; //Spell cannot be countered
@@ -63,8 +62,8 @@ private:
 	float bleedResistModifier; //Modifies player's bleed resist
 	short tempRegen; //Modifies enemy's tempRegen
 	short tempRegenSelf; //Modifies player's tempRegen
-	short constRegenModifierEnemy; //Modifies enemy's const regen
-	short constRegenModifier; //Modifies player's const regen
+	short turnRegenModifierEnemy; //Modifies enemy's turn regen
+	short turnRegenModifier; //Modifies player's turn regen
 	short battleRegenModifierEnemy;
 	short battleRegenModifier; //Modifies player's battle regen
 	short flatArmourModifierEnemy; //Modifies enemy's flat armour
@@ -89,18 +88,20 @@ private:
 	float propArmourPiercingDamageModifier;
 	float evadeChanceModifierEnemy;
 	float evadeChanceModifier;
-	unsigned char cooldown; //Cooldown between uses, a value of 1 allows 1 use every turn, value of 0 is unlimited use
-	unsigned char currentCooldown; //Current cooldown. Gets set to cooldown on cast, decrements every turn, cannot cast if non-zero
-	unsigned char spellType; //Type of spell, see top of file
-	unsigned char timing; //When can it be cast, 0 is only during own turn, 1 is can also be cast in response to enemy action, 2 is can only be cast in response to enemy action
-	unsigned char counterSpell; //0 is no countering, 1 is can counter spells, 2 is can counter weapons, 3 is can counter both
+	float counterAttackChanceModifierEnemy;
+	float counterAttackChanceModifier;
+	uint8_t cooldown; //Cooldown between uses, a value of 1 allows 1 use every turn, value of 0 is unlimited use
+	uint8_t currentCooldown; //Current cooldown. Gets set to cooldown on cast, decrements every turn, cannot cast if non-zero
+	uint8_t spellType; //Type of spell, see top of file
+	uint8_t timing; //When can it be cast, 0 is only during own turn, 1 is can also be cast in response to enemy action, 2 is can only be cast in response to enemy action
+	uint8_t counterSpell; //0 is no countering, 1 is can counter spells, 2 is can counter weapons, 3 is can counter both
 	short bonusActionsModifierEnemy;
 	short bonusActionsModifier;
-	bool lifelink;
+	bool lifeLink;
 	short healthChange;
-	bool selfOverheal;
-	bool targetOverheal;
-	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only caster, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
+	bool selfOverHeal;
+	bool targetOverHeal;
+	uint8_t effectType; //Whom it can affect. 0 is no effect, 1 is only caster, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
 	std::string upgrade;
 	short initiativeModifier; //Modifies initiative, only matters when cast on player by an event before battle
 public:
@@ -111,7 +112,6 @@ public:
 	void startCooldown() { currentCooldown = cooldown; }
 	void resetCooldown() { currentCooldown = 0; }
 	void decCooldown();
-	std::string getSpellName() { return spellName; }
 	std::string getName();
 	std::string getDescription() { return description; }
 	short getFlatDamage() { return rng(flatDamageMin, flatDamageMax); }
@@ -134,7 +134,7 @@ public:
 	short getFlatSelfMagicDamageMax() { return flatSelfMagicDamageMax; }
 	short getFlatSelfArmourPiercingDamageMax() { return flatSelfArmourPiercingDamageMax; }
 	float getPropSelfDamage() { return propSelfDamage; }
-	unsigned char getHitCount() { return hitCount; }
+	uint8_t getHitCount() { return hitCount; }
 	bool getNoEvade() { return noEvade; }
 	short getManaChangeEnemy() { return manaChangeEnemy; }
 	short getManaChange() { return manaChange; }
@@ -157,8 +157,8 @@ public:
 	float getBleedResistModifier() { return bleedResistModifier; }
 	short getTempRegen() { return tempRegen; }
 	short getTempRegenSelf() { return tempRegenSelf; }
-	short getConstRegenModifierEnemy() { return constRegenModifierEnemy; }
-	short getConstRegenModifier() { return constRegenModifier; }
+	short getTurnRegenModifierEnemy() { return turnRegenModifierEnemy; }
+	short getTurnRegenModifier() { return turnRegenModifier; }
 	short getBattleRegenModifierEnemy() { return battleRegenModifierEnemy; }
 	short getBattleRegenModifier() { return battleRegenModifier; }
 	short getFlatArmourModifierEnemy() { return flatArmourModifierEnemy; }
@@ -183,23 +183,26 @@ public:
 	float getPropArmourPiercingDamageModifier() { return propArmourPiercingDamageModifier; }
 	float getEvadeChanceModifierEnemy() { return evadeChanceModifierEnemy; }
 	float getEvadeChanceModifier() { return evadeChanceModifier; }
-	unsigned char getCooldown() { return cooldown; }
-	unsigned char getCurrentCooldown() { return currentCooldown; }
-	unsigned char getSpellType() { return spellType; }
-	unsigned char getCounterHits() { return counterHits; }
+	uint8_t getCooldown() { return cooldown; }
+	uint8_t getCurrentCooldown() { return currentCooldown; }
+	uint8_t getSpellType() { return spellType; }
+	uint8_t getCounterHits() { return counterHits; }
 	bool getCanCounterAttack() { return canCounterAttack; }
-	unsigned char getTiming() { return timing; }
-	unsigned char getCounterSpell() { return counterSpell; }
+	uint8_t getTiming() { return timing; }
+	uint8_t getCounterSpell() { return counterSpell; }
 	short getBonusActionsModifierEnemy() { return bonusActionsModifierEnemy; }
 	short getBonusActionsModifier() { return bonusActionsModifier; }
 	bool getNoCounter() { return noCounter; }
 	bool getReal() { return real; }
-	bool getLifelink() { return lifelink; }
+	bool getLifeLink() { return lifeLink; }
 	short getHealthChange() { return healthChange; }
-	unsigned char getEffectType() { return effectType; }
-	bool getSelfOverheal() { return selfOverheal; }
-	bool getTargetOverheal() { return targetOverheal; }
+	uint8_t getEffectType() { return effectType; }
+	bool getSelfOverHeal() { return selfOverHeal; }
+	bool getTargetOverHeal() { return targetOverHeal; }
 	short getInitiativeModifier() { return initiativeModifier; }
+	std::string getUpgrade() { return upgrade; }
+	float getCounterAttackChanceModifierEnemy() { return counterAttackChanceModifierEnemy; }
+	float getCounterAttackChanceModifier() { return counterAttackChanceModifier; }
 	//Displays stats
 	void displayStats();
 	//Sets spell type based on stats, pretty rudimentary, ideally the type should be specified in the blueprint. For example, a spell which does nothing would be classified as support, and a support focused enemy would use it
@@ -207,7 +210,7 @@ public:
 	//Displays name and cost, for use in battle
 	void displayName();
 	//Checks if the spell is the given type, type 4 spells count as type 1 and type 2
-	bool checkSpellType(unsigned char type);
+	bool checkSpellType(uint8_t type);
 	//Checks if the spell has any effect on caster
 	bool checkSelfEffect();
 	//Checks if affects target
@@ -218,4 +221,9 @@ public:
 	bool checkTargetDamage();
 	//Upgrades the item, returns false if it wasn't upgraded
 	bool upgradeItem();
+	//Writes stats to save file
+	void save(std::ofstream* saveFile);
+	//Loads stats from save file
+	spell(std::ifstream* saveFile) { loadSave(saveFile); }
+	void loadSave(std::ifstream* saveFile);
 };

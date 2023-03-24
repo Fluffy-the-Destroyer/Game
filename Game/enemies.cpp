@@ -12,7 +12,7 @@ using namespace std;
 // 5: Empty list
 // 6: Attempting to access slot out of range
 
-short enemy::flatDamage(short p, short m, short a, bool overheal) {
+short enemy::flatDamage(short p, short m, short a, bool overHeal) {
 	if (p > 0) { //Apply physical armour
 		p = max(0, p - flatArmour);
 		p = static_cast<short>(p * (1 + propArmour));
@@ -35,7 +35,7 @@ short enemy::flatDamage(short p, short m, short a, bool overheal) {
 		return static_cast<short>(totDamage);
 	}
 	else if (totDamage < 0) {
-		if (overheal) { //May overheal
+		if (overHeal) { //May over heal
 			if (SHRT_MAX + totDamage < health) { //Check for overflow
 				health = SHRT_MAX;
 			}
@@ -48,7 +48,7 @@ short enemy::flatDamage(short p, short m, short a, bool overheal) {
 			return static_cast<short>(totDamage);
 		}
 		else {
-			if (health >= maxHealth) { //Already overhealed
+			if (health >= maxHealth) { //Already over healed
 				return 0;
 			}
 			if (health - totDamage > maxHealth || SHRT_MAX + totDamage < health) { //Overflow or exceed max
@@ -240,21 +240,21 @@ void enemy::modifyTempRegen(short r) {
 	}
 }
 
-void enemy::modifyConstRegen(short c) {
+void enemy::modifyTurnRegen(short c) {
 	if (c > 0) {
-		if (SHRT_MAX - c < constRegen) { //Overflow
-			constRegen = SHRT_MAX;
+		if (SHRT_MAX - c < turnRegen) { //Overflow
+			turnRegen = SHRT_MAX;
 		}
 		else {
-			constRegen += c;
+			turnRegen += c;
 		}
 	}
 	else if (c < 0) {
-		if (SHRT_MIN + (-c) > constRegen) { //Underflow
-			constRegen = SHRT_MIN;
+		if (SHRT_MIN + (-c) > turnRegen) { //Underflow
+			turnRegen = SHRT_MIN;
 		}
 		else {
-			constRegen += c;
+			turnRegen += c;
 		}
 	}
 }
@@ -410,14 +410,14 @@ void enemy::modifyPropArmourPiercingDamageModifier(float p) {
 	propArmourPiercingDamageModifier = ((propArmourPiercingDamageModifier + 1) * (p + 1)) - 1;
 }
 
-weapon* enemy::getWeapon(unsigned char i) {
+weapon* enemy::getWeapon(uint8_t i) {
 	if (i >= weapons.size()) {
 		throw 6;
 	}
 	return &(weapons[i]);
 }
 
-spell* enemy::getSpell(unsigned char i) {
+spell* enemy::getSpell(uint8_t i) {
 	if (i >= spells.size()) {
 		throw 6;
 	}
@@ -470,6 +470,7 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		if (custom && enemyBlueprints.eof()) {
 			throw 4;
 		}
+		enemyBlueprints.seekg(-1, ios_base::cur);
 		string blueprintName = "enemyBlueprintList name=\"" + blueprint + '\"';
 		bool customFile = custom;
 		{
@@ -553,7 +554,7 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		buffer = "";
 		real = true;
 		name = introduction = "";
-		maxHealth = projectiles = maxMana = turnManaRegen = constRegen = flatArmour = flatMagicArmour = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = 0;
+		maxHealth = projectiles = maxMana = turnManaRegen = turnRegen = flatArmour = flatMagicArmour = flatDamageModifier = flatMagicDamageModifier = flatArmourPiercingDamageModifier = 0;
 		poison = bleed = tempRegen = 0;
 		AIType = 2;
 		poisonResist = bleedResist = evadeChance = counterAttackChance = 0.1f;
@@ -591,9 +592,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 		}
 		buffer = getTag(&enemyBlueprints);
 		while (buffer != "/enemyBlueprint") {
-			if (enemyBlueprints.eof()) {
-				throw 1;
-			}
 			if (buffer == "name") {
 				name = stringFromFile(&enemyBlueprints);
 			}
@@ -627,8 +625,8 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 					bleedResist = 0;
 				}
 			}
-			else if (buffer == "constRegen") {
-				constRegen = numFromFile(&enemyBlueprints);
+			else if (buffer == "turnRegen") {
+				turnRegen = numFromFile(&enemyBlueprints);
 			}
 			else if (buffer.substr(0, 21) == "weapons projectiles=\"") {
 				buffer.erase(0, 21);
@@ -665,9 +663,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 					buffer = getTag(&enemyBlueprints);
 					ignoreLine(&enemyBlueprints);
 				}
-				if (!enemyBlueprints) {
-					throw 1;
-				}
 				buffer = getTag(&enemyBlueprints);
 				continue;
 			}
@@ -702,9 +697,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 					buffer = getTag(&enemyBlueprints);
 					ignoreLine(&enemyBlueprints);
 				}
-				if (!enemyBlueprints) {
-					throw 1;
-				}
 				buffer = getTag(&enemyBlueprints);
 				continue;
 			}
@@ -715,9 +707,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 					throw 1;
 				}
 				ignoreLine(&enemyBlueprints);
-				if (!enemyBlueprints) {
-					throw 1;
-				}
 				buffer = getTag(&enemyBlueprints);
 				continue;
 			}
@@ -786,14 +775,14 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				else if (charBuf < -127) {
 					charBuf = -127;
 				}
-				bonusActions = static_cast<signed char>(charBuf);
+				bonusActions = static_cast<int8_t>(charBuf);
 			}
 			else if (buffer == "AIType") {
 				charBuf = numFromFile(&enemyBlueprints);
 				if (charBuf < 0 || charBuf > AI_TYPES_NO) {
 					charBuf = 2;
 				}
-				AIType = static_cast<unsigned char>(charBuf);
+				AIType = static_cast<uint8_t>(charBuf);
 			}
 			else if (buffer == "initiative") {
 				initiative = numFromFile(&enemyBlueprints);
@@ -811,9 +800,6 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 				throw 1;
 			}
 			ignoreLine(&enemyBlueprints);
-			if (!enemyBlueprints) {
-				throw 1;
-			}
 			buffer = getTag(&enemyBlueprints);
 		}
 		enemyBlueprints.close();
@@ -848,7 +834,7 @@ void enemy::loadFromFile(string blueprint, bool custom) {
 
 void enemy::turnStart() {
 	modifyHealth(-(POISON_MULTIPLIER * poison + BLEED_MULTIPLIER * bleed));
-	modifyHealth(constRegen + REGEN_MULTIPLIER * tempRegen);
+	modifyHealth(turnRegen + REGEN_MULTIPLIER * tempRegen);
 	if (health > maxHealth) {
 		health = max(static_cast<int>(maxHealth), health - ENEMY_OVERHEAL_DECAY);
 	}
@@ -865,8 +851,8 @@ void enemy::turnStart() {
 	if (tempRegen > 0) {
 		tempRegen--;
 	}
-	unsigned char enemySpellSlots = static_cast<unsigned char>(spells.size());
-	for (unsigned char i = 0; i < enemySpellSlots; i++) {
+	uint8_t enemySpellSlots = static_cast<uint8_t>(spells.size());
+	for (uint8_t i = 0; i < enemySpellSlots; i++) {
 		spells[i].decCooldown();
 	}
 	if (bonusActions < 0) {
@@ -879,11 +865,11 @@ void enemy::turnStart() {
 
 //Enemy AI
 
-unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, unsigned char timing, string itemName1, string itemName2, bool firstTurn) {
-	unsigned char selection = 0; //For holding slot selection
+uint8_t enemy::chooseAction(uint8_t* slot1, uint8_t* slot2, uint8_t timing, string itemName1, string itemName2, bool firstTurn) {
+	uint8_t selection = 0; //For holding slot selection
 	if (firstTurn && timing == 0) {
 		if (initialSpell >= 0) { //If an initial spell is set, cast if possible
-			selection = static_cast<unsigned char>(initialSpell);
+			selection = static_cast<uint8_t>(initialSpell);
 			if (check(true, selection, 0, true)) { //Check if can cast initial spell
 				*slot1 = selection;
 				return 2;
@@ -1365,9 +1351,9 @@ unsigned char enemy::chooseAction(unsigned char* slot1, unsigned char* slot2, un
 	return 0;
 }
 
-bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kamikaze, bool firstTurn) {
-	short currentHealth = health, currentMana = mana, currentConstRegen = constRegen, currentTurnManaRegen = turnManaRegen, currentMaxMana = maxMana, currentMaxHealth = maxHealth, currentProjectiles = projectiles; //For holding current values while actions are simulated
-	unsigned char currentBleed = bleed, currentPoison = poison, currentTempRegen = tempRegen; //For holding current values while actions are simulated
+bool enemy::check(bool type, uint8_t slot, uint8_t timing, bool kamikaze, bool firstTurn) {
+	short currentHealth = health, currentMana = mana, currentConstRegen = turnRegen, currentTurnManaRegen = turnManaRegen, currentMaxMana = maxMana, currentMaxHealth = maxHealth, currentProjectiles = projectiles; //For holding current values while actions are simulated
+	uint8_t currentBleed = bleed, currentPoison = poison, currentTempRegen = tempRegen; //For holding current values while actions are simulated
 	switch (type) {
 	case false: //Weapon
 		//Check weapon exists
@@ -1410,7 +1396,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		//Apply costs and maximum possible self damage
 		modifyHealth(weapons[slot].getHealthChange());
 		propDamage(weapons[slot].getPropSelfDamage());
-		flatDamage(weapons[slot].getFlatSelfDamageMax(), weapons[slot].getFlatSelfMagicDamageMax(), weapons[slot].getFlatSelfArmourPiercingDamageMax(), weapons[slot].getSelfOverheal());
+		flatDamage(weapons[slot].getFlatSelfDamageMax(), weapons[slot].getFlatSelfMagicDamageMax(), weapons[slot].getFlatSelfArmourPiercingDamageMax(), weapons[slot].getSelfOverHeal());
 		modifyMana(weapons[slot].getManaChange());
 		modifyProjectiles(weapons[slot].getProjectileChange());
 		if (health <= 0) { //Would die
@@ -1432,7 +1418,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 			return false;
 		}
 		if (firstTurn && initialSpell >= 0) {
-			if (!check(true, static_cast<unsigned char>(initialSpell), 0, true)) { //Check whether will be able to cast initial spell next turn
+			if (!check(true, static_cast<uint8_t>(initialSpell), 0, true)) { //Check whether will be able to cast initial spell next turn
 				//Revert
 				health = currentHealth;
 				poison = currentPoison;
@@ -1499,7 +1485,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		//Apply self damage/health cost
 		modifyHealth(spells[slot].getHealthChange());
 		propDamage(spells[slot].getPropSelfDamage());
-		flatDamage(spells[slot].getFlatSelfDamageMax(), spells[slot].getFlatSelfMagicDamageMax(), spells[slot].getFlatSelfArmourPiercingDamageMax(), spells[slot].getSelfOverheal());
+		flatDamage(spells[slot].getFlatSelfDamageMax(), spells[slot].getFlatSelfMagicDamageMax(), spells[slot].getFlatSelfArmourPiercingDamageMax(), spells[slot].getSelfOverHeal());
 		modifyMaxHealth(spells[slot].getMaxHealthModifier());
 		if (health <= 0) { //Would die
 			health = currentHealth;
@@ -1510,7 +1496,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		modifyPoison(spells[slot].getSelfPoison(), false);
 		modifyBleed(spells[slot].getSelfBleed(), false);
 		modifyTempRegen(spells[slot].getTempRegenSelf());
-		modifyConstRegen(spells[slot].getConstRegenModifier());
+		modifyTurnRegen(spells[slot].getTurnRegenModifier());
 		modifyTurnManaRegen(spells[slot].getTurnManaRegenModifier());
 		modifyMana(spells[slot].getManaChange());
 		modifyMaxMana(spells[slot].getMaxManaModifier());
@@ -1521,7 +1507,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 			poison = currentPoison;
 			bleed = currentBleed;
 			tempRegen = currentTempRegen;
-			constRegen = currentConstRegen;
+			turnRegen = currentConstRegen;
 			turnManaRegen = currentTurnManaRegen;
 			mana = currentMana;
 			maxMana = currentMaxMana;
@@ -1529,12 +1515,12 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 			return false;
 		}
 		if (firstTurn && initialSpell >= 0) {
-			if (!check(true, static_cast<unsigned char>(initialSpell), 0, true)) {
+			if (!check(true, static_cast<uint8_t>(initialSpell), 0, true)) {
 				health = currentHealth;
 				poison = currentPoison;
 				bleed = currentBleed;
 				tempRegen = currentTempRegen;
-				constRegen = currentConstRegen;
+				turnRegen = currentConstRegen;
 				turnManaRegen = currentTurnManaRegen;
 				mana = currentMana;
 				maxMana = currentMaxMana;
@@ -1546,7 +1532,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 		poison = currentPoison;
 		bleed = currentBleed;
 		tempRegen = currentTempRegen;
-		constRegen = currentConstRegen;
+		turnRegen = currentConstRegen;
 		turnManaRegen = currentTurnManaRegen;
 		mana = currentMana;
 		maxMana = currentMaxMana;
@@ -1559,7 +1545,7 @@ bool enemy::check(bool type, unsigned char slot, unsigned char timing, bool kami
 
 void enemy::simulateTurn() {
 	modifyHealth(-(POISON_MULTIPLIER * poison + BLEED_MULTIPLIER * bleed));
-	modifyHealth(constRegen + REGEN_MULTIPLIER * tempRegen);
+	modifyHealth(turnRegen + REGEN_MULTIPLIER * tempRegen);
 	if (health > maxHealth) {
 		health = max(static_cast<int>(maxHealth), health - ENEMY_OVERHEAL_DECAY);
 	}
@@ -1569,13 +1555,13 @@ void enemy::simulateTurn() {
 	}
 }
 
-bool enemy::chooseSpell(unsigned char type, unsigned char* selection, unsigned char timing, bool kamikaze, bool firstTurn) {
-	unsigned char spellSlots = static_cast<unsigned char>(spells.size());
+bool enemy::chooseSpell(uint8_t type, uint8_t* selection, uint8_t timing, bool kamikaze, bool firstTurn) {
+	uint8_t spellSlots = static_cast<uint8_t>(spells.size());
 	if (spellSlots == 0) {
 		return false;
 	}
-	vector<unsigned char> possibleSpells; //Holds slot numbers of spells which could be chosen
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	vector<uint8_t> possibleSpells; //Holds slot numbers of spells which could be chosen
+	for (uint8_t i = 0; i < spellSlots; i++) {
 		if (spells[i].checkSpellType(type) && check(true, i, timing, kamikaze, firstTurn)) { //If spell in slot i is a spell of correct type which could be cast, put that slot in possibleSpells
 			possibleSpells.push_back(i);
 		}
@@ -1583,18 +1569,18 @@ bool enemy::chooseSpell(unsigned char type, unsigned char* selection, unsigned c
 	if (possibleSpells.empty()) { //No possible spells
 		return false;
 	}
-	unsigned char possibleNumber = static_cast<unsigned char>(possibleSpells.size() - 1);
+	uint8_t possibleNumber = static_cast<uint8_t>(possibleSpells.size() - 1);
 	*selection = possibleSpells[rng(0, possibleNumber)]; //Pick a random possible spell
 	return true;
 }
 
-unsigned char enemy::chooseWeapon(unsigned char* selection1, unsigned char* selection2, unsigned char timing, bool kamikaze, bool firstTurn) {
-	unsigned char weaponSlots = static_cast<unsigned char>(weapons.size());
+uint8_t enemy::chooseWeapon(uint8_t* selection1, uint8_t* selection2, uint8_t timing, bool kamikaze, bool firstTurn) {
+	uint8_t weaponSlots = static_cast<uint8_t>(weapons.size());
 	if (weaponSlots == 0) {
 		return 0;
 	}
-	vector<unsigned char> possibleWeapons;
-	for (unsigned char i = 0; i < weaponSlots; i++) {
+	vector<uint8_t> possibleWeapons;
+	for (uint8_t i = 0; i < weaponSlots; i++) {
 		if (check(false, i, timing, kamikaze, firstTurn)) {
 			possibleWeapons.push_back(i);
 			if (!weapons[i].getDualWield()) { //If cannot dual wield, add it twice, as dual weapons can be picked as the first or second in a pair
@@ -1609,7 +1595,7 @@ unsigned char enemy::chooseWeapon(unsigned char* selection1, unsigned char* sele
 	*selection1 = possibleWeapons[rng(0, possibleNumber)];
 	if (weapons[*selection1].getDualWield()) { //If the weapon allows dual wielding, look for a second weapon to use with it
 		possibleWeapons.resize(0);
-		for (unsigned char i = 0; i < weaponSlots; i++) {
+		for (uint8_t i = 0; i < weaponSlots; i++) {
 			if (check(*selection1, i, timing, kamikaze, firstTurn)) {
 				possibleWeapons.push_back(i);
 			}
@@ -1624,13 +1610,13 @@ unsigned char enemy::chooseWeapon(unsigned char* selection1, unsigned char* sele
 	return 1;
 }
 
-bool enemy::chooseWeaponCounterSpell(unsigned char* selection, bool firstTurn) {
-	unsigned char spellSlots = static_cast<unsigned char>(spells.size());
+bool enemy::chooseWeaponCounterSpell(uint8_t* selection, bool firstTurn) {
+	uint8_t spellSlots = static_cast<uint8_t>(spells.size());
 	if (spellSlots == 0) {
 		return false;
 	}
-	vector<unsigned char> possibleSpells;
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	vector<uint8_t> possibleSpells;
+	for (uint8_t i = 0; i < spellSlots; i++) {
 		if ((spells[i].getCounterSpell() == 2 || spells[i].getCounterSpell() == 3) && check(true, i, 1, false, firstTurn)) {
 			possibleSpells.push_back(i);
 		}
@@ -1643,13 +1629,13 @@ bool enemy::chooseWeaponCounterSpell(unsigned char* selection, bool firstTurn) {
 	return true;
 }
 
-bool enemy::chooseSpellCounterSpell(unsigned char* selection, bool firstTurn) {
-	unsigned char spellSlots = static_cast<unsigned char>(spells.size());
+bool enemy::chooseSpellCounterSpell(uint8_t* selection, bool firstTurn) {
+	uint8_t spellSlots = static_cast<uint8_t>(spells.size());
 	if (spellSlots == 0) {
 		return false;
 	}
-	vector<unsigned char> possibleSpells;
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	vector<uint8_t> possibleSpells;
+	for (uint8_t i = 0; i < spellSlots; i++) {
 		if ((spells[i].getCounterSpell() == 1 || spells[i].getCounterSpell() == 3) && check(true, i, 2, false, firstTurn)) {
 			possibleSpells.push_back(i);
 		}
@@ -1662,11 +1648,11 @@ bool enemy::chooseSpellCounterSpell(unsigned char* selection, bool firstTurn) {
 	return true;
 }
 
-unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* selection2, unsigned char timing, bool kamikaze, bool firstTurn) {
-	unsigned char spellSlots = static_cast<unsigned char>(spells.size()), weaponSlots = static_cast<unsigned char>(weapons.size());
+uint8_t enemy::chooseAttack(uint8_t* selection1, uint8_t* selection2, uint8_t timing, bool kamikaze, bool firstTurn) {
+	uint8_t spellSlots = static_cast<uint8_t>(spells.size()), weaponSlots = static_cast<uint8_t>(weapons.size());
 	short slot;
 	vector<short> possibleAttacks; //Holds possible slots, indexed from 1. Negatives are spells, positives are weapons, so a value of -2 is the spell in slot 1, a value of 1 is the weapon in slot 0
-	for (unsigned char i = 0; i < weaponSlots; i++) {
+	for (uint8_t i = 0; i < weaponSlots; i++) {
 		if (check(false, i, timing, kamikaze, firstTurn)) {
 			possibleAttacks.push_back(i + 1);
 			if (!weapons[i].getDualWield()) {
@@ -1674,7 +1660,7 @@ unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* sele
 			}
 		}
 	}
-	for (unsigned char i = 0; i < spellSlots; i++) {
+	for (uint8_t i = 0; i < spellSlots; i++) {
 		if (spells[i].checkSpellType(1) && check(true, i, timing, kamikaze, firstTurn)) {
 			possibleAttacks.push_back(-(i + 1));
 			possibleAttacks.push_back(-(i + 1));
@@ -1686,10 +1672,10 @@ unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* sele
 	short possibleNumber = static_cast<short>(possibleAttacks.size() - 1);
 	slot = possibleAttacks[rng(0, possibleNumber)];
 	if (slot > 0) { //Weapon
-		*selection1 = static_cast<unsigned char>(slot - 1);
+		*selection1 = static_cast<uint8_t>(slot - 1);
 		if (weapons[*selection1].getDualWield()) {
 			possibleAttacks.resize(0);
-			for (unsigned char i = 0; i < weaponSlots; i++) {
+			for (uint8_t i = 0; i < weaponSlots; i++) {
 				if (check(*selection1, i, timing, kamikaze, firstTurn)) {
 					possibleAttacks.push_back(i);
 				}
@@ -1698,19 +1684,19 @@ unsigned char enemy::chooseAttack(unsigned char* selection1, unsigned char* sele
 				return 1;
 			}
 			possibleNumber = static_cast<short>(possibleAttacks.size() - 1);
-			*selection2 = static_cast<unsigned char>(possibleAttacks[rng(0, possibleNumber)]);
+			*selection2 = static_cast<uint8_t>(possibleAttacks[rng(0, possibleNumber)]);
 			return 3;
 		}
 		return 1;
 	}
 	else { //Spell
-		*selection1 = static_cast<unsigned char>(-(slot + 1));
+		*selection1 = static_cast<uint8_t>(-(slot + 1));
 		return 2;
 	}
 }
 
-unsigned char enemy::chooseSuicide(unsigned char* selection1, unsigned char* selection2) {
-	unsigned char choice;
+uint8_t enemy::chooseSuicide(uint8_t* selection1, uint8_t* selection2) {
+	uint8_t choice;
 	switch (AIType) {
 	case 1: //Combined types
 	case 2:
@@ -1783,9 +1769,9 @@ bool enemy::attackCheck() {
 	return true;
 }
 
-bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char timing, bool kamikaze, bool firstTurn) {
+bool enemy::check(uint8_t weapon1, uint8_t weapon2, uint8_t timing, bool kamikaze, bool firstTurn) {
 	short currentHealth = health, currentProjectiles = projectiles, currentMana = mana;
-	unsigned char currentPoison = poison, currentBleed = bleed;
+	uint8_t currentPoison = poison, currentBleed = bleed;
 	if (weapon1 == weapon2) {
 		return false;
 	}
@@ -1848,8 +1834,8 @@ bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char ti
 		propDamage(weapons[weapon1].getPropSelfDamage());
 		propDamage(weapons[weapon2].getPropSelfDamage());
 	}
-	flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), weapons[weapon1].getSelfOverheal());
-	flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverheal());
+	flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), weapons[weapon1].getSelfOverHeal());
+	flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverHeal());
 	if (health <= 0) {
 		health = currentHealth;
 		mana = currentMana;
@@ -1871,7 +1857,7 @@ bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char ti
 		return false;
 	}
 	if (firstTurn && initialSpell >= 0) {
-		if (!check(true, static_cast<unsigned char>(initialSpell), 0, true)) { //Check if will be able to cast initial spell next turn
+		if (!check(true, static_cast<uint8_t>(initialSpell), 0, true)) { //Check if will be able to cast initial spell next turn
 			health = currentHealth;
 			mana = currentMana;
 			projectiles = currentProjectiles;
@@ -1888,7 +1874,7 @@ bool enemy::check(unsigned char weapon1, unsigned char weapon2, unsigned char ti
 	return true;
 }
 
-void enemy::addNoCounter(unsigned char type, string itemName) {
+void enemy::addNoCounter(uint8_t type, string itemName) {
 	switch (type) {
 	case 1:
 		for (short i = 0; i < noCounterWeapons.size(); i++) {
@@ -1909,7 +1895,7 @@ void enemy::addNoCounter(unsigned char type, string itemName) {
 	}
 }
 
-bool enemy::checkCounter(unsigned char type, string itemName) {
+bool enemy::checkCounter(uint8_t type, string itemName) {
 	switch (type) {
 	case 1:
 		for (short i = 0; i < noCounterWeapons.size(); i++) {

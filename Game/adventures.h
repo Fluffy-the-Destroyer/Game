@@ -9,7 +9,7 @@ private:
 	std::string blueprintName;
 	std::string description;
 public:
-	dataRef(std::string vals[3]) :name(vals[0]), blueprintName(vals[1]), description(vals[2]) {}
+	dataRef(std::string values[3]) :name(values[0]), blueprintName(values[1]), description(values[2]) {}
 	dataRef(std::string type, std::string openTag, std::ifstream* file);
 	std::string getName() { return name; }
 	std::string getBlueprintName() { return blueprintName; }
@@ -25,20 +25,24 @@ private:
 	std::vector<dataRef> classes;
 	std::string victory; //What to say on victory
 	std::string defeat; //What to say on defeat
-	unsigned char saveSlot; //What save slot to use
+	signed char saveSlot; //What save slot to use
 public:
-	adventure(std::string blueprint, bool custom, unsigned char slot);
-	//Loads adventure data from save slot
-	adventure(unsigned char slot);
+	adventure(std::string blueprint, bool custom, signed char slot);
+	//Constructor for loading save data, just initialises save slot
+	adventure(signed char slot) :saveSlot(slot) {}
 	//Initialises a new adventure, creates player and opens file, then runs adventure handler
-	unsigned char adventureInitialiser();
-	//Initialises an adventure from save slot, loads player data, opens file in saved position then runs handler
-	unsigned char adventureInitialiser(unsigned char slot);
+	uint8_t adventureInitialiser();
+	//Loads an adventure from save slot, loads player data, opens file in saved position then runs handler
+	uint8_t loadFromSave();
 	//Runs adventure
-	unsigned char adventureHandler(player* playerCharacter, std::ifstream* file);
+	uint8_t adventureHandler(player* playerCharacter, std::ifstream* file);
 	//Saves the game
-	void save();
+	void save(player* playerCharacter, std::streampos filePos);
+	//Deletes save slot contents
+	void deleteSave();
 };
 
 //Runs adventure mode. Returns 0 if quitting, 1 if returning to menu
-unsigned char adventureMode();
+uint8_t adventureMode();
+//Displays data on the selected save slot
+void displaySaveData(signed char saveSlot);

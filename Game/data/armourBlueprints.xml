@@ -6,7 +6,7 @@
 	<maxManaModifier>0</maxManaModifier> <!--Max mana-->
 	<turnManaRegenModifier>0</turnManaRegenModifier> <!--Mana regenerated per turn-->
 	<battleManaRegenModifier>0</battleManaRegenModifier> <!--Mana regenerated at end of battle -->
-	<constRegenModifier>0</constRegenModifier> <!--Health regenerated per turn-->
+	<turnRegenModifier>0</turnRegenModifier> <!--Health regenerated per turn-->
 	<battleRegenModifier>0</battleRegenModifier> <!--Health regen after battle-->
 	<flatArmourModifier>0</flatArmourModifier> <!--Physical armour-->
 	<propArmourModifier>0</propArmourModifier> <!--Proportional physical damage reduction, this is the increase-->

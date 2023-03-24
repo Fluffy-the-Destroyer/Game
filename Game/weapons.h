@@ -7,7 +7,6 @@ extern bool g_useCustomData;
 class weapon {
 private:
 	bool real; //Is it a real weapon
-	std::string weaponName;
 	std::string name; //Weapon name
 	std::string description; //Description
 	short flatDamageMin; //Minimum flat damage, negatives will heal
@@ -25,22 +24,22 @@ private:
 	short flatSelfArmourPiercingDamageMax;
 	float propSelfDamage;
 	short healthChange; //Health change on self as attack cost, applied even if attack is countered
-	unsigned char hitCount; //Number of hits when attacking, will deal damage for each, value of 0 means cannot attack (may still counter attack)
-	unsigned char counterHits; //Number of hits when counter attacking, value of 0 means it cannot counter attack
+	uint8_t hitCount; //Number of hits when attacking, will deal damage for each, value of 0 means cannot attack (may still counter attack)
+	uint8_t counterHits; //Number of hits when counter attacking, value of 0 means it cannot counter attack
 	bool noEvade; //Is the attack impossible to dodge
 	bool noCounter; //Can the attack be countered
 	bool noCounterAttack; //Are counter attacks allowed
 	short manaChange; //Mana cost to use the weapon
 	short projectileChange; //Projectile cost to attack
-	unsigned char poison; //Poison duration applied
-	unsigned char selfPoison; //Poison applied to self
-	unsigned char bleed; //Bleed duration applied
-	unsigned char selfBleed; //Bleed applied to self
-	bool lifelink; //Heals user equal to damage done
+	uint8_t poison; //Poison duration applied
+	uint8_t selfPoison; //Poison applied to self
+	uint8_t bleed; //Bleed duration applied
+	uint8_t selfBleed; //Bleed applied to self
+	bool lifeLink; //Heals user equal to damage done
 	bool dualWield; //If two weapons with this are equipped, they can both be used in a single attack
-	unsigned char effectType; //Whom it can affect. 0 is no effect, 1 is only attacker, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
-	bool selfOverheal; //Can it overheal wielder
-	bool targetOverheal;
+	uint8_t effectType; //Whom it can affect. 0 is no effect, 1 is only attacker, 2 is also target, 3 is only target. 10s digit is for flat damage, units for all other effects
+	bool selfOverHeal; //Can it over heal wielder
+	bool targetOverHeal;
 	std::string upgrade; //The blueprint name of the upgraded version
 	short flatMagicDamageModifier; //Modifies wielder's flatMagicDamageModifier, intended for magic staffs
 public:
@@ -70,26 +69,26 @@ public:
 	short getFlatSelfArmourPiercingDamageMin() { return flatSelfArmourPiercingDamageMin; }
 	short getFlatSelfArmourPiercingDamageMax() { return flatSelfArmourPiercingDamageMax; }
 	float getPropSelfDamage() { return propSelfDamage; }
-	unsigned char getHitCount() { return hitCount; }
+	uint8_t getHitCount() { return hitCount; }
 	bool getNoEvade() { return noEvade; }
 	bool getNoCounter() { return noCounter; }
 	short getManaChange() { return manaChange; }
 	short getProjectileChange() { return projectileChange; }
-	unsigned char getPoison() { return poison; }
-	unsigned char getBleed(){return bleed;}
-	unsigned char getSelfPoison() { return selfPoison; }
-	unsigned char getSelfBleed() { return selfBleed; }
-	unsigned char getCounterHits() { return counterHits; }
+	uint8_t getPoison() { return poison; }
+	uint8_t getBleed(){return bleed;}
+	uint8_t getSelfPoison() { return selfPoison; }
+	uint8_t getSelfBleed() { return selfBleed; }
+	uint8_t getCounterHits() { return counterHits; }
 	bool getNoCounterAttack() { return noCounterAttack; }
 	bool getReal() { return real; }
-	bool getLifelink() { return lifelink; }
+	bool getLifeLink() { return lifeLink; }
 	short getHealthChange() { return healthChange; }
-	std::string getWeaponName() { return weaponName; }
 	bool getDualWield() { return dualWield; }
-	unsigned char getEffectType() { return effectType; }
-	bool getSelfOverheal() { return selfOverheal; }
-	bool getTargetOverheal() { return targetOverheal; }
+	uint8_t getEffectType() { return effectType; }
+	bool getSelfOverHeal() { return selfOverHeal; }
+	bool getTargetOverHeal() { return targetOverHeal; }
 	short getFlatMagicDamageModifier() { return flatMagicDamageModifier; }
+	std::string getUpgrade() { return upgrade; }
 	//Displays weapon stats
 	void displayStats();
 	//Displays name and cost, for use in battle
@@ -101,4 +100,9 @@ public:
 	bool checkTargetDamage();
 	//Upgrades the item, returns false if it wasn't upgraded
 	bool upgradeItem();
+	//Writes stats to save file
+	void save(std::ofstream* saveFile);
+	//Loads stats from save file
+	weapon(std::ifstream* saveFile) { loadSave(saveFile); }
+	void loadSave(std::ifstream* saveFile);
 };

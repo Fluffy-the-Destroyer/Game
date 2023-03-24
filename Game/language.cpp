@@ -17,40 +17,33 @@ extern bool g_useCustomData;
 // 8: Variable limit reached
 
 void variables::assign(string n, short v) {
-	for (short i = 0; i < vars.size(); i++) {
+	for (unsigned short i = 0; i < vars.size(); i++) {
 		if (vars[i].name == n) {
 			vars[i].value = v;
 			return;
 		}
 	}
-	if (vars.size() == SHRT_MAX) { //Only allowed to have 32767 variables, to prevent crashing
+	if (vars.size() == USHRT_MAX) { //Only allowed to have 65535 variables, to prevent crashing
 		throw 8;
 	}
 	vars.emplace_back(n, v);
 }
 
 short* variables::value(string n) {
-	for (short i = 0; i < vars.size(); i++) {
+	for (unsigned short i = 0; i < vars.size(); i++) {
 		if (vars[i].name == n) {
 			return &(vars[i].value);
 		}
 	}
-	if (vars.size() == SHRT_MAX) {
+	if (vars.size() == USHRT_MAX) {
 		throw 8;
 	}
 	vars.emplace_back(n);
 	return &(vars.back().value);
 }
 
-variables variables::operator+(const variables& varChanges) {
-	for (short i = 0; i < varChanges.vars.size(); i++) {
-		*value(varChanges.vars[i].name) += varChanges.vars[i].value;
-	}
-	return *this;
-}
-
 void variables::operator+=(const variables& varChanges) {
-	for (short i = 0; i < varChanges.vars.size(); i++) {
+	for (unsigned short i = 0; i < varChanges.vars.size(); i++) {
 		*value(varChanges.vars[i].name) += varChanges.vars[i].value;
 	}
 }
@@ -163,7 +156,7 @@ string endBracket(string* cond) {
 	return cond1;
 }
 
-unsigned char doLine(ifstream* file, player* playerCharacter) {
+uint8_t doLine(ifstream* file, player* playerCharacter) {
 	string buffer1 = getTag(file);
 	if (buffer1 == "victory/") {
 		return 1;
@@ -195,10 +188,10 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 			return 0;
 		}
 		Event currentEvent(buffer1);
-		if (currentEvent.getEventName() == "EMPTY") {
+		if (!currentEvent.getReal()) {
 			return 0;
 		}
-		unsigned char i = 1;
+		uint8_t i = 1;
 		while (i == 1) {
 			i = currentEvent.eventHandler(playerCharacter);
 		}
@@ -255,7 +248,7 @@ unsigned char doLine(ifstream* file, player* playerCharacter) {
 		buffer1 = removeEscapes(buffer1);
 		while (evalCond(buffer1, playerCharacter)) {
 			file->seekg(startPos);
-			unsigned char i = 0;
+			uint8_t i = 0;
 			while (i == 0 || i == 5) {
 				i = doLine(file, playerCharacter);
 			}
@@ -348,11 +341,15 @@ void endWhile(ifstream* file) {
 	}
 }
 
-void modifyVar(string var, string operation, player* playerCharacter) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --
+void modifyVar(string var, string operation, player* playerCharacter) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --, display
 	short value;
-	signed char op;
+	char op;
 	clearSpace(&operation);
 	if (operation.empty()) {
+		return;
+	}
+	if (operation == "display") {
+		cout << *g_customVars.value(var) << '\n';
 		return;
 	}
 	switch (operation[0]) {
@@ -495,7 +492,7 @@ void modifyVar(string var, string operation, player* playerCharacter) { //= num 
 
 void modifyVar(string var, string operation) { //= num (=), += num (+), -= num (-), *= num (*), /= num (/), %= num (%), ++, --
 	short value;
-	signed char op;
+	char op;
 	clearSpace(&operation);
 	if (operation.empty()) {
 		return;
@@ -638,11 +635,15 @@ void modifyVar(string var, string operation) { //= num (=), += num (+), -= num (
 	}
 }
 
-bool checkSaveSlot(unsigned char slot) {
+bool checkSaveSlot(signed char slot) {
 	if (slot < 48 || slot > 57) {
 		return false;
 	}
-	ifstream saveFile("saves\\sav" + slot);
+	ifstream saveFile;
+	string savePath = "saves\\sav";
+	savePath += slot;
+	savePath += ".xml";
+	saveFile.open(savePath);
 	if (!saveFile.is_open()) { //No save file present
 		return false;
 	}

@@ -1,13 +1,13 @@
 <!-- Template player class, containing default values -->
 <classBlueprint name="EMPTY">
 	<className></className><!--Name of the class as displayed in game-->
-	<maxHealth>100</maxHealth>
-	<maxMana>0</maxMana>
-	<turnManaRegen>0</turnManaRegen>
-	<battleManaRegen>0</battleManaRegen>
+	<maxHealth>150</maxHealth>
+	<maxMana>100</maxMana>
+	<turnManaRegen>5</turnManaRegen>
+	<battleManaRegen>10</battleManaRegen>
 	<poisonResist>0.1</poisonResist>
 	<bleedResist>0.1</bleedResist>
-	<constRegen>0</constRegen>
+	<turnRegen>0</turnRegen>
 	<battleRegen>0</battleRegen>
 	<weapons count="0" projectiles="0"> <!-- Count is number of slots, projectiles is starting projectiles -->
 		<weapon>EMPTY</weapon> <!-- Starting weapons, if fewer are given than there are slots, remaining slots will be empty -->
@@ -20,7 +20,7 @@
 	<flatMagicArmour>0</flatMagicArmour>
 	<propMagicArmour>0.0</propMagicArmour>
 	<helmet>EMPTY</helmet>
-	<chestplate>EMPTY</chestplate>
+	<chestPlate>EMPTY</chestPlate>
 	<greaves>EMPTY</greaves>
 	<boots>EMPTY</boots>
 	<flatDamageModifier>0</flatDamageModifier>
@@ -48,7 +48,7 @@
 	<battleManaRegen></battleManaRegen><!--Added-->
 	<poisonResist></poisonResist><!--Overwritten-->
 	<bleedResist></bleedResist><!--Overwritten-->
-	<constRegen></constRegen><!--Added-->
+	<turnRegen></turnRegen><!--Added-->
 	<battleRegen></battleRegen><!--Added-->
 	<flatArmour></flatArmour><!--Added-->
 	<propArmour></propArmour><!--Overwritten-->
@@ -98,7 +98,7 @@
 	<spells count="2">
 	</spells>
 	<helmet>IRON_HELMET_1</helmet>
-	<chestplate>IRON_CHESTPLATE_1</chestplate>
+	<chestPlate>IRON_CHESTPLATE_1</chestPlate>
 	<greaves>IRON_GREAVES_1</greaves>
 	<boots>IRON_BOOTS_1</boots>
 	<flatDamageModifier>3</flatDamageModifier>
@@ -120,7 +120,7 @@
 	<spells count="3">
 	</spells>
 	<helmet>LEATHER_HELMET_1</helmet>
-	<chestplate>LEATHER_CHESTPLATE_1</chestplate>
+	<chestPlate>LEATHER_CHESTPLATE_1</chestPlate>
 	<greaves>LEATHER_GREAVES_1</greaves>
 	<boots>LEATHER_BOOTS_1</boots>
 	<flatDamageModifier>1</flatDamageModifier>
@@ -145,7 +145,7 @@
 		<spell>HEALING_SPELL_1</spell>
 		<spell>ARMOUR_SPELL</spell>
 	</spells>
-	<chestplate>ROBES_1</chestplate>
+	<chestPlate>ROBES_1</chestPlate>
 	<flatMagicDamageModifier>3</flatMagicDamageModifier>
 	<bonusActions>2</bonusActions>
 </classBlueprint>

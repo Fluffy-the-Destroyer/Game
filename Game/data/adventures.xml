@@ -2,7 +2,7 @@
 
 <adventureList>
 	<!--<adventure name="Adventure name displayed during selection" blueprint="BLUEPRINT_NAME">A brief description of the adventure, displayed during selection</adventure>-->
-	<adventure name="Adventure 1" blueprint="ADVENTURE_1">An adventure I have yet to create</adventure>
+	<adventure name="Test adventure" blueprint="TEST_ADVENTURE">This &quot;adventure&quot; is just a test</adventure>
 </adventureList>
 
 <adventureBlueprint name="EMPTY">
@@ -13,4 +13,10 @@
 	<classes><!--What classes the player may choose, if this is absent, there is no restriction on the player's choice-->
 		<class name="Name of class as displayed in game" blueprint="BLUEPRINT_NAME">A short description of the class</class>
 	</classes>
+</adventureBlueprint>
+
+<adventureBlueprint name="TEST_ADVENTURE">
+	<name>Test adventure</name>
+	<description>This &apos;adventure&apos; is just a test</description>
+	<file>testAdventure.xml</file>
 </adventureBlueprint>

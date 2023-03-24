@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "player.h"
 #include "language.h"
 
 extern bool g_useCustomData;
@@ -23,11 +22,11 @@ public:
 
 class Event {
 private:
-	std::string eventName; //The name of the event blueprint
+	bool real;
 	std::string preBattleText; //Text displayed at start of event
 	std::string preBattleSpell; //Spell to be cast on player on event start, for environmental effects or similar. EMPTY is no spell
 	std::string enemyBlueprint; //Enemy to fight, EMPTY is no fight
-	signed char firstGo; //Who goes first in the battle, -1 is enemy, 1 is player, 0 is use initiative
+	int8_t firstGo; //Who goes first in the battle, -1 is enemy, 1 is player, 0 is use initiative
 	std::string postBattleText; //Text displayed after battle
 	short statChanges[18];
 	int xpChange;
@@ -35,9 +34,9 @@ private:
 	variables varChanges; //Changes to be made to variables
 	std::vector<choice> choices; //Choices for the player to make
 public:
-	std::string getEventName() { return eventName; }
+	bool getReal() { return real; }
 	void loadFromFile(std::string blueprint = "EMPTY", bool custom = g_useCustomData);
 	Event(std::string blueprint = "EMPTY") { loadFromFile(blueprint); }
 	//Returns 1 if chaining into a new event, returns 0 if not. Returns 2 if player died
-	unsigned char eventHandler(player* playerCharacter);
+	uint8_t eventHandler(player* playerCharacter);
 };

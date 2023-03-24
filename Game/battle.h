@@ -1,14 +1,12 @@
 #pragma once
 #include "player.h"
 #include "enemies.h"
-#include "spells.h"
-#include "weapons.h"
 #define POISON_MULTIPLIER 1 //Multiplier for poison effect
 #define BLEED_MULTIPLIER 1
 #define REGEN_MULTIPLIER 1
 
 //Handles battle, returns 1 if enemy killed, returns 2 if player killed. firstGo=1 is player goes first, firstGo=-1 is enemy goes first, firstGo=0 is use initiative
-unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed char firstGo = 0);
+uint8_t battleHandler(player* playerCharacter, enemy* opponent, int8_t firstGo = 0);
 //Spell cast by player on enemy, returns 1 if target is dead, 2 if caster is dead
 void spellCast(spell* magic, player* caster, enemy* target, bool counter = false);
 //Individual hit
@@ -22,7 +20,7 @@ void spellHit(spell* magic, enemy* caster, player* target);
 //Applies casting costs
 void spellDeclare(spell* magic, enemy* caster);
 //Spell cast on player by nobody (e.g. in an event), returns 1 if target is dead
-unsigned char spellCast(spell* magic, player* target);
+uint8_t spellCast(spell* magic, player* target);
 //Individual hit
 void spellHit(spell* magic, player* target);
 //Weapon attack by player on enemy, returns 1 if target is dead, 2 if caster is dead
@@ -48,6 +46,6 @@ void weaponDeclare(weapon* weapon1, weapon* weapon2, enemy* attacker);
 //Recalculates player modifiers, resets status effects/DOT and spell cooldowns, intended for end of battle
 void resetPlayer(player* playerCharacter);
 //If enemy is dead and has a death spell, casts it, then returns 2 if player is dead, then returns 1 if enemy is dead, then returns 0
-unsigned char deathCheck(player* playerCharacter, enemy* opponent);
+uint8_t deathCheck(player* playerCharacter, enemy* opponent);
 //Battle mode. Returns 0 if quitting, 1 if returning to main menu
-unsigned char battleMode();
+uint8_t battleMode();

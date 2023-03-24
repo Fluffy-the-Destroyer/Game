@@ -35,7 +35,7 @@
 	<selfPoison>0</selfPoison>
 	<bleed>0</bleed>
 	<selfBleed>0</selfBleed>
-	<lifelink/>
+	<lifeLink/>
 	<dualWield/><!--Two weapons with this tag can be dual wielded, they may both be used as a single action, as long as either could be used on its own. Dual wielding costs an additional bonus action-->
 	<selfOverheal/><!--Allows it to overheal attacker, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
@@ -50,8 +50,8 @@
 <weaponBlueprint name="LONGSWORD_1">
 	<name>Longsword</name>
 	<description>A sturdy longsword, it is slow to swing but devastating when it hits.</description>
-	<flatDamageMin>25</flatDamageMin>
-	<flatDamageMax>35</flatDamageMax>
+	<flatDamageMin>rng(15,25)</flatDamageMin>
+	<flatDamageMax>rng(25,35)</flatDamageMax>
 	<noCounter/>
 	<noCounterAttack/>
 </weaponBlueprint>

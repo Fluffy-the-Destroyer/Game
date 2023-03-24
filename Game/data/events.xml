@@ -7,7 +7,7 @@
 	<statChanges><!--Changes to player stats, applied after battle.-->
 		<health>0</health><!--Changes health, cannot overheal-->
 		<maxHealth>0</maxHealth>
-		<constRegen>0</constRegen>
+		<turnRegen>0</turnRegen>
 		<battleRegen>0</battleRegen>
 		<mana>0</mana><!--Cannot overcharge mana-->
 		<maxMana>0</maxMana>
@@ -39,4 +39,10 @@
 		<hidden/><!--If this tag is present, health/mana/projectile changes will not be visible. Further, the choice will appear even if the player cannot afford it, selecting it will simply take all of the appropriate resource-->
 		<eventName>EMPTY</eventName><!--The event which should be loaded upon picking this choice-->
 	</choice>
+</event>
+
+<event name="TEST_1">
+	<preBattleText>Test event 1</preBattleText>
+	<enemyBlueprint>BAD_GUY</enemyBlueprint>
+	<postBattleText>You defeated the bad guy!</postBattleText>
 </event>

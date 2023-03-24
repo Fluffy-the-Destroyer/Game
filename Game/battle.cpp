@@ -14,7 +14,7 @@ extern bool g_useCustomData;
 //Error codes:
 // 6: Trying to access slot which is out of range
 
-unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed char firstGo) {
+uint8_t battleHandler(player* playerCharacter, enemy* opponent, int8_t firstGo) {
 	//Check if enemy dies immediately
 	switch (deathCheck(playerCharacter, opponent)) {
 	case 1:
@@ -24,7 +24,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed cha
 	}
 	playerCharacter->resetBonusActions();
 	opponent->resetBonusActions();
-	unsigned char p_selection1 = 0, p_selection2 = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
+	uint8_t p_selection1 = 0, p_selection2 = 0, e_selection1 = 0, e_selection2 = 0; //For holding weapon/spell selection and action choice
 	short health; //For holding combatants' health
 	bool firstTurn = true; //Is it the first turn
 	//Determine who goes first
@@ -84,7 +84,7 @@ unsigned char battleHandler(player* playerCharacter, enemy* opponent, signed cha
 						return 2;
 					}
 				}
-				if (opponent->getSpell(e_selection1)->getCounterSpell() >= 2) { //Check counterspell
+				if (opponent->getSpell(e_selection1)->getCounterSpell() >= 2) { //Check counterSpell
 					if (playerCharacter->getWeapon(p_selection1)->getNoCounter()) {
 						cout << playerCharacter->getWeapon(p_selection1)->getName() << " cannot be countered!\n";
 						opponent->addNoCounter(1, playerCharacter->getWeapon(p_selection1)->getName()); //Tell enemy it cannot be countered
@@ -846,7 +846,7 @@ void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 		cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
 	}
 	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2) {
-		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverheal());
+		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -893,14 +893,14 @@ void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 			}
 			cout << "\b\b\n";
 		}
-		if (magic->getMaxHealthModifier() != 0 || magic->getConstRegenModifier() != 0 || magic->getBattleRegenModifier() != 0) {
+		if (magic->getMaxHealthModifier() != 0 || magic->getTurnRegenModifier() != 0 || magic->getBattleRegenModifier() != 0) {
 			if (magic->getMaxHealthModifier() != 0) {
 				caster->modifyMaxHealth(magic->getMaxHealthModifier());
 				cout << magic->getMaxHealthModifier() << " max health, ";
 			}
-			if (magic->getConstRegenModifier() != 0) {
-				caster->modifyConstRegen(magic->getConstRegenModifier());
-				cout << magic->getConstRegenModifier() << " health per turn, ";
+			if (magic->getTurnRegenModifier() != 0) {
+				caster->modifyTurnRegen(magic->getTurnRegenModifier());
+				cout << magic->getTurnRegenModifier() << " health per turn, ";
 			}
 			if (magic->getBattleRegenModifier() != 0) {
 				caster->modifyBattleRegen(magic->getBattleRegenModifier());
@@ -968,9 +968,28 @@ void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 			}
 			cout << "\b\b\n";
 		}
+		if (magic->getPropDamageModifier() != 0 || magic->getPropMagicDamageModifier() != 0 || magic->getPropArmourPiercingDamageModifier() != 0) {
+			if (magic->getPropDamageModifier() != 0) {
+				caster->modifyPropDamageModifier(magic->getPropDamageModifier());
+				cout << 100 * magic->getPropDamageModifier() << "% physical damage dealt, ";
+			}
+			if (magic->getPropMagicDamageModifier() != 0) {
+				caster->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifier());
+				cout << 100 * magic->getPropMagicDamageModifier() << "% magic damage dealt, ";
+			}
+			if (magic->getPropArmourPiercingDamageModifier() != 0) {
+				caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
+				cout << 100 * magic->getPropArmourPiercingDamageModifier() << "% armour piercing damage dealt, ";
+			}
+			cout << "\b\b\n";
+		}
 		if (magic->getEvadeChanceModifier() != 0) {
 			caster->modifyEvadeChance(magic->getEvadeChanceModifier());
-			cout << magic->getEvadeChanceModifier() << " evade chance\n";
+			cout << 100 * magic->getEvadeChanceModifier() << "% evade chance\n";
+		}
+		if (magic->getCounterAttackChanceModifier() != 0) {
+			caster->modifyCounterAttackChance(magic->getCounterAttackChanceModifier());
+			cout << 100 * magic->getCounterAttackChanceModifier() << "% counter attack chance\n";
 		}
 		if (magic->getBonusActionsModifier() != 0) {
 			caster->modifyBonusActions(magic->getBonusActionsModifier());
@@ -982,14 +1001,14 @@ void spellCast(spell* magic, player* caster, enemy* target, bool counter) {
 	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2) {
 		return;
 	}
-	unsigned char hits;
+	uint8_t hits;
 	if (counter) {
 		hits = magic->getCounterHits();
 	}
 	else {
 		hits = magic->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits; i++) {
+	for (uint8_t i = 0; i < hits; i++) {
 		spellHit(magic, caster, target);
 	}
 	this_thread::sleep_for(chrono::milliseconds(400));
@@ -1007,7 +1026,7 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 		cout << -100 * magic->getPropSelfDamage() << "% of health recovered\n";
 	}
 	if (magic->getEffectType() / 10 == 1 || magic->getEffectType() / 10 == 2) {
-		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverheal());
+		short healthLoss = caster->flatDamage(magic->getFlatSelfDamage(), magic->getFlatSelfMagicDamage(), magic->getFlatSelfArmourPiercingDamage(), magic->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -1054,14 +1073,14 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 			}
 			cout << "\b\b\n";
 		}
-		if (magic->getMaxHealthModifier() != 0 || magic->getConstRegenModifier() != 0) {
+		if (magic->getMaxHealthModifier() != 0 || magic->getTurnRegenModifier() != 0) {
 			if (magic->getMaxHealthModifier() != 0) {
 				caster->modifyMaxHealth(magic->getMaxHealthModifier());
 				cout << magic->getMaxHealthModifier() << " max health, ";
 			}
-			if (magic->getConstRegenModifier() != 0) {
-				caster->modifyConstRegen(magic->getConstRegenModifier());
-				cout << magic->getConstRegenModifier() << " health per turn, ";
+			if (magic->getTurnRegenModifier() != 0) {
+				caster->modifyTurnRegen(magic->getTurnRegenModifier());
+				cout << magic->getTurnRegenModifier() << " health per turn, ";
 			}
 			cout << "\b\b\n";
 		}
@@ -1117,9 +1136,28 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 			}
 			cout << "\b\b\n";
 		}
+		if (magic->getPropDamageModifier() != 0 || magic->getPropMagicDamageModifier() != 0 || magic->getPropArmourPiercingDamageModifier() != 0) {
+			if (magic->getPropDamageModifier() != 0) {
+				caster->modifyPropDamageModifier(magic->getPropDamageModifier());
+				cout << 100 * magic->getPropDamageModifier() << "% physical damage dealt, ";
+			}
+			if (magic->getPropMagicDamageModifier() != 0) {
+				caster->modifyPropMagicDamageModifier(magic->getPropMagicDamageModifier());
+				cout << 100 * magic->getPropMagicDamageModifier() << "% magic damage dealt, ";
+			}
+			if (magic->getPropArmourPiercingDamageModifier() != 0) {
+				caster->modifyPropArmourPiercingDamageModifier(magic->getPropArmourPiercingDamageModifier());
+				cout << 100 * magic->getPropArmourPiercingDamageModifier() << "% armour piercing damage dealt, ";
+			}
+			cout << "\b\b\n";
+		}
 		if (magic->getEvadeChanceModifier() != 0) {
 			caster->modifyEvadeChance(magic->getEvadeChanceModifier());
-			cout << magic->getEvadeChanceModifier() << " evade chance\n";
+			cout << 100 * magic->getEvadeChanceModifier() << "% evade chance\n";
+		}
+		if (magic->getCounterAttackChanceModifier() != 0) {
+			caster->modifyCounterAttackChance(magic->getCounterAttackChanceModifier());
+			cout << 100 * magic->getCounterAttackChanceModifier() << "% counter attack chance\n";
 		}
 		if (magic->getBonusActionsModifier() != 0) {
 			caster->modifyBonusActions(magic->getBonusActionsModifier());
@@ -1132,25 +1170,25 @@ void spellCast(spell* magic, enemy* caster, player* target, bool counter) {
 		return;
 	}
 	cout << "Target effects:\n";
-	unsigned char hits;
+	uint8_t hits;
 	if (counter) {
 		hits = magic->getCounterHits();
 	}
 	else {
 		hits = magic->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits; i++) {
+	for (uint8_t i = 0; i < hits; i++) {
 		spellHit(magic, caster, target);
 	}
 	this_thread::sleep_for(chrono::milliseconds(400));
 }
 
-unsigned char spellCast(spell* magic, player* target) {
+uint8_t spellCast(spell* magic, player* target) {
 	if (magic->getEffectType() % 10 < 2 && magic->getEffectType() / 10 < 2 && magic->getInitiativeModifier() == 0) {
 		return 0;
 	}
-	unsigned char hits = magic->getHitCount();
-	for (unsigned char i = 0; i < hits; i++) {
+	uint8_t hits = magic->getHitCount();
+	for (uint8_t i = 0; i < hits; i++) {
 		spellHit(magic, target);
 	}
 	this_thread::sleep_for(chrono::milliseconds(400));
@@ -1178,13 +1216,13 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 		short healthSteal = max((short)0, target->getHealth());
 		short p = magic->getFlatDamage(), m = magic->getFlatMagicDamage(), a = magic->getFlatArmourPiercingDamage();
 		caster->applyDamageModifiers(&p, &m, &a);
-		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverheal());
+		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage";
-			if (magic->getLifelink()) {
+			if (magic->getLifeLink()) {
 				healthSteal = min(healthSteal, healthLoss);
 				if (healthSteal > 0) {
-					cout << " (caster is healed for " << healthSteal << " by lifelink)";
+					cout << " (caster is healed for " << healthSteal << " by lifeLink)";
 					caster->modifyHealth(healthSteal);
 				}
 			}
@@ -1225,14 +1263,14 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0) {
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getTurnRegenModifierEnemy() != 0) {
 		if (magic->getMaxHealthModifierEnemy() != 0) {
 			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
 			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
 		}
-		if (magic->getConstRegenModifierEnemy() != 0) {
-			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		if (magic->getTurnRegenModifierEnemy() != 0) {
+			target->modifyTurnRegen(magic->getTurnRegenModifierEnemy());
+			cout << magic->getTurnRegenModifierEnemy() << " health per turn, ";
 		}
 		cout << "\b\b\n";
 	}
@@ -1322,10 +1360,14 @@ void spellHit(spell* magic, player* caster, enemy* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0 || magic->getCounterAttackChanceModifierEnemy() != 0) {
 		if (magic->getEvadeChanceModifierEnemy() != 0) {
 			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
 			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getCounterAttackChanceModifierEnemy() != 0) {
+			target->modifyCounterAttackChance(magic->getCounterAttackChanceModifierEnemy());
+			cout << 100 * magic->getCounterAttackChanceModifierEnemy() << "% counter attack chance, ";
 		}
 		if (magic->getBonusActionsModifierEnemy() != 0) {
 			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
@@ -1355,13 +1397,13 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 		short healthSteal = max((short)0, target->getHealth());
 		short p = magic->getFlatDamage(), m = magic->getFlatMagicDamage(), a = magic->getFlatArmourPiercingDamage();
 		caster->applyDamageModifiers(&p, &m, &a);
-		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverheal());
+		short healthLoss = target->flatDamage(p, m, a, magic->getTargetOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage";
-			if (magic->getLifelink()) {
+			if (magic->getLifeLink()) {
 				healthSteal = min(healthSteal, healthLoss);
 				if (healthSteal > 0) {
-					cout << " (caster is healed for " << healthSteal << " by lifelink)";
+					cout << " (caster is healed for " << healthSteal << " by lifeLink)";
 					caster->modifyHealth(healthSteal);
 				}
 			}
@@ -1402,14 +1444,14 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getTurnRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
 		if (magic->getMaxHealthModifierEnemy() != 0) {
 			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
 			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
 		}
-		if (magic->getConstRegenModifierEnemy() != 0) {
-			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		if (magic->getTurnRegenModifierEnemy() != 0) {
+			target->modifyTurnRegen(magic->getTurnRegenModifierEnemy());
+			cout << magic->getTurnRegenModifierEnemy() << " health per turn, ";
 		}
 		if (magic->getBattleRegenModifierEnemy() != 0) {
 			target->modifyBattleRegen(magic->getBattleRegenModifierEnemy());
@@ -1511,10 +1553,14 @@ void spellHit(spell* magic, enemy* caster, player* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0 || magic->getCounterAttackChanceModifierEnemy() != 0) {
 		if (magic->getEvadeChanceModifierEnemy() != 0) {
 			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
 			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getCounterAttackChanceModifierEnemy() != 0) {
+			target->modifyCounterAttackChance(magic->getCounterAttackChanceModifierEnemy());
+			cout << 100 * magic->getCounterAttackChanceModifierEnemy() << "% counter attack chance, ";
 		}
 		if (magic->getBonusActionsModifierEnemy() != 0) {
 			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
@@ -1541,7 +1587,7 @@ void spellHit(spell* magic, player* target) {
 		cout << -100 * magic->getPropDamage() << "% of health recovered\n";
 	}
 	if (magic->getEffectType() / 10 > 1) {
-		short healthLoss = target->flatDamage(magic->getFlatDamage(), magic->getFlatMagicDamage(), magic->getFlatArmourPiercingDamage(), magic->getTargetOverheal());
+		short healthLoss = target->flatDamage(magic->getFlatDamage(), magic->getFlatMagicDamage(), magic->getFlatArmourPiercingDamage(), magic->getTargetOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage";
 			cout << '\n';
@@ -1581,14 +1627,14 @@ void spellHit(spell* magic, player* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getConstRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
+	if (magic->getMaxHealthModifierEnemy() != 0 || magic->getTurnRegenModifierEnemy() != 0 || magic->getBattleRegenModifierEnemy() != 0) {
 		if (magic->getMaxHealthModifierEnemy() != 0) {
 			target->modifyMaxHealth(magic->getMaxHealthModifierEnemy());
 			cout << magic->getMaxHealthModifierEnemy() << " max health, ";
 		}
-		if (magic->getConstRegenModifierEnemy() != 0) {
-			target->modifyConstRegen(magic->getConstRegenModifierEnemy());
-			cout << magic->getConstRegenModifierEnemy() << " health per turn, ";
+		if (magic->getTurnRegenModifierEnemy() != 0) {
+			target->modifyTurnRegen(magic->getTurnRegenModifierEnemy());
+			cout << magic->getTurnRegenModifierEnemy() << " health per turn, ";
 		}
 		if (magic->getBattleRegenModifierEnemy() != 0) {
 			target->modifyBattleRegen(magic->getBattleRegenModifierEnemy());
@@ -1690,10 +1736,14 @@ void spellHit(spell* magic, player* target) {
 		}
 		cout << "\b\b\n";
 	}
-	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0) {
+	if (magic->getEvadeChanceModifierEnemy() != 0 || magic->getBonusActionsModifierEnemy() != 0 || magic->getCounterAttackChanceModifierEnemy() != 0) {
 		if (magic->getEvadeChanceModifierEnemy() != 0) {
 			target->modifyEvadeChance(magic->getEvadeChanceModifierEnemy());
 			cout << 100 * magic->getEvadeChanceModifierEnemy() << "% evade chance, ";
+		}
+		if (magic->getCounterAttackChanceModifierEnemy() != 0) {
+			target->modifyCounterAttackChance(magic->getCounterAttackChanceModifierEnemy());
+			cout << 100 * magic->getCounterAttackChanceModifierEnemy() << "% counter attack chance, ";
 		}
 		if (magic->getBonusActionsModifierEnemy() != 0) {
 			target->modifyBonusActions(magic->getBonusActionsModifierEnemy());
@@ -1734,7 +1784,7 @@ void weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counte
 		cout << -100 * weaponry->getPropSelfDamage() << "% of health recovered\n";
 	}
 	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2) {
-		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverheal());
+		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -1770,14 +1820,14 @@ void weaponAttack(weapon* weaponry, player* attacker, enemy* target, bool counte
 	if (weaponry->getEffectType() / 10 < 2 && weaponry->getEffectType() % 10 < 2) {
 		return;
 	}
-	unsigned char hits;
+	uint8_t hits;
 	if (counter) {
 		hits = weaponry->getCounterHits();
 	}
 	else {
 		hits = weaponry->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits; i++) {
+	for (uint8_t i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
 	this_thread::sleep_for(chrono::milliseconds(400));
@@ -1795,7 +1845,7 @@ void weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counte
 		cout << -100 * weaponry->getPropSelfDamage() << "% of health recovered\n";
 	}
 	if (weaponry->getEffectType() / 10 == 1 || weaponry->getEffectType() / 10 == 2) {
-		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverheal());
+		short healthLoss = attacker->flatDamage(weaponry->getFlatSelfDamage(), weaponry->getFlatSelfMagicDamage(), weaponry->getFlatArmourPiercingDamage(), weaponry->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -1831,14 +1881,14 @@ void weaponAttack(weapon* weaponry, enemy* attacker, player* target, bool counte
 	if (weaponry->getEffectType() / 10 < 2 && weaponry->getEffectType() % 10 < 2) {
 		return;
 	}
-	unsigned char hits;
+	uint8_t hits;
 	if (counter) {
 		hits = weaponry->getCounterHits();
 	}
 	else {
 		hits = weaponry->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits; i++) {
+	for (uint8_t i = 0; i < hits; i++) {
 		weaponHit(weaponry, attacker, target);
 	}
 	this_thread::sleep_for(chrono::milliseconds(400));
@@ -1862,13 +1912,13 @@ void weaponHit(weapon* weaponry, player* attacker, enemy* target) {
 		short healthSteal = max((short)0, target->getHealth());
 		short p = weaponry->getFlatDamage(), m = weaponry->getFlatMagicDamage(), a = weaponry->getFlatArmourPiercingDamage();
 		attacker->applyDamageModifiers(&p, &m, &a);
-		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverheal());
+		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage";
-			if (weaponry->getLifelink()) {
+			if (weaponry->getLifeLink()) {
 				healthSteal = min(healthSteal, healthLoss);
 				if (healthSteal > 0) {
-					cout << " (attacker is healed for " << healthSteal << " by lifelink)";
+					cout << " (attacker is healed for " << healthSteal << " by lifeLink)";
 					attacker->modifyHealth(healthSteal);
 				}
 			}
@@ -1922,13 +1972,13 @@ void weaponHit(weapon* weaponry, enemy* attacker, player* target) {
 		short healthSteal = max((short)0, target->getHealth());
 		short p = weaponry->getFlatDamage(), m = weaponry->getFlatMagicDamage(), a = weaponry->getFlatArmourPiercingDamage();
 		attacker->applyDamageModifiers(&p, &m, &a);
-		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverheal());
+		short healthLoss = target->flatDamage(p, m, a, weaponry->getTargetOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage";
-			if (weaponry->getLifelink()) {
+			if (weaponry->getLifeLink()) {
 				healthSteal = min(healthSteal, healthLoss);
 				if (healthSteal > 0) {
-					cout << " (attacker is healed for " << healthSteal << " by lifelink)";
+					cout << " (attacker is healed for " << healthSteal << " by lifeLink)";
 					attacker->modifyHealth(healthSteal);
 				}
 			}
@@ -1981,9 +2031,9 @@ void resetPlayer(player* playerCharacter) {
 	playerCharacter->curePoison();
 	playerCharacter->cureBleed();
 	playerCharacter->removeRegen();
-	unsigned char spellSlots = playerCharacter->getSpellSlots();
+	uint8_t spellSlots = playerCharacter->getSpellSlots();
 	try {
-		for (unsigned char i = 0; i < spellSlots; i++) {
+		for (uint8_t i = 0; i < spellSlots; i++) {
 			playerCharacter->getSpell(i)->resetCooldown();
 		}
 	}
@@ -2051,8 +2101,8 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 	}
 	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2) {
 		if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
-			if (weapon1->getSelfOverheal()) {
-				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+			if (weapon1->getSelfOverHeal()) {
+				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 				healthLoss += attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), true);
 				if (healthLoss > 0) {
 					cout << healthLoss << " damage\n";
@@ -2066,7 +2116,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 			}
 			else {
 				long healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage());
-				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 				if (healthLoss > 0) {
 					cout << healthLoss << " damage\n";
 				}
@@ -2079,7 +2129,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 			}
 		}
 		else {
-			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverheal());
+			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverHeal());
 			if (healthLoss > 0) {
 				cout << healthLoss << " damage\n";
 			}
@@ -2092,7 +2142,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 		}
 	}
 	else if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
-		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -2128,7 +2178,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 		return;
 	}
 	cout << "Target effects:\n";
-	unsigned char hits1, hits2;
+	uint8_t hits1, hits2;
 	if (counter) {
 		hits1 = weapon1->getCounterHits();
 		hits2 = weapon2->getCounterHits();
@@ -2137,7 +2187,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, player* attacker, enemy* tar
 		hits1 = weapon1->getHitCount();
 		hits2 = weapon2->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits1; i++) {
+	for (uint8_t i = 0; i < hits1; i++) {
 		weaponHit(weapon1, attacker, target);
 		if (i < hits2) {
 			weaponHit(weapon2, attacker, target);
@@ -2207,8 +2257,8 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 	}
 	if (weapon1->getEffectType() / 10 == 1 || weapon1->getEffectType() / 10 == 2) {
 		if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
-			if (weapon1->getSelfOverheal()) {
-				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+			if (weapon1->getSelfOverHeal()) {
+				long healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 				healthLoss += attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), true);
 				if (healthLoss > 0) {
 					cout << healthLoss << " damage\n";
@@ -2222,7 +2272,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 			}
 			else {
 				long healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage());
-				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+				healthLoss += attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 				if (healthLoss > 0) {
 					cout << healthLoss << " damage\n";
 				}
@@ -2235,7 +2285,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 			}
 		}
 		else {
-			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverheal());
+			short healthLoss = attacker->flatDamage(weapon1->getFlatSelfDamage(), weapon1->getFlatSelfMagicDamage(), weapon1->getFlatSelfArmourPiercingDamage(), weapon1->getSelfOverHeal());
 			if (healthLoss > 0) {
 				cout << healthLoss << " damage\n";
 			}
@@ -2248,7 +2298,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 		}
 	}
 	else if (weapon2->getEffectType() / 10 == 1 || weapon2->getEffectType() / 10 == 2) {
-		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverheal());
+		short healthLoss = attacker->flatDamage(weapon2->getFlatSelfDamage(), weapon2->getFlatSelfMagicDamage(), weapon2->getFlatSelfArmourPiercingDamage(), weapon2->getSelfOverHeal());
 		if (healthLoss > 0) {
 			cout << healthLoss << " damage\n";
 		}
@@ -2284,7 +2334,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 		return;
 	}
 	cout << "Target effects:\n";
-	unsigned char hits1, hits2;
+	uint8_t hits1, hits2;
 	if (counter) {
 		hits1 = weapon1->getCounterHits();
 		hits2 = weapon2->getCounterHits();
@@ -2293,7 +2343,7 @@ void weaponAttack(weapon* weapon1, weapon* weapon2, enemy* attacker, player* tar
 		hits1 = weapon1->getHitCount();
 		hits2 = weapon2->getHitCount();
 	}
-	for (unsigned char i = 0; i < hits1; i++) {
+	for (uint8_t i = 0; i < hits1; i++) {
 		weaponHit(weapon1, attacker, target);
 		if (i < hits2) {
 			weaponHit(weapon2, attacker, target);
@@ -2320,7 +2370,7 @@ void weaponDeclare(weapon* weapon1, weapon* weapon2, enemy* attacker) {
 	attacker->modifyProjectiles(weapon2->getProjectileChange());
 }
 
-unsigned char deathCheck(player* playerCharacter, enemy* opponent) {
+uint8_t deathCheck(player* playerCharacter, enemy* opponent) {
 	if (opponent->getHealth() <= 0 && opponent->getDeathSpell()->getReal()) {
 		cout << opponent->getName() << " is dead. On death, it casts " << opponent->getDeathSpell()->getName() << '\n';
 		spellCast(opponent->getDeathSpell(), playerCharacter);
@@ -2341,7 +2391,7 @@ unsigned char deathCheck(player* playerCharacter, enemy* opponent) {
 	return 0;
 }
 
-unsigned char battleMode() {
+uint8_t battleMode() {
 	bool done = false;
 	while (!done) {
 		cout << "To enable custom data, enter 1.\nTo play without custom data, enter 0.\n";
@@ -2371,7 +2421,7 @@ unsigned char battleMode() {
 		enemy opponent;
 		while (!done) {
 			while (!done) {
-				cout << "To give yourself a new piece of equipment, enter its blueprint name, prefixed by the first letter of its type and an underscore.\n(h_ for a helmet, t_ for a chestplate, l_ for leggings, f_ for footwear, w_ for a weapon, s_ for a spell)\nIf you wish not to add new equipment, enter EMPTY\n";
+				cout << "To give yourself a new piece of equipment, enter its blueprint name, prefixed by the first letter of its type and an underscore.\n(h_ for a helmet, t_ for a chest plate, l_ for leggings, f_ for footwear, w_ for a weapon, s_ for a spell)\nIf you wish not to add new equipment, enter EMPTY\n";
 				getline(cin, blueprintSelection);
 				if (blueprintSelection == "EMPTY") {
 					goto endEquip;
@@ -2388,8 +2438,8 @@ unsigned char battleMode() {
 				}
 				case 2:
 				{
-					armourTorso chesplate(blueprintSelection);
-					playerCharacter.equip(&chesplate);
+					armourTorso chestPlate(blueprintSelection);
+					playerCharacter.equip(&chestPlate);
 					break;
 				}
 				case 3:

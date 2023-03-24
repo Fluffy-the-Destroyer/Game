@@ -69,8 +69,8 @@
 	<poisonResistModifier>0.0</poisonResistModifier>
 	<bleedResistModifierEnemy>0.0</bleedResistModifierEnemy>
 	<bleedResistModifier>0.0</bleedResistModifier>
-	<constRegenModifierEnemy>0</constRegenModifierEnemy>
-	<constRegenModifier>0</constRegenModifier>
+	<turnRegenModifierEnemy>0</turnRegenModifierEnemy>
+	<turnRegenModifier>0</turnRegenModifier>
 	<battleRegenModifierEnemy>0</battleRegenModifierEnemy>
 	<battleRegenModifier>0</battleRegenModifier>
 	<flatArmourModifierEnemy>0</flatArmourModifierEnemy>
@@ -95,13 +95,15 @@
 	<propArmourPiercingDamageModifier>0.0</propArmourPiercingDamageModifier>
 	<evadeChanceModifierEnemy>0.0</evadeChanceModifierEnemy>
 	<evadeChanceModifier>0</evadeChanceModifier>
+	<counterAttackChanceModifierEnemy>0.0</counterAttackChanceModifierEnemy>
+	<counterAttackChanceModifier>0.0</counterAttackChanceModifier>
 	<bonusActionModifierEnemy>0</bonusActionModifierEnemy>
 	<bonusActionModifier>0</bonusActionModifier>
 	<cooldown>1</cooldown><!--Cooldown between uses, 1 allows use once each turn, 0 allows unlimited use, max value of 255-->
 	<spellType>0</spellType><!--Used for enemy AI, see top of file. If set to 0, will be determined automatically, but the logic for doing so is basic and not intended to be relied upon-->
 	<timing>0</timing><!--When the spell can be cast, see top of file-->
 	<counterSpell>0</counterSpell><!--Can the spell counter enemy attacks (prevent their effects), see top of file-->
-	<lifelink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
+	<lifeLink/><!--If present, caster will gain health equal to the flat damage dealt, defaults to false-->
 	<selfOverheal/><!--Allows the spell to overheal caster, defaults to false-->
 	<targetOverheal/><!--Allows it to overheal target, defaults to false-->
 	<upgrade>EMPTY</upgrade><!--The name of the blueprint containing the upgraded version. If this is EMPTY or omitted, it cannot be upgraded-->

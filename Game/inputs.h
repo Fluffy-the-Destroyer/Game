@@ -16,6 +16,8 @@ int numFromFile(std::istream* stream, player* playerCharacter);
 float floatFromFile(std::istream* stream);
 std::string stringFromFile(std::istream* stream, char end = '<');
 std::string removeEscapes(std::string in);
+//Adds escape characters
+std::string addEscapes(std::string in);
 
 //Moves to end of a comment
 void endComment(std::istream* stream);
