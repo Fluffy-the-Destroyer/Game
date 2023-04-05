@@ -33,31 +33,31 @@ protected:
 	std::string upgrade; //Upgraded version
 public:
 	//Get attributes
-	short getMaxHealthModifier() { return maxHealthModifier; }
-	short getMaxManaModifier() { return maxManaModifier; }
-	short getTurnManaRegenModifier() { return turnManaRegenModifier; }
-	short getBattleManaRegenModifier() { return battleManaRegenModifier; }
-	short getTurnRegenModifier() { return turnRegenModifier; }
-	short getBattleRegenModifier() { return battleRegenModifier; }
-	short getFlatArmourModifier() { return flatArmourModifier; }
-	float getPropArmourModifier() { return propArmourModifier; }
-	short getFlatMagicArmourModifier() { return flatMagicArmourModifier; }
-	float getPropMagicArmourModifier() { return propMagicArmourModifier; }
-	short getFlatDamageModifier() { return flatDamageModifier; }
-	float getPropDamageModifier() { return propDamageModifier; }
-	float getEvadeChanceModifier() { return evadeChanceModifier; }
-	float getPoisonResistModifier() { return poisonResistModifier; }
-	float getBleedResistModifier() { return bleedResistModifier; }
+	short getMaxHealthModifier() { return maxHealthModifier * real; }
+	short getMaxManaModifier() { return maxManaModifier * real; }
+	short getTurnManaRegenModifier() { return turnManaRegenModifier * real; }
+	short getBattleManaRegenModifier() { return battleManaRegenModifier * real; }
+	short getTurnRegenModifier() { return turnRegenModifier * real; }
+	short getBattleRegenModifier() { return battleRegenModifier * real; }
+	short getFlatArmourModifier() { return flatArmourModifier * real; }
+	float getPropArmourModifier() { return propArmourModifier * real; }
+	short getFlatMagicArmourModifier() { return flatMagicArmourModifier * real; }
+	float getPropMagicArmourModifier() { return propMagicArmourModifier * real; }
+	short getFlatDamageModifier() { return flatDamageModifier * real; }
+	float getPropDamageModifier() { return propDamageModifier * real; }
+	float getEvadeChanceModifier() { return evadeChanceModifier * real; }
+	float getPoisonResistModifier() { return poisonResistModifier * real; }
+	float getBleedResistModifier() { return bleedResistModifier * real; }
 	std::string getName();
 	std::string getDescription() { return description; }
-	short getFlatMagicDamageModifier() { return flatMagicDamageModifier; }
-	float getPropMagicDamageModifier() { return propMagicDamageModifier; }
-	short getFlatArmourPiercingDamageModifier() { return flatArmourPiercingDamageModifier; }
-	float getPropArmourPiercingDamageModifier() { return propArmourPiercingDamageModifier; }
-	float getCounterAttackChanceModifier() { return counterAttackChanceModifier; }
-	short getBonusActionsModifier() { return bonusActionsModifier; }
+	short getFlatMagicDamageModifier() { return flatMagicDamageModifier * real; }
+	float getPropMagicDamageModifier() { return propMagicDamageModifier * real; }
+	short getFlatArmourPiercingDamageModifier() { return flatArmourPiercingDamageModifier * real; }
+	float getPropArmourPiercingDamageModifier() { return propArmourPiercingDamageModifier * real; }
+	float getCounterAttackChanceModifier() { return counterAttackChanceModifier * real; }
+	short getBonusActionsModifier() { return bonusActionsModifier * real; }
 	bool getReal() { return real; }
-	short getInitiativeModifier() { return initiativeModifier; }
+	short getInitiativeModifier() { return initiativeModifier * real; }
 	std::string getUpgrade() { return upgrade; }
 	//Displays an armour piece's attributes, intended for use in an inventory or similar
 	void displayStats();

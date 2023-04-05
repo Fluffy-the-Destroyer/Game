@@ -87,7 +87,7 @@ public:
 	uint8_t getEffectType() { return effectType; }
 	bool getSelfOverHeal() { return selfOverHeal; }
 	bool getTargetOverHeal() { return targetOverHeal; }
-	short getFlatMagicDamageModifier() { return flatMagicDamageModifier; }
+	short getFlatMagicDamageModifier() { return flatMagicDamageModifier * real; }
 	std::string getUpgrade() { return upgrade; }
 	//Displays weapon stats
 	void displayStats();
