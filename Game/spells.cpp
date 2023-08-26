@@ -878,7 +878,7 @@ void spell::displayStats() {
 	}
 	//Bonus action modifier
 	if (bonusActionsModifier == 1) {
-		cout << "Gain an additional bonus action on hit\n";
+		cout << "Gain an additional bonus action on cast\n";
 	}
 	else if (bonusActionsModifier > 1) {
 		cout << "Gain " << bonusActionsModifier << " additional bonus actions on cast\n";
@@ -932,17 +932,17 @@ void spell::displayStats() {
 	cout << "Cooldown: " << +cooldown << '\n';
 	//Poison
 	if (poison > 0) {
-		cout << "Applies " << poison << " to target on hit\n";
+		cout << "Applies " << poison << " poison to target on hit\n";
 	}
 	else if (poison == -255) {
 		cout << "Removes all poison from target on hit\n";
 	}
 	else if (poison < 0) {
-		cout << "Removes " << poison << " from target on hit\n";
+		cout << "Removes " << -poison << " poison from target on hit\n";
 	}
 	//Self poison
 	if (selfPoison > 0) {
-		cout << "Applies " << selfPoison << " to user on cast\n";
+		cout << "Applies " << selfPoison << " poison to user on cast\n";
 	}
 	else if (selfPoison == -255) {
 		cout << "Removes all poison from user on cast\n";
@@ -1373,6 +1373,9 @@ bool spell::checkSelfEffect() {
 	if (turnManaRegenModifier != 0 || turnRegenModifier != 0) {
 		return true;
 	}
+	if (battleManaRegenModifier != 0 || battleRegenModifier != 0) {
+		return true;
+	}
 	if (poisonResistModifier != 0 || bleedResistModifier != 0) {
 		return true;
 	}
@@ -1405,6 +1408,9 @@ bool spell::checkTargetEffect() {
 		return true;
 	}
 	if (turnManaRegenModifierEnemy != 0 || turnRegenModifierEnemy != 0) {
+		return true;
+	}
+	if (battleManaRegenModifierEnemy != 0 || battleRegenModifierEnemy != 0) { 
 		return true;
 	}
 	if (poisonResistModifierEnemy != 0 || bleedResistModifierEnemy != 0) {

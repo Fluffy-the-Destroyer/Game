@@ -2371,22 +2371,25 @@ void weaponDeclare(weapon* weapon1, weapon* weapon2, enemy* attacker) {
 }
 
 uint8_t deathCheck(player* playerCharacter, enemy* opponent) {
-	if (opponent->getHealth() <= 0 && opponent->getDeathSpell()->getReal()) {
-		cout << opponent->getName() << " is dead. On death, it casts " << opponent->getDeathSpell()->getName() << '\n';
-		spellCast(opponent->getDeathSpell(), playerCharacter);
+	bool enemyDeathDisplayed = false;
+	if (opponent->getHealth() <= 0) {
+		if (opponent->getDeathSpell()->getReal()) {
+			cout << opponent->getName() << " is dead. On death, it casts " << opponent->getDeathSpell()->getName() << '\n';
+			enemyDeathDisplayed = true;
+			spellCast(opponent->getDeathSpell(), playerCharacter);
+		}
 		if (playerCharacter->getHealth() <= 0) {
 			cout << "You are dead\n";
 			return 2;
+		}
+		if (!enemyDeathDisplayed) {
+			cout << opponent->getName() << " is dead\n";
 		}
 		return 1;
 	}
 	if (playerCharacter->getHealth() <= 0) {
 		cout << "You are dead\n";
 		return 2;
-	}
-	if (opponent->getHealth() <= 0) {
-		cout << opponent->getName() << " is dead\n";
-		return 1;
 	}
 	return 0;
 }

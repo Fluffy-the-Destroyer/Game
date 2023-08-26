@@ -1088,7 +1088,7 @@ uint8_t enemy::chooseAction(uint8_t* slot1, uint8_t* slot2, uint8_t timing, stri
 				}
 			}
 			if (attackCheck()) {
-				switch (chooseAttack(slot1, slot2)) {
+				switch (chooseAttack(slot1, slot2, 3, false, firstTurn)) {
 				case 1:
 					currentBonusActions--;
 					return 1;
@@ -1109,7 +1109,7 @@ uint8_t enemy::chooseAction(uint8_t* slot1, uint8_t* slot2, uint8_t timing, stri
 				currentBonusActions--;
 				return 2;
 			}
-			switch (chooseAttack(slot1, slot2)) {
+			switch (chooseAttack(slot1, slot2, 3, false, firstTurn)) {
 			case 1:
 				currentBonusActions--;
 				return 1;
@@ -1247,9 +1247,11 @@ uint8_t enemy::chooseAction(uint8_t* slot1, uint8_t* slot2, uint8_t timing, stri
 			if (currentBonusActions <= 0) {
 				return 0;
 			}
-			if (chooseSpellCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
-				currentBonusActions--;
-				return 2;
+			if (checkCounter(2, itemName1)) {
+				if (chooseSpellCounterSpell(slot1, firstTurn)) { //Check for a spell to counter attack
+					currentBonusActions--;
+					return 2;
+				}
 			}
 			//Healing check
 			if (healingCheck()) {
@@ -1299,7 +1301,7 @@ uint8_t enemy::chooseAction(uint8_t* slot1, uint8_t* slot2, uint8_t timing, stri
 				}
 			}
 			if (attackCheck()) {
-				if (chooseSpell(1, slot1, 3, false, firstTurn) || chooseSpell(3,slot1,3,false,firstTurn)) {
+				if (chooseSpell(1, slot1, 3, false, firstTurn) || chooseSpell(3, slot1, 3, false, firstTurn)) {
 					currentBonusActions--;
 					return 2;
 				}
@@ -1469,7 +1471,7 @@ bool enemy::check(bool type, uint8_t slot, uint8_t timing, bool kamikaze, bool f
 		if (spells[slot].getHealthChange() < 0 && (health + spells[slot].getHealthChange() < 0 || !kamikaze && health + spells[slot].getHealthChange() == 0)) {
 			return false;
 		}
-		if (spells[slot].getManaChange() < 0 && mana + spells[0].getManaChange() < 0) {
+		if (spells[slot].getManaChange() < 0 && mana + spells[slot].getManaChange() < 0) {
 			return false;
 		}
 		if (spells[slot].getProjectileChange() < 0 && projectiles + spells[slot].getProjectileChange() < 0) {
@@ -1504,6 +1506,7 @@ bool enemy::check(bool type, uint8_t slot, uint8_t timing, bool kamikaze, bool f
 		simulateTurn();
 		if (health <= 0) { //Would die next turn
 			health = currentHealth;
+			maxHealth = currentMaxHealth;
 			poison = currentPoison;
 			bleed = currentBleed;
 			tempRegen = currentTempRegen;
@@ -1517,6 +1520,7 @@ bool enemy::check(bool type, uint8_t slot, uint8_t timing, bool kamikaze, bool f
 		if (firstTurn && initialSpell >= 0) {
 			if (!check(true, static_cast<uint8_t>(initialSpell), 0, true)) {
 				health = currentHealth;
+				maxHealth = currentMaxHealth;
 				poison = currentPoison;
 				bleed = currentBleed;
 				tempRegen = currentTempRegen;
@@ -1529,6 +1533,7 @@ bool enemy::check(bool type, uint8_t slot, uint8_t timing, bool kamikaze, bool f
 			}
 		}
 		health = currentHealth;
+		maxHealth = currentMaxHealth;
 		poison = currentPoison;
 		bleed = currentBleed;
 		tempRegen = currentTempRegen;
@@ -1717,8 +1722,12 @@ uint8_t enemy::chooseSuicide(uint8_t* selection1, uint8_t* selection2) {
 			return choice;
 		}
 		//Look for weapon
-		if (chooseWeapon(selection1, selection2, 0, true)) {
+		switch (chooseWeapon(selection1, selection2, 0, true)) {
+		case 1:
 			return 1;
+		case 3:
+			currentBonusActions--;
+			return 3;
 		}
 		//Look for utility, then healing
 		if (chooseSpell(3, selection1, 0, true) || chooseSpell(2, selection1, 0, true)) {
@@ -1726,8 +1735,12 @@ uint8_t enemy::chooseSuicide(uint8_t* selection1, uint8_t* selection2) {
 		}
 		return 0;
 	case 7: //Melee berserker
-		if (chooseWeapon(selection1, selection2, 0, true)) { //Check for weapon
+		switch (chooseWeapon(selection1, selection2, 0, true)) {
+		case 1:
 			return 1;
+		case 3:
+			currentBonusActions--;
+			return 3;
 		}
 		return 0;
 	}
@@ -1790,7 +1803,7 @@ bool enemy::check(uint8_t weapon1, uint8_t weapon2, uint8_t timing, bool kamikaz
 		}
 		break;
 	case 3:
-		if (currentBonusActions < 2 || weapons[weapon2].getCounterHits() == 0) {
+		if (currentBonusActions <= 1 || weapons[weapon2].getCounterHits() == 0) {
 			return false;
 		}
 		break;
@@ -1804,14 +1817,23 @@ bool enemy::check(uint8_t weapon1, uint8_t weapon2, uint8_t timing, bool kamikaz
 	modifyProjectiles(weapons[weapon1].getProjectileChange());
 	//Check costs of weapon2
 	if (weapons[weapon2].getHealthChange() < 0 && (health + weapons[weapon2].getHealthChange() < 0 || !kamikaze && health + weapons[weapon2].getHealthChange() == 0)) { //Cannot afford cost, or would die and kamikaze is false
+		health = currentHealth;
+		mana = currentMana;
+		projectiles = currentProjectiles;
 		return false;
 	}
 	//Mana cost
 	if (weapons[weapon2].getManaChange() < 0 && mana + weapons[weapon2].getManaChange() < 0) { //Cannot afford mana cost
+		health = currentHealth;
+		mana = currentMana;
+		projectiles = currentProjectiles;
 		return false;
 	}
 	//Projectile cost
 	if (weapons[weapon2].getProjectileChange() < 0 && projectiles + weapons[weapon2].getProjectileChange() < 0) { //Cannot afford projectile cost
+		health = currentHealth;
+		mana = currentMana;
+		projectiles = currentProjectiles;
 		return false;
 	}
 	//Can afford costs
@@ -1834,8 +1856,14 @@ bool enemy::check(uint8_t weapon1, uint8_t weapon2, uint8_t timing, bool kamikaz
 		propDamage(weapons[weapon1].getPropSelfDamage());
 		propDamage(weapons[weapon2].getPropSelfDamage());
 	}
-	flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), weapons[weapon1].getSelfOverHeal());
-	flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverHeal());
+	if (weapons[weapon1].getSelfOverHeal()) {
+		flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverHeal());
+		flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax(), true);
+	}
+	else {
+		flatDamage(weapons[weapon1].getFlatSelfDamageMax(), weapons[weapon1].getFlatSelfMagicDamageMax(), weapons[weapon1].getFlatSelfArmourPiercingDamageMax());
+		flatDamage(weapons[weapon2].getFlatSelfDamageMax(), weapons[weapon2].getFlatSelfMagicDamageMax(), weapons[weapon2].getFlatSelfArmourPiercingDamageMax(), weapons[weapon2].getSelfOverHeal());
+	}
 	if (health <= 0) {
 		health = currentHealth;
 		mana = currentMana;
