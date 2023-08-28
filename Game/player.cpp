@@ -1461,7 +1461,7 @@ void player::reset() {
 uint8_t player::chooseAction(uint8_t* slot1, uint8_t* slot2, string enemyName, const uint8_t timing, string itemName1, string itemName2) {
 	vector<short> choices(1, 0); //For holding a list of possible choices
 	const short currentHealth = health, currentMana = mana, currentProjectiles = projectiles;
-	short choiceCounter = 0;
+	bool actionChoices = false;
 	switch (timing) { //Check if there are no possible actions and return 0 if so
 	case 0:
 		break;
@@ -1473,10 +1473,11 @@ uint8_t player::chooseAction(uint8_t* slot1, uint8_t* slot2, string enemyName, c
 		}
 		for (uint8_t i = 0; i < spells.size(); i++) {
 			if (spells[i].getReal() && spells[i].getHitCount() > 0 && spells[i].getTiming() != 0) {
-				choiceCounter++;
+				actionChoices=true;
+				break;
 			}
 		}
-		if (choiceCounter == 0) {
+		if (!actionChoices) {
 			return 0;
 		}
 		break;
@@ -1486,15 +1487,19 @@ uint8_t player::chooseAction(uint8_t* slot1, uint8_t* slot2, string enemyName, c
 		}
 		for (uint8_t i = 0; i < weapons.size(); i++) {
 			if (weapons[i].getReal() && weapons[i].getCounterHits() > 0) {
-				choiceCounter++;
+				actionChoices=true;
+				break;
 			}
 		}
-		for (uint8_t i = 0; i < spells.size(); i++) {
-			if (spells[i].getReal() && spells[i].getCounterHits() > 0) {
-				choiceCounter++;
+		if (!actionChoices) {
+			for (uint8_t i = 0; i < spells.size(); i++) {
+				if (spells[i].getReal() && spells[i].getCounterHits() > 0) {
+					actionChoices = true;
+					break;
+				}
 			}
 		}
-		if (choiceCounter == 0) {
+		if (!actionChoices) {
 			return 0;
 		}
 		break;
