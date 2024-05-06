@@ -62,7 +62,7 @@ bool evalCond(string cond, player* playerCharacter) {
 	}
 	string cond1, cond2 = cond;
 	short var1 = 0, var2 = 0;
-	char op = '='; //= is ==, < is <, > is >, ! is !=, l is <=, g is >=, & is &&, | is ||
+	char op = '='; //= is ==, < is <, > is >, ! is !=, l is <=, g is >=
 	//Check for whole thing surrounded in brackets
 	if (cond2[0] == '(') {
 		cond1 = endBracket(&cond2);
@@ -129,8 +129,32 @@ bool evalCond(string cond, player* playerCharacter) {
 		return false;
 	}
 	var1 = numFromString(&cond, playerCharacter);
-
-	return false;
+	clearSpace(&cond);
+	if (cond.empty()) {
+		throw 1;
+	}
+	op = cond[0];
+	clearSpace(&cond);
+	var2 = numFromString(&cond, playerCharacter);
+	if (!cond.empty()) {
+		throw 1;
+	}
+	switch (op) {
+	case '=':
+		return var1 == var2;
+	case '<':
+		return var1 < var2;
+	case '>':
+		return var1 > var2;
+	case '!':
+		return var1 != var2;
+	case 'l':
+		return var1 <= var2;
+	case 'g':
+		return var1 >= var2;
+	default:
+		throw 1;
+	}
 }
 
 string endBracket(string* cond) {
